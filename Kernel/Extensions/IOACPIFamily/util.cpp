@@ -164,7 +164,7 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
                 struct LAPIC_RECORD * lr = (struct LAPIC_RECORD *) rec;
                 OSDictionary * dict = OSDictionary::withCapacity(7);
 
-                dict->setObject("device_type", OSString::withCString("processor"));
+                dict->setObject("device_type", OSString::withCString("cpu"));
                 dict->setObject("compatible", OSString::withCString("processor"));
                 dict->setObject("apic-id", OSNumber::withNumber(lr->lapic_id, 32));
                 dict->setObject("processor-id", OSNumber::withNumber(lr->proc_id, 32));

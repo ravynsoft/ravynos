@@ -155,7 +155,6 @@ static ACPIPrngBootstrap gACPIPrngBootstrap;
 
 ACPIPrngBootstrap::ACPIPrngBootstrap()
 {
-    kprintf("ACPIPrngBootstrap::ACPIPrngBootstrap()\n");
     bzero(&_ctx, sizeof(_ctx));
     bzero(&_funcs, sizeof(_funcs));
 
@@ -166,7 +165,6 @@ ACPIPrngBootstrap::ACPIPrngBootstrap()
     _funcs.generate = prng_generate;
 
     register_and_init_prng(&_ctx, &_funcs);
-    kprintf("Registered ACPI PRNG\n");
 }
 
 bool ACPIPlatformExpert::init(OSDictionary *properties) {
@@ -186,7 +184,6 @@ bool ACPIPlatformExpert::init(OSDictionary *properties) {
 bool ACPIPlatformExpert::start(IOService *provider) {
     setBootROMType(kBootROMTypeNewWorld);
 
-    kprintf("ACPIPlatformExpert::start(%p)\n", provider);
     if (!super::start(provider))
         return false;
 
@@ -200,7 +197,6 @@ bool ACPIPlatformExpert::start(IOService *provider) {
     registerService();
 
     // Directly instantiate a concrete host bridge so configurator addHostBridge can run.
-    PE_Log("Bootstrapping PCI host bridges");
     IORegistryIterator *iter = IORegistryIterator::iterateOver(
             gIOServicePlane, kIORegistryIterateRecursively);
     if (iter) {
@@ -251,7 +247,6 @@ bool ACPIPlatformExpert::start(IOService *provider) {
 bool
 ACPIPlatformExpert::parseACPI(IOService *provider) {
     IORegistryEntry *entry = IORegistryEntry::fromPath("/ACPI", gIODTPlane);
-    PE_Log("Start ACPI mapping(%p, %p)", entry, topLevel);
     if (!entry) {
         PE_Log("ACPI node not found in DT!");
         return false;
@@ -341,15 +336,12 @@ ACPIPlatformExpert::parseACPI(IOService *provider) {
 
      map->release();
      desc->release();
-
-     PE_Log("Finished parsing ACPI tables");
      return true;
 }
 
 bool ACPIPlatformExpert::configure(IOService *provider) {
     OSDictionary *dict;
     IOService * nub;
-    kprintf("ACPIPlatformExpert::configure(%p)\n", provider);
     if (!super::configure(provider)) return false;
     return true;
 }
@@ -369,29 +361,14 @@ ACPIPlatformExpert::createNub(OSDictionary *dict, IORegistryEntry *from) {
         osName = (OSString *)dict->getObject("IOName");
     const char * name = osName ? osName->getCStringNoCopy() : "unknown";
 
-    if (type && type->isEqualTo("processor")) {
-        nub = new ACPICPU();
+    if (type && (
+        type->isEqualTo("cpu") || type->isEqualTo("io-apic") ||
+        type->isEqualTo("pci") ))
+    {
+        nub = new IOService();
         if (!nub || !nub->init(dict)) {
-            PE_Log("Failed to create processor nub!");
+            PE_Log("Failed to create nub!");
             if (nub) nub->release();
-            return NULL;
-        }
-        nub->setName(name);
-    } else if (type && type->isEqualTo("io-apic")) {
-        IOService * device = new IOService();
-        nub = device;
-        if (!device || !device->init(dict)) {
-            PE_Log("Failed to create APIC nub!");
-            if (device) device->release();
-            return NULL;
-        }
-        nub->setName(name);
-    } else if (type && type->isEqualTo("pci")) {
-        IOService * device = new IOService();
-        nub = device;
-        if (!device || !device->init(dict)) {
-            PE_Log("Failed to create PCI nub!");
-            if (device) device->release();
             return NULL;
         }
         nub->setName(name);
