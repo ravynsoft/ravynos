@@ -268,7 +268,11 @@ CreatePrelinkedKernel(CFDataRef  kernelImage,
     for (int i = 0; i < count; ++i) {
         OSKextRef aKext = CFArrayGetValueAtIndex(loadList, i);
         if (aKext) {
+            const char *name = createUTF8CStringForCFString(aKext->bundleID);
+            if (!strncmp(name, "com.apple.kpi.", 14)) continue;
+            if (!strcmp(name, "com.apple.kernel")) continue;
             if (aKext->infoDictionary) {
+                fprintf(stdout, "Adding kext %s info dictionary to __BUILTIN\n", name);
                 CFArrayAppendValue(dicts, aKext->infoDictionary);
             }
         }
