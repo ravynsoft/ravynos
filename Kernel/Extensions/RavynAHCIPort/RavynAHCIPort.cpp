@@ -219,46 +219,30 @@ bool RavynAHCIPort::start(IOService *provider)
     PortState &portState = fPorts[firstDisk];
     bzero(&portState, sizeof(portState));
     portState.valid = true;
-    portState.port = (UInt32)firstDisk;
+    portState.port = (uint32_t)firstDisk;
 
-    UInt16 identifyData[256];
+    uint16_t identifyData[256];
     if (!identifyDevice(portState, identifyData)) {
         AHCI_Log("IDENTIFY failed on port %d", firstDisk);
         diskNub->release();
         return true;
     }
 
-    /* Sanity check: read LBA 0 and emit basic partition-signature info. */
-    UInt8 sector0[512];
-    const char *initialContentHint = NULL;
+    /* Sanity check: read LBA 0 (PMBR) and LBA 1 (Pri GPT) */
+    uint8_t sector0[512];
     if (!readDMAExt(portState, 0, 1, sector0, sizeof(sector0)))
         AHCI_Log("READ LBA0 failed for port %d", firstDisk);
     else {
-        const UInt16 mbrSig = (UInt16)sector0[510] | ((UInt16)sector0[511] << 8);
-        const UInt8 partType = sector0[446 + 4];
-        const UInt32 partLBA = (UInt32)sector0[446 + 8] |
-                               ((UInt32)sector0[446 + 9] << 8) |
-                               ((UInt32)sector0[446 + 10] << 16) |
-                               ((UInt32)sector0[446 + 11] << 24);
+        const uint16_t mbrSig = (uint16_t)sector0[510] | ((uint16_t)sector0[511] << 8);
+        const uint8_t partType = sector0[446 + 4];
+        const uint32_t partLBA = (uint32_t)sector0[446 + 8] |
+                               ((uint32_t)sector0[446 + 9] << 8) |
+                               ((uint32_t)sector0[446 + 10] << 16) |
+                               ((uint32_t)sector0[446 + 11] << 24);
         AHCI_Log("LBA0 MBR sig=0x%04x part0 type=0x%02x lba=%u", mbrSig, partType, partLBA);
-
-        if (memcmp(sector0 + 82, "FAT32   ", 8) == 0) {
-            initialContentHint = "DOS_FAT_32";
-        } else if (memcmp(sector0 + 54, "FAT16   ", 8) == 0) {
-            initialContentHint = "DOS_FAT_16";
-        } else if (memcmp(sector0 + 54, "FAT12   ", 8) == 0) {
-            initialContentHint = "DOS_FAT_12";
-        } else if ((partType == 0x0b || partType == 0x0c) && partLBA == 0) {
-            /* QEMU test media can present as a FAT partition table entry at LBA0. */
-            initialContentHint = "DOS_FAT_32";
-        }
-
-        if (initialContentHint) {
-            AHCI_Log("LBA0 detected content hint %s", initialContentHint);
-        }
     }
 
-    UInt8 sector1[512];
+    uint8_t sector1[512];
     if (!readDMAExt(portState, 1, 1, sector1, sizeof(sector1))) {
         AHCI_Log("READ LBA1 failed for port %d", firstDisk);
     } else {
@@ -268,14 +252,10 @@ bool RavynAHCIPort::start(IOService *provider)
         AHCI_Log("LBA1 signature='%.8s'", gptSig);
     }
 
-    if (!diskNub->initWithPort(this, (UInt32)firstDisk)) {
+    if (!diskNub->initWithPort(this, (uint32_t)firstDisk)) {
         AHCI_Log("Disk nub init failed for port %d", firstDisk);
         diskNub->release();
         return true;
-    }
-
-    if (initialContentHint) {
-        diskNub->setProperty(kIOMediaContentHintKey, initialContentHint);
     }
 
     if (!diskNub->attach(this)) {
@@ -284,8 +264,6 @@ bool RavynAHCIPort::start(IOService *provider)
         return true;
     }
 
-    /* Start the nub so IOKit considers it active before publishing it for
-     * driver matching (follows the IOPCIBridge / IOATAFamily pattern). */
     if (!diskNub->start(this)) {
         AHCI_Log("Disk nub start failed for port %d", firstDisk);
         diskNub->detach(this);
@@ -352,7 +330,7 @@ RavynAHCIPort::allocPortMemory(PortState &portState)
 {
     if (portState.mem) return true;
 
-    UInt64 physMask = (hbaRead32(AHCI_CAP) & AHCI_CAP_S64A)
+    uint64_t physMask = (hbaRead32(AHCI_CAP) & AHCI_CAP_S64A)
         ? 0xFFFFFFFFFFFFFFFFULL
         : 0x00000000FFFFF000ULL;
 
@@ -367,7 +345,7 @@ RavynAHCIPort::allocPortMemory(PortState &portState)
         return false;
     }
 
-    portState.memVirt = (volatile UInt8 *) portState.mem->getBytesNoCopy();
+    portState.memVirt = (volatile uint8_t *) portState.mem->getBytesNoCopy();
     portState.memPhys = portState.mem->getPhysicalAddress();
     bzero((void *) portState.memVirt, kPortMemBytes);
 
@@ -386,13 +364,13 @@ RavynAHCIPort::freePortMemory(PortState &portState)
 }
 
 bool
-RavynAHCIPort::stopPortEngine(UInt32 port)
+RavynAHCIPort::stopPortEngine(uint32_t port)
 {
-    UInt32 cmd = portRead32(port, PORT_CMD);
+    uint32_t cmd = portRead32(port, PORT_CMD);
     cmd &= ~PORT_CMD_ST;
     portWrite32(port, PORT_CMD, cmd);
 
-    for (UInt32 i = 0; i < 500; i++) {
+    for (uint32_t i = 0; i < 500; i++) {
         if ((portRead32(port, PORT_CMD) & PORT_CMD_CR) == 0)
             break;
         IOSleep(1);
@@ -402,7 +380,7 @@ RavynAHCIPort::stopPortEngine(UInt32 port)
     cmd &= ~PORT_CMD_FRE;
     portWrite32(port, PORT_CMD, cmd);
 
-    for (UInt32 i = 0; i < 500; i++) {
+    for (uint32_t i = 0; i < 500; i++) {
         if ((portRead32(port, PORT_CMD) & PORT_CMD_FR) == 0)
             return true;
         IOSleep(1);
@@ -414,9 +392,9 @@ RavynAHCIPort::stopPortEngine(UInt32 port)
 }
 
 bool
-RavynAHCIPort::startPortEngine(UInt32 port)
+RavynAHCIPort::startPortEngine(uint32_t port)
 {
-    UInt32 cmd = portRead32(port, PORT_CMD);
+    uint32_t cmd = portRead32(port, PORT_CMD);
     cmd |= PORT_CMD_FRE;
     portWrite32(port, PORT_CMD, cmd);
 
@@ -428,9 +406,9 @@ RavynAHCIPort::startPortEngine(UInt32 port)
 }
 
 bool
-RavynAHCIPort::resetPort(UInt32 port)
+RavynAHCIPort::resetPort(uint32_t port)
 {
-    UInt32 sctl = portRead32(port, PORT_SCTL);
+    uint32_t sctl = portRead32(port, PORT_SCTL);
     sctl &= ~PORT_SCTL_DET_MASK;
     sctl |= PORT_SCTL_DET_INIT;
     portWrite32(port, PORT_SCTL, sctl);
@@ -440,8 +418,8 @@ RavynAHCIPort::resetPort(UInt32 port)
     sctl |= PORT_SCTL_DET_NONE;
     portWrite32(port, PORT_SCTL, sctl);
 
-    for (UInt32 i = 0; i < AHCI_RESET_TIMEOUT_MS; i++) {
-        UInt32 ssts = portRead32(port, PORT_SSTS);
+    for (uint32_t i = 0; i < AHCI_RESET_TIMEOUT_MS; i++) {
+        uint32_t ssts = portRead32(port, PORT_SSTS);
         if (PORT_SSTS_DET(ssts) == PORT_SSTS_DET_PRESENT &&
             PORT_SSTS_IPM(ssts) == PORT_SSTS_IPM_ACTIVE) {
             return true;
@@ -455,10 +433,10 @@ RavynAHCIPort::resetPort(UInt32 port)
 }
 
 bool
-RavynAHCIPort::waitWhileBusy(UInt32 port, UInt32 timeoutMs)
+RavynAHCIPort::waitWhileBusy(uint32_t port, uint32_t timeoutMs)
 {
-    for (UInt32 i = 0; i < timeoutMs; i++) {
-        UInt32 tfd = portRead32(port, PORT_TFD);
+    for (uint32_t i = 0; i < timeoutMs; i++) {
+        uint32_t tfd = portRead32(port, PORT_TFD);
         if ((tfd & (PORT_TFD_BSY | PORT_TFD_DRQ)) == 0)
             return true;
         IOSleep(1);
@@ -476,13 +454,13 @@ RavynAHCIPort::rebasePort(PortState &portState)
     if (!stopPortEngine(portState.port)) return false;
 
     portWrite32(portState.port, PORT_CLB,
-                (UInt32)(portState.memPhys + kPortCLBOffset));
+                (uint32_t)(portState.memPhys + kPortCLBOffset));
     portWrite32(portState.port, PORT_CLBU,
-                (UInt32)((UInt64)(portState.memPhys + kPortCLBOffset) >> 32));
+                (uint32_t)((uint64_t)(portState.memPhys + kPortCLBOffset) >> 32));
     portWrite32(portState.port, PORT_FB,
-                (UInt32)(portState.memPhys + kPortFISOffset));
+                (uint32_t)(portState.memPhys + kPortFISOffset));
     portWrite32(portState.port, PORT_FBU,
-                (UInt32)((UInt64)(portState.memPhys + kPortFISOffset) >> 32));
+                (uint32_t)((uint64_t)(portState.memPhys + kPortFISOffset) >> 32));
 
     portWrite32(portState.port, PORT_IS,   0xFFFFFFFFU);
     portWrite32(portState.port, PORT_SERR, 0xFFFFFFFFU);
@@ -498,11 +476,11 @@ RavynAHCIPort::rebasePort(PortState &portState)
 
 bool
 RavynAHCIPort::issueCommand(PortState &portState,
-                            UInt8      ataCommand,
-                            UInt64     lba,
-                            UInt16     sectorCount,
+                            uint8_t      ataCommand,
+                            uint64_t     lba,
+                            uint16_t     sectorCount,
                             void     * buffer,
-                            UInt32     byteCount,
+                            uint32_t     byteCount,
                             bool       write)
 {
     if (!portState.memVirt || !buffer || byteCount == 0) return false;
@@ -519,13 +497,13 @@ RavynAHCIPort::issueCommand(PortState &portState,
 
     volatile AHCICmdHeader *hdr =
         (volatile AHCICmdHeader *)(portState.memVirt + kPortCLBOffset);
-    volatile UInt8 *tableBase = portState.memVirt + kPortCTOffset;
+    volatile uint8_t *tableBase = portState.memVirt + kPortCTOffset;
     volatile AHCIPhysRegionDesc *prd =
         (volatile AHCIPhysRegionDesc *)(tableBase + AHCI_CMD_TABLE_PRDT_OFFSET);
     volatile AHCIFIS_H2D *cfis = (volatile AHCIFIS_H2D *)tableBase;
-    volatile UInt8 *dmaBuf = portState.memVirt + kPortDMAOffset;
+    volatile uint8_t *dmaBuf = portState.memVirt + kPortDMAOffset;
 
-    const UInt32 dmaCapacity = kPortMemBytes - kPortDMAOffset;
+    const uint32_t dmaCapacity = kPortMemBytes - kPortDMAOffset;
     if (byteCount > dmaCapacity) {
         AHCI_Log("Command buffer too big: %u (max %u)", byteCount, dmaCapacity);
         unlock();
@@ -540,16 +518,16 @@ RavynAHCIPort::issueCommand(PortState &portState,
     bzero((void *)hdr, sizeof(AHCICmdHeader));
     bzero((void *)tableBase, AHCI_CMD_TABLE_SIZE);
 
-    hdr[0].cfl_flags = CMD_HDR_CFL(sizeof(AHCIFIS_H2D) / sizeof(UInt32));
+    hdr[0].cfl_flags = CMD_HDR_CFL(sizeof(AHCIFIS_H2D) / sizeof(uint32_t));
     if (write)
         hdr[0].cfl_flags |= CMD_HDR_WRITE;
     hdr[0].prdtl = 1;
     hdr[0].prdbc = 0;
-    hdr[0].ctba  = (UInt32)(portState.memPhys + kPortCTOffset);
-    hdr[0].ctbau = (UInt32)((UInt64)(portState.memPhys + kPortCTOffset) >> 32);
+    hdr[0].ctba  = (uint32_t)(portState.memPhys + kPortCTOffset);
+    hdr[0].ctbau = (uint32_t)((uint64_t)(portState.memPhys + kPortCTOffset) >> 32);
 
-    prd[0].dba  = (UInt32)(portState.memPhys + kPortDMAOffset);
-    prd[0].dbau = (UInt32)((UInt64)(portState.memPhys + kPortDMAOffset) >> 32);
+    prd[0].dba  = (uint32_t)(portState.memPhys + kPortDMAOffset);
+    prd[0].dbau = (uint32_t)((uint64_t)(portState.memPhys + kPortDMAOffset) >> 32);
     prd[0].dbc  = (byteCount - 1) | PRD_DBC_INT;
 
     cfis->type      = FIS_TYPE_H2D;
@@ -559,20 +537,20 @@ RavynAHCIPort::issueCommand(PortState &portState,
     cfis->featurel  = 0;
     cfis->featureh  = 0;
 
-    cfis->lba0 = (UInt8)(lba >> 0);
-    cfis->lba1 = (UInt8)(lba >> 8);
-    cfis->lba2 = (UInt8)(lba >> 16);
-    cfis->lba3 = (UInt8)(lba >> 24);
-    cfis->lba4 = (UInt8)(lba >> 32);
-    cfis->lba5 = (UInt8)(lba >> 40);
+    cfis->lba0 = (uint8_t)(lba >> 0);
+    cfis->lba1 = (uint8_t)(lba >> 8);
+    cfis->lba2 = (uint8_t)(lba >> 16);
+    cfis->lba3 = (uint8_t)(lba >> 24);
+    cfis->lba4 = (uint8_t)(lba >> 32);
+    cfis->lba5 = (uint8_t)(lba >> 40);
 
-    cfis->countl = (UInt8)(sectorCount & 0xFF);
-    cfis->counth = (UInt8)((sectorCount >> 8) & 0xFF);
+    cfis->countl = (uint8_t)(sectorCount & 0xFF);
+    cfis->counth = (uint8_t)((sectorCount >> 8) & 0xFF);
 
     portWrite32(portState.port, PORT_IS,   0xFFFFFFFFU);
     portWrite32(portState.port, PORT_SERR, 0xFFFFFFFFU);
 
-    UInt32 ci = portRead32(portState.port, PORT_CI);
+    uint32_t ci = portRead32(portState.port, PORT_CI);
     if (ci & 1U) {
         AHCI_Log("Slot 0 already active on port %u, CI=%08x",
                 portState.port, ci);
@@ -582,10 +560,10 @@ RavynAHCIPort::issueCommand(PortState &portState,
 
     portWrite32(portState.port, PORT_CI, 1U);
 
-    for (UInt32 i = 0; i < AHCI_TIMEOUT_MS; i++) {
-        UInt32 is    = portRead32(portState.port, PORT_IS);
-        UInt32 ciNow = portRead32(portState.port, PORT_CI);
-        UInt32 tfd   = portRead32(portState.port, PORT_TFD);
+    for (uint32_t i = 0; i < AHCI_TIMEOUT_MS; i++) {
+        uint32_t is    = portRead32(portState.port, PORT_IS);
+        uint32_t ciNow = portRead32(portState.port, PORT_CI);
+        uint32_t tfd   = portRead32(portState.port, PORT_TFD);
 
         if (is & PORT_IS_TFES) {
             AHCI_Log("Command 0x%02x failed port=%u IS=%08x TFD=%08x",
@@ -614,7 +592,7 @@ RavynAHCIPort::issueCommand(PortState &portState,
 }
 
 bool
-RavynAHCIPort::identifyDevice(PortState &portState, UInt16 *identifyWords512)
+RavynAHCIPort::identifyDevice(PortState &portState, uint16_t *identifyWords512)
 {
     if (!identifyWords512)
         return false;
@@ -646,10 +624,10 @@ RavynAHCIPort::identifyDevice(PortState &portState, UInt16 *identifyWords512)
 
 bool
 RavynAHCIPort::readDMAExt(PortState &portState,
-                          UInt64     lba,
-                          UInt32     sectorCount,
+                          uint64_t     lba,
+                          uint32_t     sectorCount,
                           void     * buffer,
-                          UInt32     bufferBytes)
+                          uint32_t     bufferBytes)
 {
     if (!buffer || sectorCount == 0)
         return false;
@@ -663,18 +641,18 @@ RavynAHCIPort::readDMAExt(PortState &portState,
     }
 
     /* Issue in chunks that fit the bounce buffer (128K) */
-    const UInt32 maxSectors = (kPortMemBytes - kPortDMAOffset) / 512u;
-    UInt8 *dst = (UInt8 *)buffer;
-    UInt32 remaining = sectorCount;
-    UInt64 curLBA    = lba;
+    const uint32_t maxSectors = (kPortMemBytes - kPortDMAOffset) / 512u;
+    uint8_t *dst = (uint8_t *)buffer;
+    uint32_t remaining = sectorCount;
+    uint64_t curLBA    = lba;
 
     while (remaining > 0) {
-        UInt32 chunk = (remaining > maxSectors) ? maxSectors : remaining;
-        UInt32 bytes = chunk * 512u;
+        uint32_t chunk = (remaining > maxSectors) ? maxSectors : remaining;
+        uint32_t bytes = chunk * 512u;
         if (!issueCommand(portState,
                           ATA_CMD_READ_DMA_EX,
                           curLBA,
-                          (UInt16)chunk,
+                          (uint16_t)chunk,
                           dst,
                           bytes,
                           false))
@@ -688,10 +666,10 @@ RavynAHCIPort::readDMAExt(PortState &portState,
 
 bool
 RavynAHCIPort::writeDMAExt(PortState &portState,
-                           UInt64     lba,
-                           UInt32     sectorCount,
+                           uint64_t     lba,
+                           uint32_t     sectorCount,
                            void     * buffer,
-                           UInt32     bufferBytes)
+                           uint32_t     bufferBytes)
 {
     if (!buffer || sectorCount == 0 || bufferBytes != sectorCount * 512u)
         return false;
@@ -701,18 +679,18 @@ RavynAHCIPort::writeDMAExt(PortState &portState,
         return false;
     }
 
-    const UInt32 maxSectors = (kPortMemBytes - kPortDMAOffset) / 512u;
-    UInt8 *src    = (UInt8 *)buffer;
-    UInt32 remaining = sectorCount;
-    UInt64 curLBA    = lba;
+    const uint32_t maxSectors = (kPortMemBytes - kPortDMAOffset) / 512u;
+    uint8_t *src    = (uint8_t *)buffer;
+    uint32_t remaining = sectorCount;
+    uint64_t curLBA    = lba;
 
     while (remaining > 0) {
-        UInt32 chunk = (remaining > maxSectors) ? maxSectors : remaining;
-        UInt32 bytes = chunk * 512u;
+        uint32_t chunk = (remaining > maxSectors) ? maxSectors : remaining;
+        uint32_t bytes = chunk * 512u;
         if (!issueCommand(portState,
                           ATA_CMD_WRITE_DMA_EX,
                           curLBA,
-                          (UInt16)chunk,
+                          (uint16_t)chunk,
                           src,
                           bytes,
                           true))
@@ -729,7 +707,7 @@ RavynAHCIPort::flushCache(PortState &portState)
 {
     if (!portState.lba48) return true;   /* no cache on very old devices */
     /* FLUSH CACHE EXT takes no LBA / count fields */
-    UInt8 dummy = 0;
+    uint8_t dummy = 0;
     return issueCommand(portState, ATA_CMD_FLUSH_EXT, 0, 0, &dummy, 1, false);
 }
 
@@ -740,36 +718,36 @@ RavynAHCIPort::flushCache(PortState &portState)
  * Uses a stack-allocated bounce buffer for chunks ≤ 128 KiB.
  */
 IOReturn
-RavynAHCIPort::doRead(UInt32               portIndex,
-                      UInt64               lba,
-                      UInt32               sectors,
+RavynAHCIPort::doRead(uint32_t               portIndex,
+                      uint64_t               lba,
+                      uint32_t               sectors,
                       IOMemoryDescriptor * buffer,
-                      UInt64               bufOff)
+                      uint64_t               bufOff)
 {
     if (portIndex >= 32 || !fPorts[portIndex].valid)
         return kIOReturnNoDevice;
 
     PortState &portState = fPorts[portIndex];
-    const UInt32 maxSectors = (kPortMemBytes - kPortDMAOffset) / 512u;
-    UInt32 remaining = sectors;
-    UInt64 curLBA    = lba;
-    UInt64 curOff    = bufOff;
+    const uint32_t maxSectors = (kPortMemBytes - kPortDMAOffset) / 512u;
+    uint32_t remaining = sectors;
+    uint64_t curLBA    = lba;
+    uint64_t curOff    = bufOff;
 
     /* Temporary heap bounce chunk (maxSectors × 512) */
-    UInt32 chunkBytes = maxSectors * 512u;
-    UInt8 *bounce = (UInt8 *)IOMalloc(chunkBytes);
+    uint32_t chunkBytes = maxSectors * 512u;
+    uint8_t *bounce = (uint8_t *)IOMalloc(chunkBytes);
     if (!bounce) return kIOReturnNoMemory;
 
     IOReturn ret = kIOReturnSuccess;
 
     while (remaining > 0) {
-        UInt32 chunk = (remaining > maxSectors) ? maxSectors : remaining;
-        UInt32 bytes = chunk * 512u;
+        uint32_t chunk = (remaining > maxSectors) ? maxSectors : remaining;
+        uint32_t bytes = chunk * 512u;
 
         if (!issueCommand(portState,
                           ATA_CMD_READ_DMA_EX,
                           curLBA,
-                          (UInt16)chunk,
+                          (uint16_t)chunk,
                           bounce,
                           bytes,
                           false))
@@ -798,30 +776,30 @@ RavynAHCIPort::doRead(UInt32               portIndex,
  * 'buffer' starting at byte offset 'bufOff'.
  */
 IOReturn
-RavynAHCIPort::doWrite(UInt32               portIndex,
-                       UInt64               lba,
-                       UInt32               sectors,
+RavynAHCIPort::doWrite(uint32_t               portIndex,
+                       uint64_t               lba,
+                       uint32_t               sectors,
                        IOMemoryDescriptor * buffer,
-                       UInt64               bufOff)
+                       uint64_t               bufOff)
 {
     if (portIndex >= 32 || !fPorts[portIndex].valid)
         return kIOReturnNoDevice;
 
     PortState &portState = fPorts[portIndex];
-    const UInt32 maxSectors = (kPortMemBytes - kPortDMAOffset) / 512u;
-    UInt32 remaining = sectors;
-    UInt64 curLBA    = lba;
-    UInt64 curOff    = bufOff;
+    const uint32_t maxSectors = (kPortMemBytes - kPortDMAOffset) / 512u;
+    uint32_t remaining = sectors;
+    uint64_t curLBA    = lba;
+    uint64_t curOff    = bufOff;
 
-    UInt32 chunkBytes = maxSectors * 512u;
-    UInt8 *bounce = (UInt8 *)IOMalloc(chunkBytes);
+    uint32_t chunkBytes = maxSectors * 512u;
+    uint8_t *bounce = (uint8_t *)IOMalloc(chunkBytes);
     if (!bounce) return kIOReturnNoMemory;
 
     IOReturn ret = kIOReturnSuccess;
 
     while (remaining > 0) {
-        UInt32 chunk = (remaining > maxSectors) ? maxSectors : remaining;
-        UInt32 bytes = chunk * 512u;
+        uint32_t chunk = (remaining > maxSectors) ? maxSectors : remaining;
+        uint32_t bytes = chunk * 512u;
 
         IOByteCount got = buffer->readBytes(curOff, bounce, bytes);
         if (got != bytes) {
@@ -832,7 +810,7 @@ RavynAHCIPort::doWrite(UInt32               portIndex,
         if (!issueCommand(portState,
                           ATA_CMD_WRITE_DMA_EX,
                           curLBA,
-                          (UInt16)chunk,
+                          (uint16_t)chunk,
                           bounce,
                           bytes,
                           true))
@@ -851,36 +829,36 @@ RavynAHCIPort::doWrite(UInt32               portIndex,
 }
 
 IOReturn
-RavynAHCIPort::doFlush(UInt32 portIndex)
+RavynAHCIPort::doFlush(uint32_t portIndex)
 {
     if (portIndex >= 32 || !fPorts[portIndex].valid)
         return kIOReturnNoDevice;
     return flushCache(fPorts[portIndex]) ? kIOReturnSuccess : kIOReturnIOError;
 }
 
-UInt64
-RavynAHCIPort::sectorCount(UInt32 portIndex) const
+uint64_t
+RavynAHCIPort::sectorCount(uint32_t portIndex) const
 {
     if (portIndex >= 32 || !fPorts[portIndex].valid) return 0;
     return fPorts[portIndex].sectorCount;
 }
 
 const char *
-RavynAHCIPort::modelString(UInt32 portIndex) const
+RavynAHCIPort::modelString(uint32_t portIndex) const
 {
     if (portIndex >= 32 || !fPorts[portIndex].valid) return "";
     return fPorts[portIndex].model;
 }
 
 const char *
-RavynAHCIPort::serialString(UInt32 portIndex) const
+RavynAHCIPort::serialString(uint32_t portIndex) const
 {
     if (portIndex >= 32 || !fPorts[portIndex].valid) return "";
     return fPorts[portIndex].serial;
 }
 
 const char *
-RavynAHCIPort::firmwareString(UInt32 portIndex) const
+RavynAHCIPort::firmwareString(uint32_t portIndex) const
 {
     if (portIndex >= 32 || !fPorts[portIndex].valid) return "";
     return fPorts[portIndex].firmware;
@@ -889,14 +867,14 @@ RavynAHCIPort::firmwareString(UInt32 portIndex) const
 void
 RavynAHCIPort::ataSwapString(char         * dst,
                              size_t         dstLen,
-                             const UInt16 * srcWords,
+                             const uint16_t * srcWords,
                              size_t         wordCount)
 {
     size_t out = 0;
     if (!dst || dstLen == 0) return;
 
     for (size_t i = 0; i < wordCount && (out + 1) < dstLen; i++) {
-        UInt16 w = srcWords[i];
+        uint16_t w = srcWords[i];
         char hi = (char)(w >> 8);
         char lo = (char)(w & 0xFF);
 
@@ -911,7 +889,7 @@ RavynAHCIPort::ataSwapString(char         * dst,
 }
 
 void
-RavynAHCIPort::parseIdentifyData(PortState &portState, const UInt16 *id)
+RavynAHCIPort::parseIdentifyData(PortState &portState, const uint16_t *id)
 {
     ataSwapString(portState.serial,
                   sizeof(portState.serial),
@@ -927,14 +905,14 @@ RavynAHCIPort::parseIdentifyData(PortState &portState, const UInt16 *id)
 
     if (portState.lba48) {
         portState.sectorCount =
-            ((UInt64)id[103] << 48) |
-            ((UInt64)id[102] << 32) |
-            ((UInt64)id[101] << 16) |
-            ((UInt64)id[100] <<  0);
+            ((uint64_t)id[103] << 48) |
+            ((uint64_t)id[102] << 32) |
+            ((uint64_t)id[101] << 16) |
+            ((uint64_t)id[100] <<  0);
     } else {
         portState.sectorCount =
-            ((UInt64)id[61] << 16) |
-            ((UInt64)id[60] <<  0);
+            ((uint64_t)id[61] << 16) |
+            ((uint64_t)id[60] <<  0);
     }
 
     AHCI_Log("port %u IDENTIFY ok", portState.port);

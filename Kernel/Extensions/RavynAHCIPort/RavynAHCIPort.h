@@ -49,28 +49,28 @@ public:
     void free() override;
 
     /* Public block I/O interface (called by RavynAHCIDisk) */
-    IOReturn doRead (UInt32 portIndex, UInt64 lba, UInt32 sectors,
-                     IOMemoryDescriptor *buffer, UInt64 bufOff);
-    IOReturn doWrite(UInt32 portIndex, UInt64 lba, UInt32 sectors,
-                     IOMemoryDescriptor *buffer, UInt64 bufOff);
-    IOReturn doFlush(UInt32 portIndex);
+    IOReturn doRead (uint32_t portIndex, uint64_t lba, uint32_t sectors,
+                     IOMemoryDescriptor *buffer, uint64_t bufOff);
+    IOReturn doWrite(uint32_t portIndex, uint64_t lba, uint32_t sectors,
+                     IOMemoryDescriptor *buffer, uint64_t bufOff);
+    IOReturn doFlush(uint32_t portIndex);
 
     /* Sector count reported by IDENTIFY */
-    UInt64 sectorCount(UInt32 portIndex) const;
+    uint64_t sectorCount(uint32_t portIndex) const;
 
     /* Strings from IDENTIFY */
-    const char *modelString   (UInt32 portIndex) const;
-    const char *serialString  (UInt32 portIndex) const;
-    const char *firmwareString(UInt32 portIndex) const;
+    const char *modelString   (uint32_t portIndex) const;
+    const char *serialString  (uint32_t portIndex) const;
+    const char *firmwareString(uint32_t portIndex) const;
 
 private:
     struct PortState {
         bool                       valid;
-        UInt32                     port;
+        uint32_t                   port;
         IOBufferMemoryDescriptor * mem;
-        volatile UInt8           * memVirt;
+        volatile uint8_t         * memVirt;
         IOPhysicalAddress          memPhys;
-        UInt64                     sectorCount;
+        uint64_t                   sectorCount;
         bool                       lba48;
         char                       model[41];
         char                       serial[21];
@@ -96,42 +96,51 @@ private:
 
     bool allocPortMemory(PortState &portState);
     void freePortMemory(PortState &portState);
-    bool stopPortEngine(UInt32 port);
-    bool startPortEngine(UInt32 port);
-    bool resetPort(UInt32 port);
+    bool stopPortEngine(uint32_t port);
+    bool startPortEngine(uint32_t port);
+    bool resetPort(uint32_t port);
     bool rebasePort(PortState &portState);
-    bool waitWhileBusy(UInt32 port, UInt32 timeoutMs);
+    bool waitWhileBusy(uint32_t port, uint32_t timeoutMs);
 
     bool issueCommand(PortState  &portState,
-                      UInt8       ataCommand,
-                      UInt64      lba,
-                      UInt16      sectorCount,
+                      uint8_t     ataCommand,
+                      uint64_t    lba,
+                      uint16_t    sectorCount,
                       void      * buffer,
-                      UInt32      byteCount,
+                      uint32_t    byteCount,
                       bool        write);
 
-    bool identifyDevice(PortState &portState, UInt16 *identifyWords512);
+    bool identifyDevice(PortState &portState, uint16_t *identifyWords512);
 
     /* Chunked DMA helpers (bounce-buffer based) */
     bool readDMAExt (PortState  &portState,
-                     UInt64      lba,
-                     UInt32      sectorCount,
+                     uint64_t    lba,
+                     uint32_t    sectorCount,
                      void      * buffer,
-                     UInt32      bufferBytes);
+                     uint32_t    bufferBytes);
     
     bool writeDMAExt(PortState  &portState,
-                     UInt64      lba,
-                     UInt32      sectorCount,
+                     uint64_t    lba,
+                     uint32_t    sectorCount,
                      void      * buffer,
-                     UInt32      bufferBytes);
+                     uint32_t    bufferBytes);
 
     bool flushCache  (PortState &portState);
 
-    void parseIdentifyData(PortState &portState, const UInt16 *id);
-    static void ataSwapString(char         * dst,
-                              size_t         dstLen,
-                              const UInt16 * srcWords,
-                              size_t         wordCount);
+    /*
+     * Read the primary GPT for this port and return a retained content hint
+     * string for the requested GPT entry index starting at 0.
+     * Returns NULL if GPT is absent/invalid, the entry is unused, or on I/O
+     * failure. The hint is used by AppleFileSystemDriver to match media.
+     */
+    OSString *copyGPTPartitionContentHint(PortState &portState,
+                                          uint32_t   partitionIndex);
+
+    void parseIdentifyData(PortState &portState, const uint16_t *id);
+    static void ataSwapString(char           * dst,
+                              size_t           dstLen,
+                              const uint16_t * srcWords,
+                              size_t           wordCount);
 };
 
 #endif /* _RAVYN_AHCI_PORT_H */

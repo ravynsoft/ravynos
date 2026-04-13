@@ -1248,7 +1248,7 @@ IOService::catalogNewDrivers( OSOrderedSet * newTables )
 	    "com.apple.iokit.IOStorageFamily",
         "com.apple.iokit.IOACPIFamily",
     };
-    OSSet *visited = OSSet::withCapacity(16);
+    OSSet *visited = OSSet::withCapacity(32);
 	for (const char *kextID : rootKexts) {
         OSKext *kext = OSKext::lookupKextWithIdentifier(kextID);
         if (!kext) {
@@ -4656,8 +4656,6 @@ IOService::checkResource( OSObject * matching )
 	} else if ((table = OSDynamicCast( OSDictionary, matching ))) {
 		table->retain();
 	} else {
-	    kprintf("%s: Can't match using: %s\n", getName(),
-    	    matching->getMetaClass()->getClassName());
 		IOLog("%s: Can't match using: %s\n", getName(),
 		    matching->getMetaClass()->getClassName());
 		/* false would stall forever */
