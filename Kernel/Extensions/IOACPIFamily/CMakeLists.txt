@@ -5,6 +5,8 @@ add_kext_bundle(IOACPIFamily
     BUNDLE_VERSION 1.0.0)
 
 target_sources(IOACPIFamily PRIVATE
+    ACPIRTC.cpp
+    EFINVRAM.cpp
     ACPICPU.cpp
     ACPIPCIBridge.cpp
     ACPIPlatformExpert.cpp

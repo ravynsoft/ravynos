@@ -46,6 +46,28 @@
 			<key>IOProviderClass</key>
 			<string>IOCPU</string>
 		</dict>
+		<key>ACPI RTC</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.apple.iokit.IOACPIFamily</string>
+			<key>IOClass</key>
+			<string>ACPIRTC</string>
+			<key>IOProviderClass</key>
+			<string>ACPIPlatformExpert</string>
+			<key>IOProbeScore</key>
+			<integer>9001</integer>
+		</dict>
+		<key>EFI NVRAM</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.apple.iokit.IOACPIFamily</string>
+			<key>IOClass</key>
+			<string>EFINVRAM</string>
+			<key>IOProviderClass</key>
+			<string>ACPIPlatformExpert</string>
+			<key>IOProbeScore</key>
+			<integer>9001</integer>
+		</dict>
 	</dict>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2026 ravynOS Project. All rights reserved.</string>

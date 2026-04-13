@@ -164,7 +164,7 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
                 struct LAPIC_RECORD * lr = (struct LAPIC_RECORD *) rec;
                 OSDictionary * dict = OSDictionary::withCapacity(7);
 
-                dict->setObject("device_type", OSString::withCString("cpu"));
+                dict->setObject("device_type", OSString::withCString("processor"));
                 dict->setObject("compatible", OSString::withCString("processor"));
                 dict->setObject("apic-id", OSNumber::withNumber(lr->lapic_id, 32));
                 dict->setObject("processor-id", OSNumber::withNumber(lr->proc_id, 32));
@@ -176,6 +176,7 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
                 IOService * aNub = createNub(dict);
                 if (aNub) {
                     aNub->attach(nub);
+                    aNub->start(nub);
                     aNub->registerService();
                     aNub->release();
                 }
@@ -205,6 +206,7 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
                 IOService * aNub = createNub(dict);
                 if (aNub) {
                     aNub->attach(nub);
+                    aNub->start(nub);
                     aNub->registerService();
                     aNub->release();
                 }
@@ -777,10 +779,10 @@ bool appendBridgeRange(uint8_t    * ranges,
 
 const char * ACPIPlatformExpert::deleteList( void )
 {
-    return "()";
+    return "(\"cpus\",\"PCI0\",\"PCI1\")";
 }
 
 const char * ACPIPlatformExpert::excludeList( void )
 {
-    return "(\"cpus\",\"PCI0\",\"PCI1\",\"ACPI\")";
+    return "(\"PCI0\",\"PCI1\",\"ACPI\")";
 }

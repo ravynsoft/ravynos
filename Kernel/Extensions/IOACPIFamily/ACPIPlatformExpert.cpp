@@ -46,6 +46,8 @@ extern "C" {
 
 #include "ACPIPlatformExpert.h"
 #include "AppleAPIC.h"
+#include "ACPIRTC.h"
+#include "EFINVRAM.h"
 
 const IORegistryPlane * gIOACPIPlane           = 0;
 const OSSymbol *        gIOACPIHardwareIDKey   = 0;
@@ -194,6 +196,35 @@ bool ACPIPlatformExpert::start(IOService *provider) {
     PE_halt_restart = handlePEHaltRestart;
     parseACPI(provider);
 
+    OSDictionary * dict = OSDictionary::withCapacity(4);
+    dict->setObject("compatible", OSString::withCString("IORTC"));
+    dict->setObject("name", OSString::withCString("rtc"));
+    dict->setObject("device_type", OSString::withCString("rtc"));
+    IOService * nub = createNub(dict, NULL);
+    if (nub) {
+        nub->setName("rtc");
+        nub->attach(provider);
+        nub->start(provider);
+        nub->release();
+    } else {
+        PE_Log("Failed to create RTC nub");
+    }
+
+    dict->release();
+    dict = OSDictionary::withCapacity(4);
+    dict->setObject("compatible", OSString::withCString("IONVRAM"));
+    dict->setObject("name", OSString::withCString("nvram"));
+    dict->setObject("device_type", OSString::withCString("nvram"));
+    nub = createNub(dict, NULL);
+    if (nub) {
+        nub->setName("nvram");
+        nub->attach(provider);
+        nub->start(provider);
+        nub->release();
+    } else {
+        PE_Log("Failed to create NVRAM nub");
+    }
+
     registerService();
 
     // Directly instantiate a concrete host bridge so configurator addHostBridge can run.
@@ -241,6 +272,29 @@ bool ACPIPlatformExpert::start(IOService *provider) {
         }
         iter->release();
     }
+
+    /* Publish the bootloader's boot-uuid DT property to IOResources
+       so AppleFileSystemDriver can start */
+    {
+        IORegistryEntry *chosen = IORegistryEntry::fromPath("/chosen", gIODTPlane);
+        if (chosen) {
+            OSData *uuidData = OSDynamicCast(OSData, chosen->getProperty("boot-uuid"));
+            if (uuidData) {
+                PE_Log("Publishing /chosen/boot-uuid to IOResources");
+                OSString *uuidString = OSString::withCString((const char *)uuidData->getBytesNoCopy());
+                if (uuidString) {
+                    IOService::publishResource("boot-uuid", uuidString);
+                    uuidString->release();
+                } else {
+                    PE_Log("Failed to publish boot-uuid to IOResources");
+                }
+            }
+            chosen->release();
+        } else {
+            PE_Log("/chosen not found in DT");
+        }
+    }
+
     return true;
 }
 
@@ -361,21 +415,23 @@ ACPIPlatformExpert::createNub(OSDictionary *dict, IORegistryEntry *from) {
         osName = (OSString *)dict->getObject("IOName");
     const char * name = osName ? osName->getCStringNoCopy() : "unknown";
 
-    if (type && (
-        type->isEqualTo("cpu") || type->isEqualTo("io-apic") ||
-        type->isEqualTo("pci") ))
-    {
-        nub = new IOService();
-        if (!nub || !nub->init(dict)) {
-            PE_Log("Failed to create nub!");
-            if (nub) nub->release();
-            return NULL;
-        }
-        nub->setName(name);
+    if (type && type->isEqualTo("processor")) {
+        nub = new ACPICPU();
+    } else if (type && type->isEqualTo("io-apic")) {
+        nub = new AppleAPIC();
+    } else if (type && type->isEqualTo("rtc")) {
+        nub = new ACPIRTC();
+    } else if (type && type->isEqualTo("nvram")) {
+        nub = new EFINVRAM();
     } else {
-        PE_Log("Unknown device '%s' in ACPI table, skipping", name);
+        nub = new IOService();
     }
-
+    if (!nub || !nub->init(dict)) {
+        PE_Log("Failed to create nub!");
+        if (nub) nub->release();
+        return NULL;
+    }
+    nub->setName(name);
     return nub;
 }
 
