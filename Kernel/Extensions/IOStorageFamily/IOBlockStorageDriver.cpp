@@ -1397,8 +1397,17 @@ IOBlockStorageDriver::instantiateMediaObject(UInt64 base,UInt64 byteSize,
                                         UInt32 blockSize,char *mediaName)
 {
     IOMediaAttributeMask attributes = 0;
+    const char *contentHint = "";
     IOMedia *m;
     bool result;
+
+    OSString *providerHint = OSDynamicCast(OSString,
+                                           getProvider()->getProperty(kIOMediaContentHintKey));
+    if (providerHint && providerHint->getLength())
+    {
+        const char *hint = providerHint->getCStringNoCopy();
+        if (hint)  contentHint = hint;
+    }
 
     m = instantiateDesiredMediaObject();
     if (m == NULL) {
@@ -1414,7 +1423,7 @@ IOBlockStorageDriver::instantiateMediaObject(UInt64 base,UInt64 byteSize,
                         attributes,		/* attributes */
                         true,			/* TRUE if whole physical media */
                         !_writeProtected,	/* TRUE if writable */
-        		"");			/* content hint */
+                        contentHint);			/* content hint */
 
     if (result) {
         const char *picture = "External.icns";
