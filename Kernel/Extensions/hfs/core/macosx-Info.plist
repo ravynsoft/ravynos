@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>hfs</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.apple.filesystems.hfs.kext</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>hfs.kext</string>
+	<key>CFBundlePackageType</key>
+	<string>KEXT</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.7</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>1.7</string>
+	<key>IOKitPersonalities</key>
+	<dict>
+		<key>com.apple.filesystems.hfs.kext</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.apple.filesystems.hfs.kext</string>
+			<key>IOClass</key>
+			<string>com_apple_filesystems_hfs</string>
+			<key>IOMatchCategory</key>
+			<string>com_apple_filesystems_hfs</string>
+			<key>IOProviderClass</key>
+			<string>IOResources</string>
+			<key>IOResourceMatch</key>
+			<string>IOBSD</string>
+		</dict>
+	</dict>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2015 Apple Inc. All rights reserved.</string>
+	<key>OSBundleLibraries</key>
+	<dict>
+		<key>com.apple.kpi.bsd</key>
+		<string>10.15</string>
+		<key>com.apple.kpi.iokit</key>
+		<string>10.15</string>
+		<key>com.apple.kpi.libkern</key>
+		<string>10.15</string>
+		<key>com.apple.kpi.mach</key>
+		<string>10.15</string>
+		<key>com.apple.kpi.private</key>
+		<string>10.15</string>
+		<key>com.apple.kpi.unsupported</key>
+		<string>10.15</string>
+		<key>com.apple.filesystems.hfs.encodings.kext</key>
+		<string>1.0</string>
+	</dict>
+	<key>OSBundleRequired</key>
+	<string>Local-Root</string>
+</dict>
+</plist>

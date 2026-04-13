@@ -1,0 +1,190 @@
+#
+#	File:		fsckFixDecompsNotes.txt
+#
+#	Contains:	Notes on fsckFixDecomps function and related tools
+#
+#	Copyright:	© 2002 by Apple Computer, Inc., all rights reserved.
+#
+#	CVS change log:
+#
+#		$Log: FixDecompsNotes.txt,v $
+#		Revision 1.2  2002/12/20 01:20:36  lindak
+#		Merged PR-2937515-2 into ZZ100
+#		Old HFS+ decompositions need to be repaired
+#		
+#		Revision 1.1.4.1  2002/12/16 18:55:22  jcotting
+#		integrated code from text group (Peter Edberg) that will correct some
+#		illegal names created with obsolete Unicode 2.1.2 decomposition rules
+#		Bug #: 2937515
+#		Submitted by: jerry cottingham
+#		Reviewed by: don brady
+#		
+#		Revision 1.1.2.1  2002/10/25 17:15:23  jcotting
+#		added code from Peter Edberg that will detect and offer replacement
+#		names for file system object names with pre-Jaguar decomp errors
+#		Bug #: 2937515
+#		Submitted by: jerry cottingham
+#		Reviewed by: don brady
+#		
+#		Revision 1.2  2002/10/16 20:17:21  pedberg
+#		Add more notes
+#		
+#		Revision 1.1  2002/10/16 06:53:54  pedberg
+#		[3066897, 2937515] Start adding notes about this code
+#		
+#	---------------------------------------------------------------------------
+
+Code provided per Radar #3066897 to fix bug #2937515.
+
+The Unicode decomposition used to date for HFS+ volumes - as described in
+  <http://developer.apple.com/technotes/tn/tn1150.html#CanonicalDecomposition>
+  <http://developer.apple.com/technotes/tn/tn1150table.html>
+- is based on a modified version of the decomposition rules for Unicode 2.1.2
+(but even those were not correctly implemented for certain combinations of
+multiple combining marks). Unicode has updated the decomposition and combining
+mark reordering rules and data many times since then, but they have locked them
+down for Unicode 3.1. This is because Unicode 3.1 is the basis of the Unicode
+normalization forms such as NFC and NFD. We began supporting these normalization
+formats in Jaguar.
+
+Because of this, the Apple Unicode cross-functional committee decided to do a
+one-time change to update the decomposition rules used for HFS+ volumes from the
+Unicode 2.1.2 rules to the Unicode 3.1 rules. TEC and the kernel encoding
+converters made this change in Jaguar. One other piece that was supposed to
+happen was an enhancement to fsck to convert filenames on HFS+ volumes from the
+old decomposition to the new.
+
+That fsck change did not happen in Jaguar, and as a result there are bugs such
+as 2937515 (in which users are seeing partial garbage for filenames). The update
+affects the decomposition of Greek characters - about 80 of them (18 of which
+correspond to characters in MacGreek). It also affects the decomposition of a
+few others: around 23 Latin-script characters and 18 Cyrillic characters (none
+of which correspond to anything in a traditional Mac encoding), 8 Arabic
+characters (5 of which do correspond to MacArabic characters), 16 Indic, Thai, &
+Lao characters (3 of which correspond to characters in Mac encodings). It also
+potentially affects the ordering of all combining marks.
+
+This directory contains code provided per 3066897 that fsck can use to address
+this problem for HFS+ volumes.
+
+----
+A. Data structure
+
+The data is organized into a two-level trie. The first level is a table that
+maps the high-order 12 bits of a UniChar to an index value. The value is -1 if
+no character with those high 12 bits has either a decomposition update or a
+nonzero combining class; otherwise, it is an index into an array of ranges that
+map the low 4 bits of the UniChar to the necessary data. There are two such
+arrays of ranges; one provides the mappings to combining class values, the other
+provides the mappings to decomposition update information. The latter is in the
+form of an index into an array of sequences that contain an action code, an
+optional list of additional characters that need to be matched for a complete
+sequence match (in the case where a 2-element or 3-element sequence needs to be
+updated), and the replacement decomposition sequence.
+
+There is one additional twist for the first-level trie table. Since the
+characters that have classor decomposition data are all either in the range
+0x0000-30FF or 0xFB00-FFFF, we can save 3K space in the table by eliminating the
+middle. Before looking up a UTF16 character in the table, we first add 0x0500 to
+it; the resulting shifted UniChar is in the range 0x0000-35FF. So if the shifted
+UniChar is >= 0x3600, we don't bother looking in the table.
+
+The table data is generated automatically by the fsckMakeDecompData tool; the
+sources for this tool contain an array with the raw data for characters that
+either have nonzero combining class or begin a sequence of characters that may
+need to be updated. The tool generates the index, the two range arrays, and the
+list of decomposition update actions.
+
+----
+B. Files
+
+* fsckDecompDataEnums.h contains enums related to the data tables
+
+* fsckMakeDecompData.c contains the raw data source; when this tool is compiled
+and run, it writes to standard output the contents of the binary data tables;
+this should be directed into a file fsckDecompData.h.
+
+* fsckFixDecomps.h contains the interface for the fsckFixDecomps function (and
+related types)
+
+* fsckFixDecomps.c contains the function code.
+
+----
+C. Function interface
+
+The basic interface (defined in fsckFixDecomps.h) is:
+
+Boolean fsckFixDecomps(	ConstHFSUniStr255Param inFilename, HFSUniStr255
+*outFilename );
+
+If inFilename needs updating and the function was able to do this without
+overflowing the 255-character limit, it returns 1 (true) and outFIlename
+contains the update file. If inFilename did not need updating, or an update
+would overflow the limit, the function returns 0 (false) and the contents of
+outFilename are undefined.
+
+The function needs a couple of types from Apple interface files (not standard C
+ones): HFSUniStr255 and Boolean. For now these are defined in fsckFixDecomps.h
+if NO_APPLE_INCLUDES is 1. For building with fsck_hfs, the appropriate includes
+should be put into fsckFixDecomps.h.
+
+For the record, hfs_format.h defines HFSUniStr255 as follows:
+
+struct HFSUniStr255 {
+	u_int16_t	length;			/* number of unicode characters */
+	u_int16_t	unicode[255];	/* unicode characters */
+};
+typedef struct HFSUniStr255 HFSUniStr255;
+typedef const HFSUniStr255 *ConstHFSUniStr255Param;
+
+----
+D. Function implementation
+
+Characters that don't require any special handling have combining class 0 and do
+not begin a decomposition sequence (of 1-3 characters) that needs updating. For
+these characters, the function just copies them from inFilename to outFilename
+and sets the pointer outNameCombSeqPtr to NULL (when this pointer is not NULL,
+it points to the beginning of a sequence of combining marks that continues up to
+the current character; if the current character is combining, it may need to be
+reordered into that sequence). The copying operation in cheap, and postponing it
+until we know the filename needs modification would make the code much more
+complicated.
+
+This copying operation may be invoked from many places in the code, some deeply
+nested - any time the code determines that the current character needs no
+special handling. For this reason it has a label (CopyBaseChar) and is located
+at the end of the character processing loop; various places in the code use goto
+statements to jump to it (this is a situation where they are justified).
+
+The main function loop has 4 sections.
+
+First, it quickly determines if the high 12 bits of the character indicate that
+it is in a range that has neither nonzero combining class nor any decomposition
+sequences that need updating. If so, the code jumps straight to CopyBaseChar.
+
+Second, the code determines if the character is part of a sequence that needs
+updating. It checks if the current character has a corresponding action in the
+replaceData array. If so, depending on the action, it may need to check for
+additional matching characters in inFilename. If the sequence of 1-3 characters
+is successfully matched, then a replacement sequence of 1-3 characters is
+inserted at the corresponding position in outFilename. While this replacement
+sequence is being inserted, each character must be checked to see if it has
+nonzero combining class and needs reordering (some replacement sequences consist
+entirely of combining characters and may interact with combining characters in
+the filename before the updated sequence).
+
+Third, the code handles characters whose high-order 12 bits indicated that some
+action was required, but were not part of sequences that needed updating (these
+may include characters that were examined in the second part but were part of
+sequences that did not completely match, so there are also goto fallthroughs to
+this code - labeled CheckCombClass - from the second part). These characters
+have to be checked for nonzero combining class; if so, they are reordered as
+necessary. Each time a new nonzero class character is encountered, it is added
+to outFIlename at the correct point in any active combining character sequence
+(with other characters in the sequence moved as necessary), so the sequence
+pointed to by outNameCombSeqPtr is always in correct order up to the current
+character.
+
+Finally, the fourth part has the default handlers to just copy characters to
+outFilename.
+

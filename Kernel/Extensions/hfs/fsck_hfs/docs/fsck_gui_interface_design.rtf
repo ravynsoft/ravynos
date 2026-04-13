@@ -1,0 +1,881 @@
+{\rtf1\mac\ansicpg10000\cocoartf824\cocoasubrtf330
+{\fonttbl\f0\fnil\fcharset77 LucidaGrande-Bold;\f1\fnil\fcharset77 LucidaGrande;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue255;\red255\green0\blue0;}
+{\info
+{\author Puja Gupta}
+{\*\company Apple Computer}}\margl1440\margr1440\vieww17160\viewh15500\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b\fs36 \cf0 \ul \ulc0 FSCK - GUI CLIENT INTERFACE DESIGN
+\fs24 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f1\b0 \cf0 \ulnone Last Modified: 04/06/2006.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 \
+The documents uses fsck collectively for any file system check programs like fsck_hfs, fsck_msdos, fsck_ufs, etc.  Any GUI client like Disk Utility that displays the output of fsck in GUI or parses the GUI output of fsck is termed as GUI or client.\
+\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b\fs32 \cf0 \ul AIMS
+\fs24 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 \ulnone This document describes the design of interaction interface between fsck and any GUI client (like Disk Utility or other program).  The aims for this change are:\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 \
+1. Provide flexibility in fsck to add/change message strings in the fsck output after the project's UI freeze.\
+	a. 	Make it possible to hide extra details of disk verify/repair operation from normal user.\
+	b.	Provide all details of disk verify/repair\'caoperation for expert users, developers, AppleCare when required.\
+\
+2. Provide a sustainable and extensible interface for communication between fsck and client.\
+	a.	Standardize the message format sent from fsck to client.\
+	b.	Provide more information like type of operation, name of corruption files in the message being sent from fsck to client. 	c.	Provide flexibility to add a new message type or information from fsck to client easily.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 3. Provide an output that other tools can parse.\
+	a.	Standardized output for general messages (verifying, repairing, success/fail result, etc.)\
+	b.	Tools need not know the file system type in order to parse the output\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 4. Be able to support file systems whose fsck behaves differently than fsck_hfs.\
+	a.	Make their messages localizable in Disk Utility\
+    	b.	Make their output look more like fsck_hfs (user interface consistency)\
+	c.	Allow ] reporting\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b \cf0 Description
+\f1\b0 \
+If we look closely, requirement (1a) contradicts (1b).\'ca Therefore we propose a multi-level fsck GUI output which will tag every message from fsck with a verbosity level.  This is described in more details later with example.\cf2 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 The design aims towards an independent interface between fsck and client which does not require string comparison and provide more information about the type of message being sent from fsck.  Due to ease of extensibility, we use XML format.  The output generated will be well-formed and valid XML format.  If a client wants to display the output of fsck in realtime, it will have to parse the XML output in real time.  Note that all fsck will generate this output on a -g option (GUI option).\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 fsck will generate an XML output with a standard set of XML tags for achieving a sustainable and extensible communication interface.  All fscks will generate similar XML output which the client will be able to parse.  If a new message is added to fsck which belongs to existing message type, no change in the client code will be required.  If a new message is added to fsck which does not belong to existing message types, a new XML tag will be created and the client will have to change to recognize it.  \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 Aims (3) and (4) are bonus as (3) is similar to aim (2) and will be achieved if we fix (2).  Aim (4) deals more with standardizing multiple fscks (fsck_hfs, fsck_msdos, fsck_ufs, etc).  In the process of converting fscks to the new format described in this design document, we will be achieving (4) (except for 4c).\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b\fs32 \cf0 \ul MUTLI-LEVEL FSCK GUI OUTPUT
+\fs30 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f1\b0\fs24 \cf0 \ulnone All messages sent by fsck to client will have a verbosity level associated with it.  The verbosity level allows a client to filter its output; for example, it might choose to only show level 0 messages to a naive user, but log messages of all levels.\cf2 \
+\cf0 \
+Currently there will be two verbosity levels of client output:\
+a. level 0 or default level and \
+b. level 1 or expert level.\
+\
+Verbosity level 0 includes generic status messages such as verify, repair, success and fail.  The text of the  message displayed in level 0 will be consistent across all volume types.  Each message has a unique positive number so that engineering or technical support can identify the message even if it has been localized.  The message numbers at level 0 will be consistent across all volume types.  Verbosity level 1 provides details about the verify and repair operation including error messages.  Every volume format will define the message text and message number displayed in level 1 independent from other volume formats.  \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 \ul \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs28 \cf0 VERBOSITY LEVEL 0:
+\f1\b0\fs24 \ulnone \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b \cf0 What strings must be in level 0?
+\f1\b0 \
+1. Strings that indicate generic status of verify/repair operation and its final result independent of file system type.\
+2. Strings that display information about how repair operation has changed the user-level view of the file system and its data.    \
+3. Strings that make sense to grandma-like users.\
+\
+
+\f0\b Where do level 0 strings exist?
+\f1\b0 \
+All level 0 strings are pre-defined, and all fscks must use these pre-defined strings for all level 0 output.  No other strings must be identified as level 0.  Any given fsck may output only a subset of the level 0 strings.   Similar to level 0 strings, level 0 message numbers are also pre-defined and all fscks must use these pre-defined values.\
+\
+
+\f0\b What are the valid message numbers for level 0 strings?
+\f1\b0 \
+All level 0 strings will have pre-defined values for message numbers.  The message numbers in range 1-99 are reserved for level 0 strings. \
+\
+The pre-defined level 0 strings and message numbers will be located in common location and will be localized.\
+\
+
+\f0\b Which are the common strings?
+\f1\b0 \
+	"Checking volume.",\
+\'ca \'ca 	"Rechecking volume.",\
+\'ca 	"Repairing volume.",\
+\'ca \'ca 	"The volume appears to be OK.",\
+\'ca \'ca 	"The volume was repaired successfully.", \
+\'ca \'ca 	"The volume could not be verified completely.",\
+	"The volume could not be verified completely and can not be repaired.",\
+	"The volume was found corrupt and can not be repaired.",\
+	"The volume was found corrupt and needs to be repaired.",\
+   	"The volume could not be repaired.", \
+
+\f0\b 	
+\f1\b0 "The volume cannot be repaired when it is in use.",\
+    	"The volume cannot be verified when it is in use.",\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0     	"%s may be damaged.",\
+    	"%s could not be repaired.",\
+	"Look for missing items in %s directory.",\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b \cf3 	
+\f1\b0 \cf0 "Look for links to corrupt files in %s directory."\
+\
+(Note: We can come up with user-friendly versions of the above strings).\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b \cf0 Note:
+\f1\b0 \
+	1. The above messages are classified in different types (described later).\
+	2. All\'cafsck must print "Repairing volume" in level 0 when it starts the first repair on the disk.  \
+	3. The parameter in the following messages must be a file system object and of type "path" (described later):\
+		"%s may be damaged."  \
+	    	"%s could not be repaired."  \
+	4. The set of pre-defined strings do not have a parameter for volume name in its strings because all file systems do not require a volume to have a volume name.  This means that we will have to support two incarnations of every strings - one with volume name and one without volume name.  Therefore we choose not to display volume name in level 0 strings.  \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 \ul Example:\ulnone   The new output in verbosity level 0 in client will be:\
+Checking volume.\
+File /Users/foo/myfile may be damaged.\
+File /Users/bar/otherfile may be damaged.\
+Repairing volume.\
+Look for links to corrupt files in DamagedFiles directory.\
+Rechecking volume.\
+The volume was repaired successfully.\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b \cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs28 \cf0 \ul VERBOSITY LEVEL 1:
+\f1\b0\fs24 \ulnone \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b \cf0 What strings must be in level 1?
+\f1\b0 \
+1. All file system specific messages for detailed information about verify/repair operation as well as error messages.\
+\
+Level 1 includes messages like verify, repair, error, debug, etc.  The text of message will be chosen by fsck implementation and will be independent across different file system types.   Every unique message string displayed in this level will have a unique number associated with it.  Every implementation of fsck can choose any unique number independently.  Therefore a message number 234 in fsck_hfs might not mean the same message for message number 234 in fsck_msdos.  But once a message number is defined, its meaning must not be changed in future versions.  The location of level 1 strings and message numbers of every file system is left to individual fsck implementation.\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 The strings displayed in level 0 do not support volume name.  All fsck must send details about fsck and corresponding file system it is verifying/repairing including volume name to  the client.  A message number 100 is reserved for this message.  This is described in more detail in message type INFORMATION.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b \cf0 What are the valid message numbers for level 1 strings?
+\f1\b0 \
+Numbers 1-99 are reserved for level 0 strings.  Message number 100 is reserved for fsck information message (described later).  fsck can choose a positive number greater than 100 for level 1 strings.\
+\
+Example:  Listed below is an example fsck output.  The message string is prefixed by the message number.  Note that the numbers displayed are currently representative numbers and may not be same after implementation.  Level 1 messages are distinguished from level 0 message with an extra tab on the output line.  Note that this is not the literal fsck output and indentation is only to distinguish between different levels.  It does not represent the way in which fsck or client should display their output.\cf2 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 \
+045 Checking volume.
+\f0\b \
+
+\f1\b0 	101 Checking HFS Plus volume.\
+	102 Checking Extents Overflow file.\
+	103 Checking Catalog file.\
+	500 Incorrect block count for file 1\
+	559 (It should be 1266 instead of 1272)  \
+	511 Overlapped extent allocation (file 1203 /Users/foo/myfile)\
+	055 File /Users/foo/myfile may be damaged.\
+	511 Overlapped extent allocation (file 1203 /Users/bar/otherfile)\
+	055 File /Users/foo/myfile may be damaged.\
+	104 Checking Catalog hierarchy.\
+	106 Checking volume bitmap.\
+	556 Volume Bit Map needs minor repair\
+	108 Checking volume information.\
+	554 Invalid volume free block count\
+	559 (It should be 235411 instead of 235405)\
+	600 Verify Status: VIStat = 0xa800, ABTStat = 0x0000 EBTStat = 0x0000 CBTStat = 0x0000 CatStat = 0x0020\
+013 Repairing volume.\
+019 Rechecking volume.\
+	101 Checking HFS Plus volume.\
+	102 Checking Extents Overflow file.\
+	103 Checking Catalog file.\
+	104 Checking Catalog hierarchy.\
+	106 Checking volume bitmap.\
+	108 Checking volume information.\
+016 The volume was repaired successfully.\
+\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b\fs32 \cf0 \ul XML COMMUNICATION INTERFACE
+\f1\b0\fs24 \ulnone \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 fsck will generate an XML output only when called with "-g" option for GUI output.\cf2   \cf0 A message is a set of information like message type, message string, message number, etc which describes state/action of fsck.   The XML chosen will be the standard plist ("Property List") uncompressed format.  Each message will begin with "<plist version=\\"1.0\\">", and each message will end with "</plist>\\n".  Newlines may appear between the two tags.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b\fs28 \cf0 \ul XML KEYS
+\fs24 \ulnone \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 The producer and consumer for XML format must agree on the XML tags (or keys) that they recognize.  These keys will be provided as a part of common header file in /usr/local/include/fsck_common.h.\
+\
+\pard\pardeftab720\ql\qnatural
+\cf0 The output consists of a single <plist> element which shall contain a single <dict> (dictionary) element.\'ca Inside that element are one or more <key> elements.  Messages always have one key with the name "fsck_type."  The messages describing percent progress have a value of "fsck_progress" for the "fsck_type" key.  All other types of messages have several keys, including "verbosity", "fsck_msg_number", "fsck_msg_string" and an optional "parameter".\'ca The parameter element has a value component that is an array; each element of the array may be a <string> or <integer>, or a <dict> with a single key-value pair.\
+\
+Details about different keys are as follows:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 fsck_type
+\f1\b0 \
+	This key describes the type of the message being sent.  Different types of messages are described in detail later.\
+	This key-value pair is required in a message.\
+\
+
+\f0\b fsck_progress\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 	This key describes the percentage progress of the verify/repair operation.\cf3   \cf0 The value for this key indicates a non-negative integer with a value between 0 and 100.\
+	This key is the only key that must be present in the progress indicator messages (except "type") and must exist only as child of "message". This key must not exist in any other type of messages.  \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 fsck_msg_string  \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 	This key describes the string that needs to be displayed in the client.  Some message strings will require parameter substitutions which is described in detail later.  The associated value is a <string> object.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 fsck_msg_number  \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 	This key describes the message number associated with the "msg_string" in the message.   This message number is an unique unsigned 32-bit integer for every unique string.  Every implementation of fsck can choose any unique number independently.  All message numbers sent by fsck will be positive integer.  Therefore a message number 234 in fsck_hfs might not mean the same message for message number 234 in fsck_msdos.   The associated value is an <integer> object.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 fsck_verbosity
+\f1\b0 \
+	This key describes the verbosity level in which the current message must be displayed in the client.  This key-value pair must be sent by fsck with an exception of messages for percentage progress indicator.  The verbosity level will be described as an <integer> object.\
+\
+
+\f0\b parameters
+\f1\b0 \
+	fsck does not localize strings itself but sends the strings in the same format as they exist in localized files (i.e. without parameters) to the client.   This key describes the parameters to substitute instead of "%@" or "%n$@" where 'n' is the parameter number generated in localized strings in the message strings in "msg_string".   A message string can have multiple parameters therefore the values are sent in the order they must be replaced.  The value associated with this key is an <array>; the elements of the array may be <string> or <integer>, or they may be <dict> objects with a single <key> and a corresponding value of either a <string> or an <integer>.\
+	This key is optional; if present, it may contain no elements.\
+\
+
+\f0\b fstype
+\f1\b0 \
+	This key describes the type of file system being checked by fsck as a UTF-8 string.  The value can also specify a sub-type of file system to provide details.  For example, fsck_hfs  can send the values for this key as "HFS+", "Journaled HFS+",  "Case-sensitive Journaled HFS+", etc.  Every fsck implementation can choose the text of the string to be displayed.\
+	This key-value pair is optional.\
+	\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 \ul XML FORMAT\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 \ulnone The output generated by fsck will be well-formed and valid plist XML format.  If a client wants to display the output of fsck in realtime, it will have to parse the XML output in real time.  The start tag for each individual message will be "<plist version=\\"1.0\\">"; the end tag will be "</plist>\\n"; there may be zero more newlines between the tags.  There will be only one newline between two different messages and the client must not assume any extra newlines (i.e. between </plist> and the next <plist version=\\"1.0\\">).\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 \ul SUMMARY OF REQUIRED AND OPTIONAL KEY-VALUE PAIRS
+\f1\b0 \ulnone \
+Listed below are the required key-value pairs in the messages.  Any other key-value pair are optional.
+\f0\b \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 \ul \
+For all messages:\ulnone \
+fsck_type\
+\ul \
+For percent progress indicator messages:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 \ulnone fsck_type\
+parameters\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 \ul For all other messages:\ulnone \
+fsck_msg_string\
+fsck_msg_number\
+fsck_verbosity\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 \ul SUMMARY OF RELATIONSHIP BETWEEN DIFFERENT KEYS
+\f1\b0 \ulnone \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 \ul For percent progress indicator messages:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 \ulnone plist\
+	|- dict\
+		|- fsck_type\
+		|- parameters\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 \ul For all other messages:\ulnone \
+plist\
+	|- dict\
+		|- fsck_type\
+		|- fsck_verbosity\
+		|- fsck_msg_number\
+		|- fsck_msg_string\
+		|- parameters\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b\fs32 \cf0 \ul MESSAGE TYPES
+\fs24 \ulnone \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 The messages sent from fsck can be classified into eight types.  A message can only belong to one message type.  The sequence of messages sent by fsck to client is independent of the type of message.  Client must not expect any particular order of messages, like a repair message always preceded by a verify  message.  \
+\
+fsck must classify the messages based on the following guildelines and must send correct message type to the client.  For example, fsck must never send any repair message to client if no repairs were ever performed on the disk.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 1. VERIFY\
+\pard\pardeftab720\ql\qnatural
+
+\f1\b0 \cf0 \'ca\'ca \'caThis type indicates that fsck is performing a read-only operation to either check or to prepare to check the file system. \'ca\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 	Some fsck support option "-n" and "-y" to force answers like "no" and "yes" for any intermediate questions asked during verify operation.  This message type is independent of these options and must only be sent for message string describing read-only check.  \
+	This is an optional message type as fsck implementation can choose to repair a volume directly.  This message type can exist in all verbosity levels.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 Example:\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>VERIFY</string>\
+		<key>fsck_verbosity</key> <integer>0</integer>\
+		<key>fsck_msg_number</key> <integer> 101 </integer>\
+		<key>fsck_msg_string</key> <string>Checking volume.</string>\
+	</dict>\
+</plist>\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 2. REPAIR\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 	This type indicates that fsck is writing to file system to repair a corruption.  \
+	This type does not describe messages when fsck is writing to file system for any other reason than repairing the file system.  These type of messages are classified as information messages (described later).  For example, if the disk has a "last verified date" that is updated even if no problems are found.\'ca Or a journal might be replayed, and no errors are subsequently found.\
+	Some fsck support option "-n" and "-y" to force answers like "no" and "yes" for any intermediate questions asked during repair operation.  This message type is independent of these options and must only be sent for message string describing write operation on the file system.  All\'cafsck must print "Repairing volume" in verbosity level 0 when it starts the first repair on the disk.\
+	This is an optional message type as repairing a file system is not required always.  This message type can exist in all verbosity levels.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 Example:\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>REPAIR</string>\
+		<key>fsck_verbosity</key> <integer>0</integer>\
+		<key>fsck_msg_number</key> <integer>113</integer>\
+		<key>fsck_msg_string</key><string>Repairing volume.</string>\
+	</dict>\
+</plist>\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b \cf0 3. SUCCESS\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f1\b0 \cf0 	  This type indicates one of the following:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 		1. verify operation succeeded and found that the volume is clean.\
+		2. repair operation has repaired the volume successfully.\
+    	The last message output by fsck must be of type SUCCESS or FAIL, to indicate whether the verify or repair operation completed successfully.\'ca No other message may be of type SUCCESS or FAIL.  This message type must have verbosity level 0.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 Example:\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key><string>SUCCESS</string>\
+		<key>fsck_verbosity</key><integer>0</integer>\
+		<key>fsck_msg_number</key> <integer>116</integer>\
+		<key>fsck_msg_string</key><string>Volume was repaired successfully.</string>\
+	</dict>\
+</plist>\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b \cf0 4. FAIL
+\f1\b0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 	This type indicates one of the following:\
+		1. fsck was told to verify but not repair and has found that the volume is corrupt\
+		2. verify operation was not completed due to error and fsck cannot determine if the volume is clean or corrupt.\
+		3. repair operation has failed.\
+	The last message output by fsck must be of type SUCCESS or FAIL, to indicate whether the verify or repair operation completed successfully.\'ca No other message may be of type SUCCESS or FAIL.  This message type must have verbosity level 0.\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 \
+Example:\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>FAIL</string>\
+		<key>fsck_verbosity</key> <integer>0</integer>\
+		<key>fsck_msg_number</key> <integer>113</integer>\
+		<key>fsck_msg_string</key><string>Volume needs to be repaired.</string>\
+	</dict>\
+</plist>\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b \cf0 5. ERROR\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 	This type indicates a message about one of the following:\
+		1. type of corruption causing fsck to conclude that the file system is corrupt\
+		2. type of condition that causes verify/repair operation to fail.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 	
+\f1\b0 This is an optional message.  This message type must never have verbosity level 0.\
+
+\f0\b \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 Example:\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key><string>ERROR</string>\
+		<key>fsck_verbosity</key><integer>1</integer>\
+		<key>fsck_msg_number</key><integer>556</integer>\
+		<key>fsck_msg_string</key> <string>Volume Bit Map needs minor repair.</string>\
+	</dict>\
+</plist>\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b \cf0 7. DAMAGEINFO\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f1\b0 \cf0 	This type gives more information about one of the following:\
+		1. name/path of the file system objects that verify operation found corrupt\
+		2. name/path of the file system objects that repair operation repaired/could not repair.\
+		3. more information about how repair operation has changed user's view of file system and/or its data.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 	
+\f1\b0 This is an optional message.  This message type must always have verbosity level 0.\
+\
+Example:\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>DAMGEINFO</string>\
+		<key>fsck_verbosity</key> <integer>0</integer>\
+		<key>fsck_msg_number</key> <integer>657</integer>\
+		<key>fsck_msg_string</key> <string>File %1$@ may be damaged.</string>\
+		<key>parameters</key>\
+			<array>\
+				<string>/Users/foo/myfile</string>\
+			</array>\
+	</dict>\
+</plist>\
+
+\f0\b \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 7. INFORMATION\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f1\b0 \cf0 	This type indicates one of the following:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 		1. information about an error message.\
+		2. information/result of any fsck operation or any of its intermediate state.\
+	This type includes messages when fsck is writing to file system for any other reason than repairing the file system.  For example, if the disk has a "last verified date" that is updated even if no problems are found.\'ca Or a journal might be replayed, and no errors are subsequently found.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 	
+\f1\b0 This is an optional message.  This message type must never have verbosity level 0.\
+
+\f0\b 	\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 Example:\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key><string>INFORMATION</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>559</integer>\
+		<key>fsck_msg_string</key> <string>(It should be %1$% instead of %2$@)</string>\
+		<key>parameters</key>\
+			<array>\
+				<integer>1266</integer>\
+				<integer>1272</integer>\
+	</dict>\
+</plist>\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 \
+	
+\f1\b0 All fsck must send an information message with verbosity level 1 and message number 100 to summarize details about fsck verify/repair operation to facilitate debugging.  The information sent will be file used for verify/repair, the version number for that file, name of the volume, if available, and the type of file system.  There is no specific requirement about the order of occurrence of this message but it must be sent as early as possible in the verify/repair operation i.e. as soon as fsck gets all information that needs to be sent.  All fsck must send the following string: \
+\
+	"Using %1$@ (version %2$@) for checking volume %3$@ of type %4$@." \
+where,\
+	the first parameter is the name of binary file used for verify/repair operation, \
+	the second parameter is the source number used to generate the binary (like diskdev_cmds-332.5, msdosfs-90), \
+	the third parameter is the name of the volume, and \
+	the last parameter is the type of file system (like Journaled HFS+, MSDOS (FAT16), etc).   \
+\
+	All fsck must use the same message number 100 for this string.  If fsck can not obtain one or more information, it should send NULL value (i.e. just start and end tags) for that parameter.\
+\
+Example:\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key><string>INFORMATION</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>100</integer>\
+		<key>fsck_msg_string</key> <string> Using %1$@ (version %2$@) for checking volume %3$@ of type %4$@.</string>\
+		<key>parameters</key>\
+			<array>\
+				<string>fsck_hfs</string>\
+				<string>diskdev_cmds-334.3</string>\
+				<string>MyVol</string>\
+				<string>journaled HFS+</string>\
+			</array>\
+	</dict>\
+</plist>\
+\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key><string>INFORMATION</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>100</integer>\
+		<key>fsck_msg_string</key> <string> Using %1$@ (version %2$@) for checking volume %3$@ of type %4$@.</string>\
+		<key>parameters</key>\
+			<array>\
+				<string>fsck_msdos</string>\
+				<string>msdosfs-90</string>\
+				<string></string>\
+				<string>MSDOS (FAT16)</string>\
+			</array>\
+	</dict>\
+</plist>\
+
+\f0\b \
+8. fsck_progress
+\f1\b0 \
+	This type gives more information about the percentage progress of verify/repair operation.\
+\
+Example:\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 \
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>fsck_progress</string>\
+		<key>parameter</key>\
+			<array>\
+				<integer>70</integer>\
+			</array>\
+	</dict>\
+</plist>\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b \cf0 \ul MESSAGE TYPES OF PRE-DEFINED (LEVEL 0) MESSAGES
+\f1\b0 \ulnone \
+VERIFY
+\f0\b \ul \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f1\b0 \cf0 \ulnone 	"Checking volume.",\
+	"Rechecking volume.",\
+\
+REPAIR\
+\'ca 	"Repairing volume.",\
+\
+SUCCESS\
+\'ca \'ca 	"The volume appears to be OK.",\
+\'ca \'ca 	"The volume was repaired successfully.", \
+\
+FAIL\
+\'ca \'ca 	"The volume could not be verified completely.",\
+	"The volume could not be verified completely and can not be repaired.",\
+	"The volume was found corrupt and can not be repaired."\
+	"The volume was found corrupt and needs to be repaired."\
+   	"The volume could not be repaired.",  \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b \cf0 	
+\f1\b0 "The volume cannot be repaired when it is in use."\
+    	"The volume cannot be verified when it is in use."\
+\
+DAMAGEINFO\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0     	"%s may be damaged."  \
+    	"%s could not be repaired."  \
+	"Look for missing items in %s directory.",  \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\b \cf3 	
+\f1\b0 \cf0 "Look for links to corrupt files in %s directory."
+\f0\b \cf2 \
+\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs32 \cf0 \ul SUMMARY
+\fs24 \cf2 \ulnone \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f1\b0 \cf0 TBD\
+\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b\fs32 \cf0 \ul HANDLING UNKNOWN KEY-VALUES
+\fs24 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 \ulnone If the client receives an unknown key, it should ignore it in its current implementations but enhance its XML parser to recognize that key.\cf3   \cf0 \
+\
+If the client receives an unknown message type and the message has "fsck_msg_string", it should display the "fsck_msg_string" (with parameter substitution, if any) in the verbosity level specified with the message.\
+\
+If the clients receives unknown key which is child of "parameters", the client consider it as "string".  \
+\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b\fs32 \cf0 \ul HANDLING UNSUPPORTED FSCK
+\fs24 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 \ulnone Some fsck might choose not send messages to client in the new XML format described in this document.  This can be because of any reason like phasing out an implementation, development of new fsck, etc.  An implementation of fsck under such conditions must send messages to the client as UTF-8 strings which client must display in its UI.  The client must handle such unsupported fscks gracefully.\
+\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b\fs32 \cf0 \ul FUTURE EXTENSIBILITY
+\fs24 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0 \cf0 \ulnone If a client requires additional data from fsck in future which is not accommodated by the existing keys and/or message types, fsck and client can establish a known key and/or message type.  The client will have to change to recognize the new key and/or message type.  Only relevant fsck implementations will have to change to generate the new key and/or message type.\
+\
+Since fsck is the producer of the XML data, it may add new keys and/or message types.  It is the responsibility of fsck to update the common header file, update this design document and inform clients about the changes.\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b\fs32 \cf0 \ul OPEN ISSUES
+\f1\b0\fs24 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 \ulnone 1.  The strings displayed in verbosity level 1 are more information strings about verify/repair operation.  These strings are very file-system specific and can include lot of debugging information.  We suggest that these strings should not be localized.  This will also enable fsck to add strings independent of localization deadlines.\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\b\fs32 \cf0 \ul SAMPLE OUTPUT
+\f1\b0\fs24 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 \ulnone The output of fsck is a series of plists.  A sample output is shown below:\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 \
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>VERIFY</string>\
+		<key>fsck_verbosity</key> <integer>0</integer>\
+		<key>fsck_msg_number</key> <integer>101</integer>\
+		<key>fsck_msg_string</key><string>Checking volume.</string>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>INFORMATION</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>100</integer>\
+		<key>fsck_msg_string</key><string>Using %1$@ (version %2$@) for checking volume %3$@ of type %4$@.</string>\
+		<key>parameters</key>\
+		<array>\
+			<dict> <key>file</key> <string>fsck_hfs</string></dict>\
+			<string>diskdev_cmds-334.3</string>\
+			<dict> <key>volumename</key> <string>MyVol</string> </dict>\
+			<dict> <key>fstype</key> <string>Journaled HFS+</string> </dict>\
+		</array>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>VERIFY</string>  \
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>102</integer>\
+		<key>fsck_msg_string</key><string>Checking Extents Overflow file.</string>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>VERIFY</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>103</integer>\
+		<key>fsck_msg_string</key><string>Checking Catalog file.</string>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>ERROR</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>500</integer>\
+		<key>fsck_msg_string</key><string>Incorrect block count for %1$@</string>\
+		<key>parameters</key>\
+		<array>\
+			<dict> <key>file</key> <string>file1</string></dict>\
+		</array>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>INFORMATION</string>  \
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>559</integer>\
+		<key>fsck_msg_string</key><string>(It should be %1$@ instead of %2$@)</string>\
+		<key>parameters</key>\
+		<array>\
+			<integer>1266</integer>\
+			<integer>1272</integer>\
+		</array>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>ERROR</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>511</integer>\
+		<key>fsck_msg_string</key><string>Overlapped extent allocation (file %1$@ %2$@)</string>\
+		<key>parameters</key>\
+		<array>\
+			<integer>1204</integer>\
+			<dict> <key>path</key> <string>/Users/foo/myfile</string> </dict>\
+		</array>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>DAMAGEINFO</string>\
+		<key>fsck_verbosity</key> <integer>0</integer>\
+		<key>fsck_msg_number</key> <integer>657</integer>\
+		<key>fsck_msg_string</key><string>File %1$@ may be damaged.</string>\
+		<key>parameters</key>\
+		<array>\
+			<dict> <key>path</key> <string>/Users/foo/myfile</string> </dict>\
+		</array>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>VERIFY</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>104</integer>\
+		<key>fsck_msg_string</key><string>Checking Catalog hierarchy.</string>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>VERIFY</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>106</integer>\
+		<key>fsck_msg_string</key><string>Checking volume bitmap.</string>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>ERROR</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>556</integer>\
+		<key>fsck_msg_string</key><string>Volume Bit Map needs minor repair.</string>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>VERIFY</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>108</integer>\
+		<key>fsck_msg_string</key><string>Checking volume information.</string>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>REPAIR</string>\
+		<key>fsck_verbosity</key> <integer>0</integer>\
+		<key>fsck_msg_number</key> <integer>113</integer>\
+		<key>fsck_msg_string</key><string>Repairing volume.</string> \
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>DAMAGEINFO</string> \
+		<key>fsck_verbosity</key> <integer>0</integer>\
+		<key>fsck_msg_number</key> <integer>657</integer>\
+		<key>fsck_msg_string</key><string> "Look for links to corrupt files in %1$@ directory."</string>\
+		<key>parameters</key>\
+		<array>\
+			<dict> <key>path</key> <string>/DamagedFiles</string> </dict> \
+		</array>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>VERIFY</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>118</integer>\
+		<key>fsck_msg_string</key><string>Rechecking volume.</string>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>VERIFY</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>102</integer>\
+		<key>fsck_msg_string</key><string>Checking Extents Overflow file.</string>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>VERIFY</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>103</integer>\
+		<key>fsck_msg_string</key><string>Checking Catalog file.</string>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>VERIFY</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>104</integer>\
+		<key>fsck_msg_string</key><string>Checking Catalog hierarchy.</string>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>VERIFY</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>106</integer>\
+		<key>fsck_msg_string</key><string>Checking volume bitmap.</string>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>VERIFY</string>\
+		<key>fsck_verbosity</key> <integer>1</integer>\
+		<key>fsck_msg_number</key> <integer>108</integer>\
+		<key>fsck_msg_string</key><string>Checking volume information.</string>\
+	</dict>\
+</plist>\
+<plist version=\\"1.0\\">\
+	<dict>\
+		<key>fsck_type</key> <string>SUCCESS</string>\
+		<key>fsck_verbosity</key> <integer>0</integer>\
+		<key>fsck_msg_number</key> <integer>116</integer>\
+		<key>fsck_msg_string</key><string>Volume was repaired successfully.</string>\
+	</dict>\
+</plist>\
+\
+}

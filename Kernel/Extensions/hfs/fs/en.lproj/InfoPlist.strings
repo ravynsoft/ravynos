@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+<dict>
+	<key>CFBundleName</key>
+	<string>hfs</string>
+	<key>FSPersonalities</key>
+	<dict>
+		<key>HFS</key>
+		<dict>
+			<key>FSName</key>
+			<string>Mac OS Standard</string>
+		</dict>
+		<key>HFS+</key>
+		<dict>
+			<key>FSName</key>
+			<string>Mac OS Extended</string>
+		</dict>
+		<key>Journaled HFS+</key>
+		<dict>
+			<key>FSName</key>
+			<string>Mac OS Extended (Journaled)</string>
+			<key>FSCoreStorageEncryptionName</key>
+				<string>Mac OS Extended (Journaled, Encrypted)</string>
+
+		</dict>
+		<key>Case-sensitive HFS+</key>
+		<dict>
+			<key>FSName</key>
+			<string>Mac OS Extended (Case-sensitive)</string>
+		</dict>
+		<key>Case-sensitive Journaled HFS+</key>
+		<dict>
+			<key>FSName</key>
+			<string>Mac OS Extended (Case-sensitive, Journaled)</string>
+			<key>FSCoreStorageEncryptionName</key>
+				<string>Mac OS Extended (Case-sensitive, Journaled, Encrypted)</string>
+
+		</dict>
+	</dict>
+</dict>
+</plist>

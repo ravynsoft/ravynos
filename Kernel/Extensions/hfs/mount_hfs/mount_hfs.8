@@ -1,0 +1,109 @@
+.\" Copyright (c) 2002 Apple Computer, Inc. All rights reserved.
+.\" 
+.\" The contents of this file constitute Original Code as defined in and
+.\" are subject to the Apple Public Source License Version 1.1 (the
+.\" "License").  You may not use this file except in compliance with the
+.\" License.  Please obtain a copy of the License at
+.\" http://www.apple.com/publicsource and read it before using this file.
+.\" 
+.\" This Original Code and all software distributed under the License are
+.\" distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+.\" EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+.\" INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT.  Please see the
+.\" License for the specific language governing rights and limitations
+.\" under the License.
+.\" 
+.\"     @(#)mount_hfs.8
+.Dd March 14, 2001
+.Dt MOUNT_HFS 8
+.Os "Mac OS X"
+.Sh NAME
+.Nm mount_hfs
+.Nd mount an HFS/HFS+ file system
+.Sh SYNOPSIS
+.Nm mount_hfs
+.Op Fl e Ar encoding
+.Op Fl u Ar user
+.Op Fl g Ar group
+.Op Fl m Ar mask
+.Op Fl o Ar options
+.Op Fl j
+.Op Fl c
+.Op Fl w
+.Op Fl x
+.Ar special 
+.Ar directory
+.Sh DESCRIPTION
+The
+.Nm mount_hfs
+command attaches the HFS file system residing on the device
+.Pa special
+to the global file system namespace at the location indicated by
+.Pa directory .
+This command is normally executed by
+.Xr mount 8
+at boot time.
+.Pp
+The options are as follows:
+.Bl -tag -width indent
+.It Fl e Ar encoding (standard HFS volumes only)
+Specify the Macintosh encoding. The following encodings are supported:
+.Pp
+Arabic, ChineseSimp, ChineseTrad, Croatian, Cyrillic, Greek, Hebrew,
+Icelandic, Japanese, Korean, Roman (default), Romanian, Thai, Turkish
+.It Fl u Ar user
+Set the owner of the files in the file system to
+.Pa user . 
+The default owner is the owner of the directory on which
+the file system is being mounted.
+The
+.Pa user
+may be a user-name, or a numeric value.
+.It Fl g Ar group
+Set the group of the files in the file system to
+.Pa group . 
+The default group is the group of the directory on which
+the file system is being mounted.
+The
+.Pa group
+may be a group-name, or a numeric value.
+.It Fl m Ar mask
+Specify the maximum file permissions for files in the file system.
+(For example, a
+.Pa mask
+of 755 specifies that, by default, the owner should have read, write,
+and execute permissions for files, but others should only have read
+and execute permissions.  See chmod(1) for more information about
+octal file modes.)  Only the nine low-order bits of
+.Pa mask
+are used.  The default
+.Pa mask
+is taken from the directory on which the file system is being mounted.
+.It Fl o
+Options are specified with a
+.Fl o
+flag followed by a comma separated string of options.
+See the
+.Xr mount 8
+man page for possible options and their meanings.
+.It Fl j
+Ignore the journal for this mount.
+.It Fl c
+Disable group commit for journaling.
+.It Fl w
+Mount the HFS wrapper volume.
+.It Fl x
+Disable execute permissions on a standard HFS file system.
+.El
+.Sh SEE ALSO
+.Xr mount 2 ,
+.Xr unmount 2 ,
+.Xr fstab 5 ,
+.Xr mount 8
+.Sh BUGS
+Some HFS file systems with highly fragmented catalog files may not mount.
+.Sh HISTORY
+The
+.Nm mount_hfs
+utility first appeared in Mac OS X Server 1.0.

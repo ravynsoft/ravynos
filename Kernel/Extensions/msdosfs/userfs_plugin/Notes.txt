@@ -1,0 +1,131 @@
+Write to alternate copies of the FAT.
+- Will need a cache routine to get a block without reading it.
+FAT32: ensure root's starting cluster number is valid.
+Ensure subdirectory starting cluster numbers are valid.
+
+Style:
+* err vs. error
+* snake_case vs. camelCase names
+* Lots more comments before functions
+* Declare static functions
+
+Testing:
+√ Empty Volume
+    - info /
+    - list /
+    - info /foo (missing file)
+    - read /foo (missing file)
+    - sha /foo (missing file)
+    - delete /foo (missing file)
+* Interesting Files
+    - Short name (all upper case)
+    - Short name (all lower case)
+    - Short name (part upper, part lower)
+    - Long name (short)
+    - Long name (ends on dirent boundary; no terminator or padding)
+    - Long name (has terminator, but no padding)
+    - Long name (maximum length)
+    - Long name, long entries start at start of directory cluster
+    - Long name, long entries cross cluster boundary
+    - Long name, ends at end of directory cluster (end of directory)
+    - Locked file
+    - Variety of interesting dates (daylight savings and not)
+    - In root directory
+        + FAT12
+        + FAT16
+        + FAT32
+    - In subdirectory
+    - Look up case variants
+        + Long name
+        + Short name, all upper
+        + Short name, all lower
+        + Short name, mixed
+* Dirty Volume (no corruption)
+    - read-only
+    - read/write
+* Dirty Volume (with corruption)
+    - read-only
+    - read/write
+* Read-only Volume
+    - Get info
+        + root
+        + file in root
+        + dir in root
+        + file in subdirectory
+    - List
+        + root
+        + subdirectory
+        + root, recursive
+    - Read
+        + file in root
+        + file in subdirectory
+    - Sha
+        + file in root
+        + file in subdirectory
+    - Delete
+        + file in root
+        + make sure file still exists
+        + file in subdirectory
+        + make sure file still exists
+        + subdirectory (EROFS instead of EISDIR)
+* Deleting Files
+    - initial state
+    - existing file
+        + make sure it's gone afterwards
+    - missing file
+    - same file twice (two separate userfs_tool invocations)
+    - same file twice (one userfs_tool invocation)
+    - multiple files
+    - directory
+        + make sure it's still there
+    - locked file
+        + make sure it's still there
+    - file with multiple clusters in same FAT block
+    - file with clusters in multiple FAT blocks
+    - empty file
+    - Long name, long entries at start of cluster
+    - Long name, long entries cross cluster boundary
+    - Short name
+    - File inside subdirectory
+    - final state
+    ? recursive
+* Stream Read
+    - Directory
+    - Empty file
+    - Small file (less than one cluster)
+    - Large, contiguous file (more than one cluster)
+    - Large file, two or more "extents"
+    - Random reads in contiguous file
+    - Random reads in non-contiguous file
+* Content (file and dir) beyond 4GB
+    - File and dir before and after 4GB into the file system
+    - File with extent crossing 4GB boundary
+    - File with two or more extents, one before 4GB, one after
+    + Read and hash their contents
+    + Delete them
+* Corrupted file allocation
+    - Chain is too short for file length
+    - Chain contains out-of-range cluster number
+    - Chain starts with out-of-range cluster number
+    - Chain contains cluster marked free (i.e. 0)
+* Corrupt directory entries
+    - Long entries without short entry
+    - First long entry is not marked ("first"/"last")
+    - Multiple long entries marked "first"/"last"
+    - Long entries with non-matching checksums
+    - Long entries, but short's checksum doesn't match
+    - Long name is empty
+    - Short name is all spaces
+* Bad dates
+    - Create time tenth too large
+    - Day-of-month is zero
+    - Day-of-month is too large for given month
+    - Month is zero
+    - Month > 12
+    - Seconds field > 29
+    - Minutes > 59
+    - Hours > 23
+* Testing framework should look for crash logs
+* Test case-insensitive lookup (including non-ASCII)
+* Test lookup and enumeration with non-ASCII
+* Test lookup and enumeration with surrogate pairs?
