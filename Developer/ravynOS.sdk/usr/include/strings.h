@@ -74,7 +74,7 @@ char	*index(const char *, int) __POSIX_C_DEPRECATED(200112L);
 char	*rindex(const char *, int) __POSIX_C_DEPRECATED(200112L);
 #endif
 
-int	 ffs(int);
+int	 ffs(unsigned int);
 int	 strcasecmp(const char *, const char *);
 int	 strncasecmp(const char *, const char *, size_t);
 __END_DECLS
@@ -83,11 +83,11 @@ __END_DECLS
 #ifndef KERNEL
 #if __DARWIN_C_LEVEL >= __DARWIN_C_FULL
 __BEGIN_DECLS
-int	 ffsl(long) __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0);
-int	 ffsll(long long) __OSX_AVAILABLE_STARTING(__MAC_10_9, __IPHONE_7_0);
-int	 fls(int) __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0);
-int	 flsl(long) __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0);
-int	 flsll(long long) __OSX_AVAILABLE_STARTING(__MAC_10_9, __IPHONE_7_0);
+int	 ffsl(unsigned long) __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0);
+int	 ffsll(unsigned long long) __OSX_AVAILABLE_STARTING(__MAC_10_9, __IPHONE_7_0);
+int	 fls(unsigned int) __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0);
+int	 flsl(unsigned long) __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0);
+int	 flsll(unsigned long long) __OSX_AVAILABLE_STARTING(__MAC_10_9, __IPHONE_7_0);
 __END_DECLS
 
 #include <string.h>
