@@ -1,0 +1,6 @@
+INSTALL_PATH = /System/Library/Extensions
+
+#include? "../darwinbuild.xcconfig"
+
+SYSTEM_HEADER_SEARCH_PATHS = $(DEPROOT)/System/Library/Frameworks/Kernel.framework/PrivateHeaders
+FRAMEWORK_SEARCH_PATHS = // nothing
