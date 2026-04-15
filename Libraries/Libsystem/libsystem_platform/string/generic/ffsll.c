@@ -37,7 +37,7 @@ __FBSDID("$FreeBSD: src/lib/libc/string/ffsll.c,v 1.1 2008/11/03 10:22:19 kib Ex
  * Find First Set bit
  */
 int
-ffsll(long long mask)
+ffsll(unsigned long long mask)
 {
 #if __has_builtin(__builtin_ffsll)
 	return __builtin_ffsll(mask);
@@ -59,7 +59,7 @@ ffsll(long long mask)
 
 #if VARIANT_DYLD && TARGET_OS_SIMULATOR
 int
-ffsl(long mask)
+ffsl(unsigned long mask)
 {
 #if __has_builtin(__builtin_ffsl)
 	return __builtin_ffsl(mask);
@@ -80,7 +80,7 @@ ffsl(long mask)
 }
 
 int
-ffs(int mask)
+ffs(unsigned int mask)
 {
 #if __has_builtin(__builtin_ffs)
 	return __builtin_ffs(mask);
