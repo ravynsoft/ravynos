@@ -48,12 +48,14 @@ const struct pthread_functions_s pthread_internal_functions = {
 
 kern_return_t pthread_start(__unused kmod_info_t * ki, __unused void *d)
 {
+    kprintf("Starting pthread kext\n");
 	pthread_kext_register((pthread_functions_t)&pthread_internal_functions, &pthread_kern);
 	return KERN_SUCCESS;
 }
 
 kern_return_t pthread_stop(__unused kmod_info_t *ki, __unused void *d)
 {
+    kprintf("Stopping pthread kext\n");
 	return KERN_FAILURE;
 }
 

@@ -40,8 +40,6 @@
 extern "C" {
 #include <i386/cpuid.h>
 #include <pexpert/i386/protos.h>
-#include <corecrypto/cckprng.h>
-#include <prng/random.h>
 }
 
 #include "ACPIPlatformExpert.h"
@@ -109,66 +107,6 @@ IOService *ACPIPlatformExpert::probe(IOService *provider, SInt32 *score) {
     return this;
 }
 
-void prng_init(struct cckprng_ctx *ctx,
-             unsigned max_ngens,
-             size_t entropybuf_nbytes,
-             const void *entropybuf,
-             const uint32_t *entropybuf_nsamples,
-             size_t seed_nbytes,
-             const void *seed,
-             size_t nonce_nbytes,
-             const void *nonce)
-{
-    kprintf("PRNG dummy init\n");
-    return;
-}
-
-void prng_initgen(struct cckprng_ctx *ctx, unsigned gen_idx)
-{
-    kprintf("PRNG dummy initgen\n");
-    return;
-}
-void prng_reseed(struct cckprng_ctx *ctx, size_t nbytes, const void *seed)
-{
-    kprintf("PRNG dummy reseed\n");
-    return;
-}
-void prng_refresh(struct cckprng_ctx *ctx)
-{
-    kprintf("PRNG dummy refresh\n");
-    return;
-}
-void prng_generate(struct cckprng_ctx *ctx, unsigned gen_idx, size_t nbytes, void *out)
-{
-    kprintf("PRNG dummy generate %d bytes\n", nbytes);
-    return;
-}
-
-class ACPIPrngBootstrap {
-public:
-  ACPIPrngBootstrap();
-
-private:
-  struct cckprng_ctx _ctx;
-  struct cckprng_funcs _funcs;
-};
-
-static ACPIPrngBootstrap gACPIPrngBootstrap;
-
-ACPIPrngBootstrap::ACPIPrngBootstrap()
-{
-    bzero(&_ctx, sizeof(_ctx));
-    bzero(&_funcs, sizeof(_funcs));
-
-    _funcs.init = prng_init;
-    _funcs.initgen = prng_initgen;
-    _funcs.reseed = prng_reseed;
-    _funcs.refresh = prng_refresh;
-    _funcs.generate = prng_generate;
-
-    register_and_init_prng(&_ctx, &_funcs);
-}
-
 bool ACPIPlatformExpert::init(OSDictionary *properties) {
     if (!super::init()) return false;
 
@@ -194,7 +132,60 @@ bool ACPIPlatformExpert::start(IOService *provider) {
     }
 
     PE_halt_restart = handlePEHaltRestart;
+
     parseACPI(provider);
+    registerService();
+
+    /* Start PCI discovery now that we've identified the host bridges. */
+    IORegistryIterator *iter = IORegistryIterator::iterateOver(
+            gIOServicePlane, kIORegistryIterateRecursively);
+    if (iter) {
+        IORegistryEntry *entry = NULL;
+        while ((entry = iter->getNextObject())) {
+            IOService *nub = OSDynamicCast(IOService, entry);
+            if (!nub) continue;
+            if (nub->getProperty("acpi-pci-host-bootstrapped")) continue;
+
+            OSString *devType = OSDynamicCast(OSString, entry->getProperty("device_type"));
+            OSData *classCodeData = OSDynamicCast(OSData, entry->getProperty("class-code"));
+            uint32_t classCode = 0;
+            if (!devType || !devType->isEqualTo("pci")) continue;
+            if (!classCodeData || classCodeData->getLength() < sizeof(classCode)) continue;
+            bcopy(classCodeData->getBytesNoCopy(), &classCode, sizeof(classCode));
+            if (classCode != 0x060000) continue;
+
+            const char *name = entry->getName(gIODTPlane);
+            ACPIPCIBridge *bridge = new ACPIPCIBridge;
+            if (!bridge) continue;
+            OSDictionary * dict = entry->dictionaryWithProperties();
+            bool result = bridge->init(dict);
+            dict->release();
+            if (!result) {
+                PE_Log("Host bridge init failed for %s", name ? name : "unknown");
+                bridge->release();
+                continue;
+            }
+
+            if (!bridge->attach(nub)) {
+                PE_Log("Host bridge attach failed for %s", name ? name : "unknown");
+                bridge->release();
+                continue;
+            }
+
+            if (!bridge->start(nub)) {
+              PE_Log("Host bridge start failed for %s", name ? name : "unknown");
+              bridge->detach(nub);
+              bridge->release();
+              continue;
+            }
+
+            bridge->setProperty("acpi-pci-host-bootstrapped", kOSBooleanTrue);
+            PE_Log("Host bridge started for %s", name ? name : "unknown");
+            bridge->registerService();
+            bridge->release();
+        }
+        iter->release();
+    }
 
     OSDictionary * dict = OSDictionary::withCapacity(4);
     dict->setObject("compatible", OSString::withCString("IORTC"));
@@ -223,54 +214,6 @@ bool ACPIPlatformExpert::start(IOService *provider) {
         nub->release();
     } else {
         PE_Log("Failed to create NVRAM nub");
-    }
-
-    registerService();
-
-    // Directly instantiate a concrete host bridge so configurator addHostBridge can run.
-    IORegistryIterator *iter = IORegistryIterator::iterateOver(
-            gIOServicePlane, kIORegistryIterateRecursively);
-    if (iter) {
-        IORegistryEntry *entry = NULL;
-        while ((entry = iter->getNextObject())) {
-            IOService *nub = OSDynamicCast(IOService, entry);
-            if (!nub) continue;
-            if (nub->getProperty("acpi-pci-host-bootstrapped")) continue;
-
-            OSString *devType = OSDynamicCast(OSString, entry->getProperty("device_type"));
-            OSData *classCodeData = OSDynamicCast(OSData, entry->getProperty("class-code"));
-            uint32_t classCode = 0;
-            if (!devType || !devType->isEqualTo("pci")) continue;
-            if (!classCodeData || classCodeData->getLength() < sizeof(classCode)) continue;
-            bcopy(classCodeData->getBytesNoCopy(), &classCode, sizeof(classCode));
-            if (classCode != 0x060000) continue;
-
-            const char *name = entry->getName(gIODTPlane);
-            ACPIPCIBridge *bridge = OSTypeAlloc(ACPIPCIBridge);
-            if (!bridge) continue;
-            if (!bridge->init()) {
-                bridge->release();
-                continue;
-            }
-
-            if (!bridge->attach(nub)) {
-              bridge->release();
-              continue;
-            }
-
-            if (!bridge->start(nub)) {
-              PE_Log("Host bridge start failed for %s", name ? name : "unknown");
-              bridge->detach(nub);
-              bridge->release();
-              continue;
-            }
-
-            nub->setProperty("acpi-pci-host-bootstrapped", kOSBooleanTrue);
-            PE_Log("Host bridge started for %s", name ? name : "unknown");
-            bridge->registerService();
-            bridge->release();
-        }
-        iter->release();
     }
 
     /* Publish the bootloader's boot-uuid DT property to IOResources
@@ -396,6 +339,7 @@ ACPIPlatformExpert::parseACPI(IOService *provider) {
 bool ACPIPlatformExpert::configure(IOService *provider) {
     OSDictionary *dict;
     IOService * nub;
+
     if (!super::configure(provider)) return false;
     return true;
 }
@@ -416,13 +360,13 @@ ACPIPlatformExpert::createNub(OSDictionary *dict, IORegistryEntry *from) {
     const char * name = osName ? osName->getCStringNoCopy() : "unknown";
 
     if (type && type->isEqualTo("processor")) {
-        nub = new ACPICPU();
+        nub = new ACPICPU;
     } else if (type && type->isEqualTo("io-apic")) {
-        nub = new AppleAPIC();
+        nub = new AppleAPIC;
     } else if (type && type->isEqualTo("rtc")) {
-        nub = new ACPIRTC();
+        nub = new ACPIRTC;
     } else if (type && type->isEqualTo("nvram")) {
-        nub = new EFINVRAM();
+        nub = new EFINVRAM;
     } else {
         nub = new IOService();
     }

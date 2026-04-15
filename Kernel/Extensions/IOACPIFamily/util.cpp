@@ -253,18 +253,18 @@ ACPIPlatformExpert::parseFADT(void * table, IOService * nub)
 }
 
 bool
-appendBridgeRange(uint8_t   * ranges,
-                                  uint32_t * index,
-                                  uint8_t     spaceType,
-                                  bool         prefetch,
-                                  uint64_t   parentBase,
-                                  uint64_t   size);
+appendBridgeRange(uint8_t  * ranges,
+                  uint32_t * index,
+                  uint8_t    spaceType,
+                  bool       prefetch,
+                  uint64_t   parentBase,
+                  uint64_t   size);
 
 static void
-setCompatibleList(OSDictionary *dict,
-                  const char *compat0,
-                  const char *compat1,
-                  const char *compat2 = NULL)
+setCompatibleList(OSDictionary * dict,
+                    const char * compat0,
+                    const char * compat1,
+                    const char * compat2 = NULL)
 {
     if (!dict || !compat0) return;
 
@@ -284,7 +284,7 @@ setCompatibleList(OSDictionary *dict,
 }
 
 static void
-logDTSubtree(IORegistryEntry *node, int depth)
+logDTSubtree(IORegistryEntry * node, int depth)
 {
     if (!node) return;
 
@@ -296,18 +296,18 @@ logDTSubtree(IORegistryEntry *node, int depth)
     memset(indent, ' ', sizeof(indent));
     indent[indentLen] = '\0';
 
-    const char *name = node->getName(gIODTPlane);
+    const char * name = node->getName(gIODTPlane);
     if (!name) name = node->getName();
     if (!name) name = "<unnamed>";
 
     kprintf("DT %s%s\n", indent, name);
 
-    OSIterator *iter = node->getChildIterator(gIODTPlane);
+    OSIterator * iter = node->getChildIterator(gIODTPlane);
     if (!iter) return;
 
-    OSObject *obj = NULL;
+    OSObject * obj = NULL;
     while ((obj = iter->getNextObject())) {
-        IORegistryEntry *child = OSDynamicCast(IORegistryEntry, obj);
+        IORegistryEntry * child = OSDynamicCast(IORegistryEntry, obj);
         if (child) {
             logDTSubtree(child, depth + 1);
         }
@@ -319,7 +319,7 @@ logDTSubtree(IORegistryEntry *node, int depth)
 static void
 logGeneratedPCIDeviceTree(void)
 {
-    IORegistryEntry *dtRoot = IORegistryEntry::fromPath("/", gIODTPlane);
+    IORegistryEntry * dtRoot = IORegistryEntry::fromPath("/", gIODTPlane);
     if (!dtRoot) {
         kprintf("[ACPI PE] DT dump skipped: unable to find root node\n");
         return;
@@ -327,14 +327,14 @@ logGeneratedPCIDeviceTree(void)
 
     kprintf("[ACPI PE] Dumping DT nodes\n");
 
-    OSIterator *iter = dtRoot->getChildIterator(gIODTPlane);
+    OSIterator * iter = dtRoot->getChildIterator(gIODTPlane);
     if (iter) {
-        OSObject *obj = NULL;
+        OSObject * obj = NULL;
         while ((obj = iter->getNextObject())) {
             IORegistryEntry *child = OSDynamicCast(IORegistryEntry, obj);
             if (!child) continue;
 
-            const char *name = child->getName(gIODTPlane);
+            const char * name = child->getName(gIODTPlane);
             if (name) {
                 logDTSubtree(child, 0);
             }
@@ -346,7 +346,7 @@ logGeneratedPCIDeviceTree(void)
 }
 
 static bool
-shouldDumpPCIDeviceTree(IOService *pe)
+shouldDumpPCIDeviceTree(IOService * pe)
 {
     int dump = 0;
     if (PE_parse_boot_argn("acpi_pci_dt_dump", &dump, sizeof(dump))) {
@@ -361,21 +361,21 @@ shouldDumpPCIDeviceTree(IOService *pe)
 }
 
 static inline uint32_t
-pciConfigRead32(PCIHeaderCommon *header, uint8_t reg)
+pciConfigRead32(PCIHeaderCommon * header, uint8_t reg)
 {
-    volatile uint32_t *p = (volatile uint32_t *)((volatile uint8_t *)header + reg);
+    volatile uint32_t * p = (volatile uint32_t *)((volatile uint8_t *)header + reg);
     return *p;
 }
 
 static inline void
 pciConfigWrite32(PCIHeaderCommon *header, uint8_t reg, uint32_t value)
 {
-    volatile uint32_t *p = (volatile uint32_t *)((volatile uint8_t *)header + reg);
+    volatile uint32_t * p = (volatile uint32_t *)((volatile uint8_t *)header + reg);
     *p = value;
 }
 
 static uint64_t
-probeBARSize(PCIHeaderCommon *header, uint8_t barReg, bool isIO, bool is64)
+probeBARSize(PCIHeaderCommon * header, uint8_t barReg, bool isIO, bool is64)
 {
     const uint32_t savedCmd = header->command;
     // Disable decode while probing size masks.
@@ -413,7 +413,7 @@ probeBARSize(PCIHeaderCommon *header, uint8_t barReg, bool isIO, bool is64)
 }
 
 static uint32_t
-probeROMSize(PCIHeaderCommon *header, uint8_t romReg)
+probeROMSize(PCIHeaderCommon * header, uint8_t romReg)
 {
     const uint32_t savedCmd = header->command;
     header->command = (uint16_t)(savedCmd & ~(uint32_t)0x2);
@@ -430,11 +430,11 @@ probeROMSize(PCIHeaderCommon *header, uint8_t romReg)
 }
 
 static bool
-appendAssignedAddress(OSData *assigned,
+appendAssignedAddress(OSData * assigned,
                       const IOPCIAddressSpace &space,
-                      uint8_t reg,
-                      uint8_t spaceType,
-                      bool prefetch,
+                      uint8_t  reg,
+                      uint8_t  spaceType,
+                      bool     prefetch,
                       uint64_t base,
                       uint64_t size)
 {
@@ -455,9 +455,11 @@ appendAssignedAddress(OSData *assigned,
 }
 
 static OSData *
-buildAssignedAddresses(PCIHeaderCommon *header, const IOPCIAddressSpace &space, uint8_t headerType)
+buildAssignedAddresses(PCIHeaderCommon         * header,
+                       const IOPCIAddressSpace   &space,
+                       uint8_t                   headerType)
 {
-    OSData *assigned = OSData::withCapacity(8 * sizeof(IOPCIPhysicalAddress));
+    OSData * assigned = OSData::withCapacity(8 * sizeof(IOPCIPhysicalAddress));
     if (!assigned) return NULL;
 
     int barCount = (headerType == 1) ? 2 : 6;
@@ -513,7 +515,7 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
 {
     PE_Log("parseMCFG(%p, %p)", table, nub);
 
-    ACPI_MCFG *entry = (ACPI_MCFG *) ((uint64_t)table
+    ACPI_MCFG * entry = (ACPI_MCFG *) ((uint64_t)table
             + sizeof(struct XSDT) + sizeof(uint64_t) /* reserved field */);
 
     int count = (((struct XSDT *)table)->length
@@ -589,7 +591,7 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                     reg.s.registerNum = 0;
                     dict->setObject("reg", OSData::withBytes(&reg, sizeof(reg)));
 
-                    OSData *assigned = buildAssignedAddresses(header, reg, hdrType);
+                    OSData * assigned = buildAssignedAddresses(header, reg, hdrType);
                     if (assigned) {
                         dict->setObject("assigned-addresses", assigned);
                         assigned->release();
@@ -609,7 +611,7 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                     dict->setObject("acpi-mcfg-end-bus", OSData::withBytes(&mcfgEndBus, sizeof(mcfgEndBus)));
 
                     if (hdrType == 0) {
-                        PCIHeaderType0 *d = (PCIHeaderType0 *)header;
+                        PCIHeaderType0 * d = (PCIHeaderType0 *)header;
 
                         // Subsystem IDs (type-0 only)
                         uint32_t subVendorID = d->subsystem_vendor_id;
@@ -637,7 +639,7 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                         setCompatibleList(dict, compat0, compat1);
                     }
                     else if (hdrType == 1) {
-                        PCIHeaderType1 *b = (PCIHeaderType1 *)header;
+                        PCIHeaderType1 * b = (PCIHeaderType1 *)header;
                         uint8_t ranges[3 * 8 * sizeof(uint32_t)]; // up to 3 entries, 8 cells each
 
                         // I/O window
@@ -710,6 +712,7 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                                 if (d)
                                     aNub->setProperty("assigned-addresses", d);
                                 aNub->attach(nub);
+                                aNub->start(nub);
                                 aNub->registerService();
                                 hostService = aNub;
                             }
@@ -719,6 +722,7 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                                 if (d)
                                     aNub->setProperty("assigned-addresses", d);
                                 aNub->attach(hostService ? hostService : nub);
+                                aNub->start(hostService ? hostService : nub);
                                 aNub->registerService();
                             }
                         }
@@ -744,12 +748,12 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
     }
 }
 
-bool appendBridgeRange(uint8_t    * ranges,
-                                          uint32_t  * index,
-                                          uint8_t      spaceType,
-                                          bool          prefetch,
-                                          uint64_t    parentBase,
-                                          uint64_t    size)
+bool appendBridgeRange(uint8_t  * ranges,
+                       uint32_t * index,
+                       uint8_t    spaceType,
+                       bool       prefetch,
+                       uint64_t   parentBase,
+                       uint64_t   size)
 {
     if (!ranges || size == 0) return false;
 

@@ -6,9 +6,10 @@
 #define _EFINVRAM_H
 
 #include <IOKit/IOService.h>
+#include <IOKit/IONVRAM.h>
 #include <IOKit/IOLocks.h>
 
-class EFINVRAM : public IOService
+class EFINVRAM : public IOService /*IODTNVRAM*/
 {
     OSDeclareDefaultStructors(EFINVRAM);
 

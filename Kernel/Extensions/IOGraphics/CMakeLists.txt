@@ -1,5 +1,5 @@
-add_subdirectory(IOGraphicsFamily)
-add_subdirectory(IONDRVSupport)
+#add_subdirectory(IOGraphicsFamily)
+#add_subdirectory(IONDRVSupport)
 
 #add_library(IOGTrace STATIC
 #	 IOGTrace.cpp

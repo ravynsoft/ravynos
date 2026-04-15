@@ -1317,7 +1317,6 @@ IOPlatformExpert::registerNVRAMController(IONVRAMController * caller)
 	OSString *        string = NULL;
 	uuid_string_t     uuid;
 
-        kprintf("IOPE::registerNVRAMController\n");
 #if CONFIG_EMBEDDED
 	entry = IORegistryEntry::fromPath( "/chosen", gIODTPlane );
 	if (entry) {
@@ -1374,10 +1373,8 @@ IOPlatformExpert::registerNVRAMController(IONVRAMController * caller)
 	}
 
 	entry = IORegistryEntry::fromPath( "/efi/platform", gIODTPlane );
-	kprintf("IORegistryEntry /efi/platform = %p\n", entry);
 	if (entry) {
 		data = OSDynamicCast( OSData, entry->getProperty( "system-id" ));
-		kprintf("IORegistryEntry data = %p\n", data);
 		if (data && data->getLength() == 16) {
 			SHA1_CTX     context;
 			uint8_t      digest[SHA_DIGEST_LENGTH];
@@ -1399,12 +1396,10 @@ IOPlatformExpert::registerNVRAMController(IONVRAMController * caller)
 	}
 #endif /* defined(XNU_TARGET_OS_OSX) */
 
-	kprintf("string = %p\n", string);
 	if (string == NULL) {
 		entry = IORegistryEntry::fromPath( "/options", gIODTPlane );
 		if (entry) {
 			data = OSDynamicCast( OSData, entry->getProperty( "platform-uuid" ));
-			kprintf("getting entry from /options, data = %p\n", data);
 			if (data && data->getLength() == sizeof(uuid_t)) {
 				uuid_unparse((uint8_t *) data->getBytesNoCopy(), uuid );
 				string = OSString::withCString( uuid );
@@ -1414,7 +1409,6 @@ IOPlatformExpert::registerNVRAMController(IONVRAMController * caller)
 		}
 	}
 
-	kprintf("string is now %p\n", string);
 	if (string) {
 		getProvider()->setProperty( kIOPlatformUUIDKey, string );
 		publishResource( kIOPlatformUUIDKey, string );
@@ -1491,7 +1485,6 @@ IOService *
 IODTPlatformExpert::probe( IOService * provider,
     SInt32 * score )
 {
-    kprintf("IODTPE::probe\n");
 	if (!super::probe( provider, score)) {
 		return NULL;
 	}
@@ -1507,7 +1500,6 @@ IODTPlatformExpert::probe( IOService * provider,
 bool
 IODTPlatformExpert::configure( IOService * provider )
 {
-    kprintf("IODTPE::configure\n");
 	if (!super::configure( provider)) {
 		return false;
 	}
@@ -1529,7 +1521,6 @@ IODTPlatformExpert::createNub( IORegistryEntry * from )
 			nub = NULL;
 		}
 	}
-        kprintf("IODTPE::createNub\n");
 	return nub;
 }
 
@@ -1563,7 +1554,6 @@ IODTPlatformExpert::processTopLevel( IORegistryEntry * rootEntry )
 	IORegistryEntry *   cpus;
 	IORegistryEntry *   options;
 
-    kprintf("IODTPE::processTopLevel\n");
 	// infanticide
 	kids = IODTFindMatchingEntries( rootEntry, 0, deleteList());
 	if (kids) {

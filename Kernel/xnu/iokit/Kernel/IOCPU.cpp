@@ -484,7 +484,6 @@ IOCPUSleepKernel(void)
 	IOCPU *bootCPU = NULL;
 	IOPMrootDomain  *rootDomain = IOService::getPMRootDomain();
 
-	kprintf("IOCPUSleepKernel\n");
 #if defined(__arm64__)
 	sched_override_recommended_cores_for_sleep();
 #endif
@@ -625,7 +624,6 @@ IOCPU::start(IOService *provider)
 {
 	OSData *busFrequency, *cpuFrequency, *timebaseFrequency;
 
-        kprintf("IOCPU::start prov = %p\n", provider);
 	if (!super::start(provider)) {
 		return false;
 	}

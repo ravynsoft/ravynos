@@ -25,7 +25,8 @@ target_include_directories(IOGraphicsFamily PRIVATE
     ../../../xnu/bsd
     ../../../xnu/libkern
     ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
-    ../../IOPCIFamily)
+    ../../IOPCIFamily
+    ../../../xnu/EXTERNAL_HEADERS)
 
 target_compile_options(IOGraphicsFamily PRIVATE
     -Wno-implicit-int-conversion -Wno-sign-conversion

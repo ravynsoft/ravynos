@@ -64,7 +64,7 @@ target_compile_options(hfs PRIVATE
     -include${ROOT_SOURCE_DIR}/Kernel/xnu/bsd/sys/disk.h
     -include${ROOT_SOURCE_DIR}/Kernel/xnu/bsd/sys/fcntl.h
     -include${ROOT_SOURCE_DIR}/Kernel/xnu/bsd/sys/attr.h
-    -DPRIVATE=1 -DKERNEL=1
+    -DPRIVATE=1 -DKERNEL=1 -D__APPLE_API_PRIVATE=1
     -Wno-implicit-int-conversion -Wno-sign-conversion
     $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>)
 
@@ -107,3 +107,6 @@ target_compile_options(hfs_encodings PRIVATE
 
 target_link_options(hfs_encodings PRIVATE
     -mmacos-version-min=${MACOS_VERSION_MIN})
+
+add_dependencies(hfs kextBuild)
+add_dependencies(hfs_encodings kextBuild)

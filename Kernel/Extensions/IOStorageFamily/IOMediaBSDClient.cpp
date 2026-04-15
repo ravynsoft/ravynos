@@ -436,6 +436,7 @@ IOMedia * IOMediaBSDClient::getWholeMedia( IOMedia * media,
 
     for ( service = media; service; service = service->getProvider() )
     {
+        kprintf("IOMediaBSDClient::getWholeMedia: searching for whole media. depth %u, service %p\n", depth, service);
         if ( OSDynamicCast(IOMedia, service) )               // (is it a media?)
         {
             if ( ((IOMedia *)service)->isWhole() )     // (is it a whole media?)
@@ -456,6 +457,7 @@ IOMedia * IOMediaBSDClient::getWholeMedia( IOMedia * media,
                     *slicePathSize = position;
                 }
 
+                kprintf("IOMediaBSDClient::getWholeMedia: whole media found at depth %u, service %p\n", depth, service);
                 return (IOMedia *)service;           // (return the whole media)
             }
 
@@ -494,6 +496,7 @@ IOMedia * IOMediaBSDClient::getWholeMedia( IOMedia * media,
 
     // If we've fallen through, then the whole media was never found.
 
+    kprintf("Failed to find whole media for media %p (%s)\n", media, media->getName());
     if ( depth == 1 )  IOLog(kMsgNoWhole, media->getName());
 
     return 0;

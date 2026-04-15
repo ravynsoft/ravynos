@@ -34,40 +34,40 @@
 */
 
 #include "smf.h"
-#include <libkern/libkern.h>
+#include <sys/malloc.h>
+#include <sys/systm.h>
+#include <libkern/OSMalloc.h>
 
-/*
- * IOFree requires the exact allocation size, so we store it in a
- * header prepended to each allocation.
- */
-typedef struct {
-    DWORD size;
-} mm_hdr_t;
+static OSMallocTag * mmtag;
 
 SMFAPI void mmInit( void )
 {
+	mmtag = OSMalloc_Tagalloc("corecrypto.kext", 0);
 	return;
 }
 
 SMFAPI MMPTR mmMalloc(DWORD request)
 {
-    DWORD total = request + sizeof(mm_hdr_t);
-    mm_hdr_t *hdr = IOMalloc(total);
-
-    if (hdr == NULL)
+    // since kfree requires that we pass in the alloc size, add enough bytes to store a dword
+    void* mem;
+    
+    mem = OSMalloc(sizeof(unsigned long) + request, mmtag);
+    
+    if (mem == 0) // oops, it didn't appear to work
     {
         printf ("Couldn't allocate kernel memory!\n");
         return NULL;
     }
-    hdr->size = total;
-    return (MMPTR)(hdr + 1);
+    
+    return (MMPTR) (mem + sizeof(unsigned long));
 }
 
 SMFAPI void mmFree(MMPTR ptrnum)
 {
-    if (ptrnum == NULL) return;
-    mm_hdr_t *hdr = ((mm_hdr_t *)ptrnum) - 1;
-    IOFree(hdr, hdr->size);
+    // get the size of the pointer back
+    ptrnum -= sizeof(unsigned long);
+    unsigned long size = *(unsigned long *)ptrnum;
+    OSFree(ptrnum, size, mmtag);
 }
 
 SMFAPI LPVOID mmGetPtr(MMPTR ptrnum)

@@ -37,6 +37,7 @@
 extern "C" {
 #include <pexpert/pexpert.h>
 #include <kern/clock.h>
+#include <kern/debug.h>
 #include <mach/machine.h>
 #include <uuid/uuid.h>
 #include <sys/vnode_internal.h>
@@ -408,20 +409,24 @@ IOFindBSDRoot( char * rootName, unsigned int rootNameSize,
 
 	int xchar, dchar;
 
+    kprintf("IOFindBSDRoot: looking for root device\n");
 	// stall here for anyone matching on the IOBSD resource to finish (filesystems)
 	matching = IOService::serviceMatching(gIOResourcesKey);
 	assert(matching);
 	matching->setObject(gIOResourceMatchedKey, gIOBSDKey);
 
+    kprintf("IOFindBSDRoot: waiting for root device to appear\n");
 	if ((service = IOService::waitForMatchingService(matching, 30ULL * kSecondScale))) {
 		service->release();
 	} else {
+	    kprintf("!BSD\n");
 		IOLog("!BSD\n");
 	}
 	matching->release();
 	matching = NULL;
 
 	if (mountAttempts++) {
+	    kprintf("mount(%d) failed\n", mountAttempts);
 		IOLog("mount(%d) failed\n", mountAttempts);
 		IOSleep( 5 * 1000 );
 	}
@@ -448,13 +453,20 @@ IOFindBSDRoot( char * rootName, unsigned int rootNameSize,
 				}
 			}
 
+            data = (OSData *) IORegistryEntry::fromPath( "/chosen/boot-uuid", gIODTPlane );
+            if (data) {
+                kprintf("found boot-uuid in DT /chosen/boot-uuid (len=%u)\n", (unsigned int)data->getLength());
+            }
+
 			data = (OSData *) regEntry->getProperty( "boot-uuid" );
 			if (data) {
+				kprintf("found boot-uuid in IOReg /chosen (len=%u)\n", (unsigned int)data->getLength());
 				uuidStr = (const char*)data->getBytesNoCopy();
 				OSString *uuidString = OSString::withCString( uuidStr );
 
 				// match the boot-args boot-uuid processing below
 				if (uuidString) {
+					kprintf("rooting via boot-uuid from /chosen: %s\n", uuidStr);
 					IOLog("rooting via boot-uuid from /chosen: %s\n", uuidStr);
 					IOService::publishResource( "boot-uuid", uuidString );
 					uuidString->release();
@@ -554,6 +566,7 @@ IOFindBSDRoot( char * rootName, unsigned int rootNameSize,
 				if (uuidString) {
 					IOService::publishResource( "boot-uuid", uuidString );
 					uuidString->release();
+					kprintf("Waiting for boot volume with UUID %s\n", uuid);
 					IOLog( "\nWaiting for boot volume with UUID %s\n", uuid );
 					matching = IOUUIDMatching();
 					mediaProperty = "boot-uuid-media";

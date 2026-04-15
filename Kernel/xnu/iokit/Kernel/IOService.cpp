@@ -1106,104 +1106,6 @@ IOService::kextdLaunched(void)
 #endif /* !NO_KEXTD */
 }
 
-static void
-IOServiceInitKextCPP(OSKext *target)
-{
-	if (!target || target->isCPPInitialized()) {
-		return;
-	}
-
-	struct kmod_info ki = {};
-	ki.id = target->getLoadTag();
-
-	kernel_section_t *sec = target->lookupSection("__TEXT", "__text");
-	if (!sec) {
-		sec = target->lookupSection("__TEXT_EXEC", "__text");
-	}
-
-	if (sec) {
-		ki.address = sec->addr;
-		ki.size = sec->size;
-	} else {
-		kprintf("Unable to find __text section for kext %s\n",
-			target->getIdentifierCString());
-	}
-
-	if (ki.address != 0 && ki.size != 0) {
-		IOStatistics::onKextLoad(target, &ki);
-	}
-
-	(void) OSRuntimeInitializeCPP(target);
-}
-
-static void
-IOServiceInitKextCPPDependencies(OSKext *root, OSSet *visited)
-{
-	if (!root || !visited) {
-		return;
-	}
-
-	const char *rootID = root->getIdentifierCString();
-	const OSSymbol *rootSym = rootID ? OSSymbol::withCString(rootID) : NULL;
-	if (rootSym && visited->containsObject(rootSym)) {
-		rootSym->release();
-		return;
-	}
-	if (!rootSym && visited->containsObject(root)) {
-		return;
-	}
-	if (rootSym) {
-		visited->setObject(rootSym);
-		rootSym->release();
-	} else {
-		visited->setObject(root);
-	}
-
-    OSArray * deps = 0;
-    OSDictionary *libs = OSDynamicCast(OSDictionary,
-            root->getPropertyForHostArch("OSBundleLibraries"));
-    if (libs) {
-        deps = OSArray::withCapacity(libs->getCount());
-        OSCollectionIterator *it = OSCollectionIterator::withCollection(libs);
-        if (it) {
-            OSObject *keyObj;
-            while ((keyObj = it->getNextObject())) {
-                OSString *depID = OSDynamicCast(OSString, keyObj);
-                if (!depID) continue;
-
-                OSKext *dep = OSKext::lookupKextWithIdentifier(depID);
-                if (dep) {
-                    const char * bundleID = dep->getIdentifierCString();
-					if (bundleID &&
-						(!strncmp(bundleID, "com.apple.kpi.", 14) ||
-						!strncmp(bundleID, "com.apple.kernel", 16))) {
-                        continue;
-                    }
-                    deps->setObject(dep);
-                }
-            }
-            it->release();
-        }
-    }
-
-	if (!deps) {
-		IOServiceInitKextCPP(root);
-		return;
-	}
-
-	for (unsigned int idx = 0, count = deps->getCount(); idx < count; idx++) {
-		OSKext *dep = OSDynamicCast(OSKext, deps->getObject(idx));
-		if (dep) {
-			IOServiceInitKextCPPDependencies(dep, visited);
-		}
-	}
-
-	deps->release();
-
-	// Initialize the target after dependencies so class hierarchies are ready.
-	IOServiceInitKextCPP(root);
-}
-
 IOReturn
 IOService::catalogNewDrivers( OSOrderedSet * newTables )
 {
@@ -1243,22 +1145,6 @@ IOService::catalogNewDrivers( OSOrderedSet * newTables )
 #endif
 		newTables->removeObject(table);
 	}
-
-	const char *rootKexts[] = {
-	    "com.apple.iokit.IOStorageFamily",
-        "com.apple.iokit.IOACPIFamily",
-    };
-    OSSet *visited = OSSet::withCapacity(32);
-	for (const char *kextID : rootKexts) {
-        OSKext *kext = OSKext::lookupKextWithIdentifier(kextID);
-        if (!kext) {
-            kprintf("Unable to find root kext %s\n", kextID);
-            continue;
-        }
-        IOServiceInitKextCPPDependencies(kext, visited);
-    }
-    if (visited)
-        visited->release();
 
 	if (allSet) {
 		while ((service = (IOService *) allSet->getAnyObject())) {

@@ -945,7 +945,6 @@ IODTMatchNubWithKeys( IORegistryEntry * regEntry,
 	}
 #endif
 
-	kprintf("IODTMatchNubWithKeys(entry %p, keys %s) = %d\n", regEntry, keys, result);
 	return result;
 }
 
@@ -963,7 +962,6 @@ IODTFindMatchingEntries( IORegistryEntry * from,
 
 	iter = IORegistryIterator::iterateOver( from, gIODTPlane,
 	    (options & kIODTRecursive) ? kIORegistryIterateRecursively : 0 );
-	kprintf("IODTFindMatchingEntries(from %p, keys %s)\n", from, keys);
 	if (iter) {
 		do {
 			if (result) {

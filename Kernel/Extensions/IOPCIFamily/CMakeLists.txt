@@ -1,7 +1,7 @@
 add_kext_bundle(IOPCIFamily KERNEL_PRIVATE
     INFO_PLIST Info.plist
     BUNDLE_IDENTIFIER com.apple.iokit.IOPCIFamily
-    BUNDLE_VERSION 2.4.1)
+    BUNDLE_VERSION 2.9)
 
 target_sources(IOPCIFamily PRIVATE
     IOPCIBridge.cpp
@@ -15,10 +15,6 @@ target_sources(IOPCIFamily PRIVATE
 )
 
 add_dependencies(IOPCIFamily kextBuild)
-
-# Keep DriverKit-only IMPL() methods out of kernel IOPCIDevice.cpp.
-set_source_files_properties(IOPCIDevice.cpp PROPERTIES
-    COMPILE_DEFINITIONS TARGET_OS_OSX=0)
 
 target_include_directories(IOPCIFamily PRIVATE
     .

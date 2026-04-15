@@ -95,6 +95,7 @@ IOService *
 RavynAHCIPort::probe(IOService *provider, SInt32 *score)
 {
     IOPCIDevice *pci = OSDynamicCast(IOPCIDevice, provider);
+    kprintf("RavynAHCIPort::probe(%p) called, pci = %p\n", provider, pci);
     if (!pci)
         return NULL;
 
@@ -102,11 +103,14 @@ RavynAHCIPort::probe(IOService *provider, SInt32 *score)
         *score += 1000;
     }
 
-    return super::probe(provider, score);
+    IOService * result = super::probe(provider, score);
+    kprintf("RavynAHCIPort::probe result=%p score=%d\n", result, score ? *score : -1);
+    return result;
 }
 
 bool RavynAHCIPort::start(IOService *provider)
 {
+    kprintf("RavynAHCIPort::start(%p) called\n", provider);
     fProvider = OSDynamicCast(IOPCIDevice, provider);
     if (!fProvider || !super::start(provider)) return false;
 
@@ -279,6 +283,7 @@ bool RavynAHCIPort::start(IOService *provider)
 void
 RavynAHCIPort::stop(IOService *provider)
 {
+    kprintf("RavynAHCIPort::stop(%p) called\n", provider);
     if (fDiskNub) {
         fDiskNub->stop(this);
         fDiskNub->detach(this);

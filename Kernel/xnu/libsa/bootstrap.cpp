@@ -470,6 +470,14 @@ KLDBootstrap::readPrelinkedExtensions(
 		OSSafeReleaseNULL(newKext);
 	}
 
+    {
+        const char * bundle_id = NULL;
+        OSString * bundleIDStr = OSDynamicCast(OSString, infoDict->getObject(kCFBundleIdentifierKey));
+        if (bundleIDStr) {
+            bundle_id = bundleIDStr->getCStringNoCopy();
+        }
+    }
+
 	/* slide kxld relocations */
 	if (kaslrOffsets && vm_kernel_slide > 0) {
 		int slidKextAddrCount = 0;
@@ -901,7 +909,6 @@ KLDBootstrap::readBuiltinPersonalities(void)
 	OSCollectionIterator  * personalitiesIterator = NULL;// must release
 	unsigned int            count, i;
 
-	kprintf("Reading built-in kernel personalities for I/O Kit drivers.\n");
 	OSKextLog(/* kext */ NULL,
 	    kOSKextLogStepLevel |
 	    kOSKextLogLoadFlag,
@@ -981,7 +988,6 @@ KLDBootstrap::readBuiltinPersonalities(void)
 			continue; // xxx - well really, what can we do? should we panic?
 		}
 
-		kprintf("Building personality list\n");
 		while ((personalityName = OSDynamicCast(OSString,
 		    personalitiesIterator->getNextObject()))) {
 			OSDictionary * personality = OSDynamicCast(OSDictionary,
@@ -1000,7 +1006,6 @@ KLDBootstrap::readBuiltinPersonalities(void)
 		}
 	}
 
-	kprintf("Adding drivers to IOCatalogue\n");
 	gIOCatalogue->addDrivers(allPersonalities, false);
 
 finish:

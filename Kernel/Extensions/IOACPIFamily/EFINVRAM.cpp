@@ -14,7 +14,7 @@ extern "C" {
 }
 
 #define super IOService
-OSDefineMetaClassAndStructors(EFINVRAM, IOService);
+OSDefineMetaClassAndStructors(EFINVRAM, IOService /*IODTNVRAM*/);
 
 extern void *gPEEFIRuntimeServices;
 
