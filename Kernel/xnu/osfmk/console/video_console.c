@@ -2074,7 +2074,7 @@ static void vc_blit_rect_16( int x, int y, int bx,
 
     for( line = 0; line < height; line++)
     {
-        for( col = 0; col < width; col++)
+        for (col = 0; col < width; col++)
 	{
 	    if (sourceRow) data = dataPtr[((sx + (col * a) + (line * b)) >> 16)
 				+ sourceRow * (((sy + (col * c) + (line * d)) >> 16))];
@@ -2279,7 +2279,7 @@ vc_decompress_lzss_next_pixel (int next_data, lzss_image_state* state)
 
     pixel_value = ( (uint32_t) state->clut[palette_index + 0] << 16) 
                 | ( (uint32_t) state->clut[palette_index + 1] << 8) 
-                | ( (uint32_t) state->clut[palette_index + 2]); 
+                | ( (uint32_t) state->clut[palette_index + 2]);
 
     *(state->row_start + state->col) = pixel_value;
 
@@ -2415,7 +2415,7 @@ void vc_display_icon( vc_progress_element * desc,
 	    x += ((vinfo.v_width - width) / 2);
 	    y += ((vinfo.v_height - height) / 2);
 	}
-	vc_blit_rect( x, y, 0, width, height, width, height, width, 0, data, NULL, kDataIndexed );
+	vc_blit_rect( x, y, 0, width, height, width, height, 0, 0, data, NULL, kDataIndexed );
     }
 }
 
@@ -2736,7 +2736,7 @@ gc_pause( boolean_t pause, boolean_t graphics_now )
 	VCPUTC_LOCK_LOCK( );
 
     disableConsoleOutput = (pause && !console_is_serial());
-    gc_enabled           = (!pause && !graphics_now);
+    gc_enabled           = (!pause && graphics_now);
 
     VCPUTC_LOCK_UNLOCK( );
 
