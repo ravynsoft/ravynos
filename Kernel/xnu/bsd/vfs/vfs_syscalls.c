@@ -772,6 +772,8 @@ mount_common(char *fstypename, vnode_t pvp, vnode_t vp,
 		goto out1;
 	}
 
+	/* ravynOS: allow root mount without VM or ROSV for now */
+#if CONFIG_ROSV_STARTUP
 	/*
 	 * VFC_VFSLOCALARGS is not currently supported for kernel mounts,
 	 * except in ROSV configs.
@@ -781,6 +783,7 @@ mount_common(char *fstypename, vnode_t pvp, vnode_t vp,
 		error = EINVAL;  /* unsupported request */
 		goto out1;
 	}
+#endif
 
 	error = prepare_coveredvp(vp, ctx, cnp, fstypename, ((internal_flags & KERNEL_MOUNT_NOAUTH) != 0));
 	if (error != 0) {
