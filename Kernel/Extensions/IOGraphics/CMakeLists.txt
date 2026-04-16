@@ -1,29 +1,37 @@
-#add_subdirectory(IOGraphicsFamily)
+add_subdirectory(IOGraphicsFamily)
 #add_subdirectory(IONDRVSupport)
 
-#add_library(IOGTrace STATIC
-#	 IOGTrace.cpp
-#	./tools/Utilities/IOGDiagnoseUtils.cpp
-#)
+add_kext_bundle(IOGOPFramebuffer
+    KERNEL_PRIVATE
+    INFO_PLIST Info-IOGOPFramebuffer.plist
+    BUNDLE_IDENTIFIER com.ravynos.iokit.IOGOPFramebuffer
+    BUNDLE_VERSION 1.0.0)
 
-#add_library(IOGDiagnoseDecode STATIC
-#	 iogdecoder.cpp
-#	 abldecoder.cpp
-#	 IOGDiagnoseDecode.cpp
-#	 ContinuousTimeFormatter.cpp
-#	 agdcdecoder.cpp
-#)
+target_sources(IOGOPFramebuffer PRIVATE
+    IOGOPFramebuffer.cpp
+)
 
-#add_executable(iogttest SOURCES
-#	 iogttest.cpp
-#	 args.cpp
-#)
+target_include_directories(IOGOPFramebuffer PRIVATE
+    ../../xnu/iokit
+    ../../xnu/osfmk
+    ../../xnu/bsd
+    ../../xnu/libkern
+    ../IOPCIFamily
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/libkern
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/san
+    ../../xnu/EXTERNAL_HEADERS)
 
-#add_executable(iogctl SOURCES
-#	./tools/iogctl.m
-#)
+target_compile_options(IOGOPFramebuffer PRIVATE
+    -w -Wno-error -Wno-implicit-int-conversion -Wno-sign-conversion
+    -Wno-c++11-narrowing -DKERNEL=1
+    $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>)
 
-#add_executable(iogdiagnose SOURCES
-#	./iogdiagnose/iogdiagnose.cpp
-#	./tools/Utilities/IOGDiagnoseUtils.cpp
-#)
+target_link_libraries(IOGOPFramebuffer PRIVATE)
+
+target_link_options(IOGOPFramebuffer PRIVATE
+    -mmacos-version-min=${MACOS_VERSION_MIN})
+
+set_property(TARGET IOGOPFramebuffer PROPERTY CXX_STANDARD 11)
+
+add_dependencies(IOGOPFramebuffer kextBuild)
