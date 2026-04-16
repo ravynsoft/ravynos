@@ -1,4 +1,4 @@
-add_subdirectory(IOGraphicsFamily)
+#add_subdirectory(IOGraphicsFamily)
 #add_subdirectory(IONDRVSupport)
 
 add_kext_bundle(IOGOPFramebuffer
