@@ -143,6 +143,7 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
     int           index = 0;
     OSArray     * intrOverrides = NULL;
     OSArray     * intrSources = NULL;
+    OSArray     * cpuArray = NULL;
     
     PE_Log("parseAPIC(%p, %p) flags %p",
            table, madt->lapicAddress, madt->flags);
@@ -154,6 +155,14 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
         return; /* and panic */
     }
 
+    cpuArray = OSArray::withCapacity(32);
+    if (!cpuArray) {
+        PE_Log("Failed to create CPU array!");
+        intrOverrides->release();
+        intrSources->release();
+        return; /* and panic */
+    }
+
     while ((uint64_t)rec < ((uint64_t)madt + madt->length)) {
         if (rec->length == 0) {
             rec = (MADT_Record *) ((uint64_t)rec + sizeof(MADT_Record));
@@ -161,6 +170,7 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
         
         switch (rec->type) {
             case 0: { /* Local APIC */
+                ncpus++;
                 struct LAPIC_RECORD * lr = (struct LAPIC_RECORD *) rec;
                 OSDictionary * dict = OSDictionary::withCapacity(7);
 
@@ -175,8 +185,9 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
                 dict->setObject("location", OSNumber::withNumber(madt->lapicAddress, 32));
                 IOService * aNub = createNub(dict);
                 if (aNub) {
+                    cpuArray->setObject(aNub);
                     aNub->attach(nub);
-                    aNub->start(nub);
+//                    aNub->start(nub);
                     aNub->registerService();
                     aNub->release();
                 }
@@ -244,6 +255,19 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
 
     this->setProperty("interrupt-overrides", intrOverrides);
     this->setProperty("interrupt-sources", intrSources);
+
+    /* Start all the cpus */
+    OSIterator * iter = OSCollectionIterator::withCollection(cpuArray);
+    if (iter) {
+        OSObject * obj = NULL;
+        while ((obj = iter->getNextObject())) {
+            IOService * child = OSDynamicCast(ACPICPU, obj);
+            if (child)
+                child->start(nub);
+        }
+        iter->release();
+    }
+    cpuArray->release();
 }
 
 void

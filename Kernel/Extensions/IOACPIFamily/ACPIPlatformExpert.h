@@ -52,7 +52,7 @@ struct RSDP
 
 struct XSDT
 {
-    uint8_t signature[4];                           \
+    uint8_t signature[4];
     uint32_t length;
     uint8_t revision;
     uint8_t checksum;
@@ -71,7 +71,7 @@ typedef struct {
 
 struct MADT
 {
-    uint8_t signature[4];                           \
+    uint8_t signature[4];
     uint32_t length;
     uint8_t revision;
     uint8_t checksum;

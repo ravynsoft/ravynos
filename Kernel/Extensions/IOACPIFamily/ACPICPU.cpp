@@ -26,6 +26,8 @@
 #undef super
 #define super IOCPU
 
+uint32_t ncpus = 0;
+
 OSDefineMetaClassAndStructors(ACPICPU, IOCPU);
 
 IOService *ACPICPU::probe(IOService *provider, SInt32 *score) {
@@ -37,7 +39,7 @@ bool ACPICPU::startCommon() {
 
 	cpuIC = new ACPICPUInterruptController;
 	if (cpuIC == 0) return false;
-	if (cpuIC->initCPUInterruptController(1) != kIOReturnSuccess) return false;
+	if (cpuIC->initCPUInterruptController(ncpus) != kIOReturnSuccess) return false;
 
 	cpuIC->attach(this);
 	cpuIC->registerCPUInterruptController();
@@ -51,6 +53,13 @@ bool ACPICPU::startCommon() {
 }
 
 bool ACPICPU::start(IOService *provider) {
+        kprintf("ACPICPU::start(%p)\n", provider);
+        const OSSymbol * cpuNumSym = OSSymbol::withCStringNoCopy("cpu-number");
+        OSNumber *cpuNum = OSDynamicCast(OSNumber, getProperty(cpuNumSym));
+        cpuNumSym->release();
+        if (cpuNum)
+            index = cpuNum->unsigned32BitValue();
+
 	if (!super::start(provider)) return false;
 	return startCommon();
 }
@@ -66,6 +75,8 @@ void ACPICPU::quiesceCPU() {
 
 kern_return_t ACPICPU::startCPU(vm_offset_t start_paddr, vm_offset_t arg_paddr) {
 	// Not implemented.
+	kprintf("ACPICPU::startCPU(%p, %p) is a stub! (KERN_FAILURE)\n",
+	    (void*)start_paddr, (void*)arg_paddr);
 	return KERN_FAILURE;
 }
 
@@ -74,7 +85,9 @@ void ACPICPU::haltCPU() {
 }
 
 const OSSymbol *ACPICPU::getCPUName() {
-	return OSSymbol::withCStringNoCopy("Primary0");
+        char buf[32];
+        snprintf(buf, sizeof(buf), "cpu%u", index);
+	return OSSymbol::withCString(buf);
 }
 
 #pragma mark -
