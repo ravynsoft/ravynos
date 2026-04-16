@@ -247,8 +247,10 @@ sysctl_register_oid(struct sysctl_oid *new_oidp)
 	q = NULL;
 	SLIST_FOREACH(p, parent, oid_link) {
 		if (oidp->oid_number == p->oid_number) {
-			kprintf("attempting to register a sysctl at previously registered slot : %d (would panic)", oidp->oid_number);
 			//panic("attempting to register a sysctl at previously registered slot : %d", oidp->oid_number);
+			kprintf("attempting to register a sysctl at previously registered slot : %d (skipping duplicate)\n", oidp->oid_number);
+			lck_rw_unlock_exclusive(sysctl_geometry_lock);
+			return;
 		} else if (oidp->oid_number < p->oid_number) {
 			break;
 		}
