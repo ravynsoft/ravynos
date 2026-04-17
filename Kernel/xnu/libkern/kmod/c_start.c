@@ -25,6 +25,10 @@
  *
  * @APPLE_OSREFERENCE_LICENSE_HEADER_END@
  */
+/* This file has been modified to support C++ initialization for the ravynOS
+ * project in March 2026. This notice is in support of Clause 2.2 of the
+ * License.
+ */
 
 #include <mach/mach_types.h>
 #include <libkern/OSKextLib.h>
@@ -96,7 +100,6 @@ __call_constructors(kmod_info_t *ki)
                         structor_t *ctor = (structor_t *) sect->addr;
                         while (ctor < (uint64_t)sect->addr + sect->size) {
                             if (*ctor) {
-                                kprintf("calling constructor %p\n", *ctor);
                                 (**ctor)();
                             }
                             ctor++;
@@ -147,4 +150,10 @@ __private_extern__ OSKextLoadTag
 OSKextGetCurrentLoadTag(void)
 {
 	return (OSKextLoadTag)KMOD_INFO_NAME.id;
+}
+
+__private_extern__ void
+__cxa_atexit(void)
+{
+	return;
 }

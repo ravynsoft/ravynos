@@ -38,7 +38,16 @@
 #include <dispatch/dispatch.h>
 #include <mach-o/dyld.h>
 #include <System/sys/csr.h>
+
+#if __has_include(<rootless.h>)
 #include <rootless.h>
+#define DYLD_HAS_ROOTLESS 1
+#else
+#define DYLD_HAS_ROOTLESS 0
+extern "C" int rootless_check_trusted(const char* path) __attribute__((weak_import));
+extern "C" int rootless_check_trusted_class(const char* path, const char* category) __attribute__((weak_import));
+extern "C" int rootless_check_trusted_fd(int fd) __attribute__((weak_import));
+#endif
 
 #include <string>
 #include <fstream>
@@ -48,7 +57,7 @@
 #include "StringUtils.h"
 #include "Diagnostics.h"
 
-#if __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
+#if DYLD_HAS_ROOTLESS && (__MAC_OS_X_VERSION_MIN_REQUIRED < 101200)
 extern "C" int rootless_check_trusted_fd(int fd) __attribute__((weak_import));
 #endif
 
@@ -149,22 +158,33 @@ static bool sipIsEnabled()
 
 bool isProtectedBySIP(const std::string& path)
 {
+#if !DYLD_HAS_ROOTLESS
+	return false;
+#else
     if ( !sipIsEnabled() )
         return false;
 
     return (rootless_check_trusted(path.c_str()) == 0);
+#endif
 }
 
 bool isProtectedBySIPExceptDyld(const std::string& path)
 {
+#if !DYLD_HAS_ROOTLESS
+	return false;
+#else
     if ( !sipIsEnabled() )
         return false;
 
     return (rootless_check_trusted_class(path.c_str(), "dyld") == 0);
+#endif
 }
 
 bool isProtectedBySIP(int fd)
 {
+#if !DYLD_HAS_ROOTLESS
+	return false;
+#else
     if ( !sipIsEnabled() )
         return false;
 
@@ -176,6 +196,7 @@ bool isProtectedBySIP(int fd)
     if ( fcntl(fd, F_GETPATH, realPath) == 0 )
         return (rootless_check_trusted(realPath) == 0);
     return false;
+#endif
 #endif
 }
 

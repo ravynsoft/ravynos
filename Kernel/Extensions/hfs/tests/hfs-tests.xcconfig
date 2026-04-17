@@ -1,0 +1,11 @@
+//
+//  hfs-tests.xcconfig
+//  hfs
+//
+//  Created by Chris Suter on 8/14/15.
+//
+//
+
+OTHER_LDFLAGS[sdk=iphoneos*]=-framework MobileKeyBag -framework Security -framework Foundation -lz
+OTHER_LDFLAGS[sdk=macosx*]=-framework IOKit -lz
+CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]=$(SRCROOT)/tests/hfs-tests.entitlements

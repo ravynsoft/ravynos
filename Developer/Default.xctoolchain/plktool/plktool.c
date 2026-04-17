@@ -210,6 +210,10 @@ CreatePrelinkedKernel(CFDataRef  kernelImage,
                         CPU_SUBTYPE_X86_64_ALL,
                         0);
 
+    CFMutableArrayRef dicts = CFArrayCreateMutable(kCFAllocatorDefault,
+                                                   0,
+                                                   &kCFTypeArrayCallBacks);
+
     boolean_t swapped = SwapHeaders(kernelImage);
     if (!GetLastKernelLoadAddr(kernelImage, &baseSrcAddr))
         goto failed;
@@ -259,6 +263,21 @@ CreatePrelinkedKernel(CFDataRef  kernelImage,
         goto failed;
 
     fprintf(stdout, "Linked %d bytes\n", size);
+
+    int count = CFArrayGetCount(loadList);
+    for (int i = 0; i < count; ++i) {
+        OSKextRef aKext = CFArrayGetValueAtIndex(loadList, i);
+        if (aKext) {
+            const char *name = createUTF8CStringForCFString(aKext->bundleID);
+            if (!strncmp(name, "com.apple.kpi.", 14)) continue;
+            if (!strcmp(name, "com.apple.kernel")) continue;
+            if (aKext->infoDictionary) {
+                fprintf(stdout, "Adding kext %s info dictionary to __BUILTIN\n", name);
+                CFArrayAppendValue(dicts, aKext->infoDictionary);
+            }
+        }
+    }
+
     mach_header = (const struct mach_header_64 *) CFDataGetBytePtr(kernelImage);
     file_end = (((const char *) mach_header) + CFDataGetLength(kernelImage));
     struct _uuid_stuff seek_uuid;
@@ -353,11 +372,6 @@ CreatePrelinkedKernel(CFDataRef  kernelImage,
 
         seg->vmaddr = srcAddr;
         seg->fileoff = fileOffset;
-
-        CFMutableArrayRef dicts = CFArrayCreateMutable(kCFAllocatorDefault,
-                                                       0,
-                                                       &kCFTypeArrayCallBacks);
-        CFArrayAppendValue(dicts, gPEKext->infoDictionary);
         
         CFDataRef infodict = IOCFSerialize(dicts, kNilOptions);
         int size = CFDataGetLength(infodict);

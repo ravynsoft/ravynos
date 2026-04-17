@@ -152,6 +152,7 @@ static void OSKextLogKextInfo(OSKext *aKext, uint64_t address, uint64_t size, fi
  * Strings and substrings used in dependency resolution.
  */
 #define APPLE_KEXT_PREFIX            "com.apple."
+#define RAVYNOS_KEXT_PREFIX          "com.ravynos."
 #define KERNEL_LIB                   "com.apple.kernel"
 
 #define PRIVATE_KPI                  "com.apple.kpi.private"
@@ -7761,8 +7762,13 @@ OSKext::resolveDependencies(
 		bool readableCopyrightIsValid = false;
 
 		hasApplePrefix = STRING_HAS_PREFIX(getIdentifierCString(),
-		    APPLE_KEXT_PREFIX);
+		    APPLE_KEXT_PREFIX) || STRING_HAS_PREFIX(getIdentifierCString(),
+            RAVYNOS_KEXT_PREFIX);
 
+#ifdef __RAVYNOS__
+        infoCopyrightIsValid = true;
+        readableCopyrightIsValid = true;
+#else
 		infoString = OSDynamicCast(OSString,
 		    getPropertyForHostArch("CFBundleGetInfoString"));
 		if (infoString) {
@@ -7776,13 +7782,14 @@ OSKext::resolveDependencies(
 			readableCopyrightIsValid =
 			    kxld_validate_copyright_string(readableString->getCStringNoCopy());
 		}
+#endif
 
 		if (!hasApplePrefix || (!infoCopyrightIsValid && !readableCopyrightIsValid)) {
 			OSKextLog(this,
 			    kOSKextLogErrorLevel |
 			    kOSKextLogDependenciesFlag,
 			    "Error - kext %s declares a dependency on %s. "
-			    "Only Apple kexts may declare a dependency on %s.",
+			    "Only Apple and ravynOS kexts may declare a dependency on %s.",
 			    getIdentifierCString(), PRIVATE_KPI, PRIVATE_KPI);
 			goto finish;
 		}

@@ -1,0 +1,41 @@
+//
+//  PCIDriverKitPEX8733.iig
+//  PCIDriverKitPEX8733
+//
+//  Created by Kevin Strasberg on 10/29/19.
+//
+
+#ifndef PCIDriverKitPEX8733_h
+#define PCIDriverKitPEX8733_h
+
+#include <Availability.h>
+#include <DriverKit/IOService.iig>
+
+
+class PCIDriverKitPEX8733 : public IOService
+{
+public:
+#pragma mark Initialization/Teardown Overrides
+    virtual bool
+    init() override;
+
+    virtual void
+    free() override;
+
+    virtual kern_return_t
+    Start(IOService* provider) override;
+
+    virtual kern_return_t
+    Stop(IOService* provider) override;
+
+protected:
+// TODO: make it so the tests can be called from command line tool
+#pragma mark Test Definitions
+    kern_return_t
+    dmaBlockTransferTest() LOCALONLY;
+    kern_return_t
+    dmaDescriptorTransferTest() LOCALONLY;
+
+};
+
+#endif /* PCIDriverKitPEX8733_h */

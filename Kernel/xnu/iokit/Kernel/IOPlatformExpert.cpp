@@ -236,7 +236,8 @@ bool
 IOPlatformExpert::compareNubName( const IOService * nub,
     OSString * name, OSString ** matched ) const
 {
-	return nub->IORegistryEntry::compareName( name, matched );
+	bool result = nub->IORegistryEntry::compareName( name, matched );
+	return result;
 }
 
 IOReturn
@@ -1055,6 +1056,7 @@ init_gIOOptionsEntry(void)
 	volatile void **options;
 	int ret = -1;
 
+        kprintf("init_gIOOptionsEntry\n");
 	if (gIOOptionsEntry) {
 		return 0;
 	}

@@ -26,10 +26,14 @@
 
 #include <IOKit/IOCPU.h>
 
+extern uint32_t ncpus;
+
 class ACPICPU : public IOCPU {
 	OSDeclareDefaultStructors(ACPICPU);
 
 private:
+        uint32_t index;
+
 	IOCPUInterruptController *cpuIC;
 	bool startCommonCompleted;
 

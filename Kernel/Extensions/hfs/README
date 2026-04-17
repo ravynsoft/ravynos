@@ -1,0 +1,20 @@
+
+-- How to build the HFS Kexts --
+
+1. Install headers from XNU.  Typically, after downloading the XNU
+source, you want to do something like:
+
+$ mkdir -p BUILD.hdrs/obj BUILD.hdrs/sym BUILD.hdrs/dst
+
+$ make installhdrs SDKROOT=macosx ARCH_CONFIGS=X86_64 SRCROOT=$PWD \
+	OBJROOT=$PWD/BUILD.hdrs/obj SYMROOT=$PWD/BUILD.hdrs/sym \
+	DSTROOT=$PWD/BUILD.hdrs/dst
+
+$ sudo ditto BUILD.hdrs/dst `xcrun -sdk macosx -show-sdk-path`
+
+2. Build the Kexts:
+
+$ xcodebuild -target kext -target encodings-kext SDKROOT=macosx
+
+N.B. At the time of writing, the other HFS targets are known not to
+build outside of Apple's internal build environment.

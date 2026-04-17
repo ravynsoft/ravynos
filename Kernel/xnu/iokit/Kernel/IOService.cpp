@@ -1148,22 +1148,10 @@ IOService::catalogNewDrivers( OSOrderedSet * newTables )
 
 	if (allSet) {
 		while ((service = (IOService *) allSet->getAnyObject())) {
-                    const OSSymbol *sym = OSSymbol::withCString("IOACPIPlatformExpert");
-                    const OSMetaClass *mc = OSMetaClass::getMetaClassWithName(sym);
-                    OSKext *kext = OSKext::lookupKextWithIdentifier("com.apple.iokit.IOACPIFamily");
-                    if (kext && !mc) {
-                        struct kmod_info ki;
-                        ki.id = kext->getLoadTag();
-                        ki.address = 0;
-                        ki.size = 0;
-                        IOStatistics::onKextLoad(kext, &ki);
-                        OSRuntimeInitializeCPP(kext);
-                    }
-
-                    service->startMatching(kIOServiceAsynchronous);
-                    allSet->removeObject(service);
+			service->startMatching(kIOServiceAsynchronous);
+			allSet->removeObject(service);
 		}
-                allSet->release();
+		allSet->release();
 	}
 
 	newTables->release();
@@ -3826,6 +3814,9 @@ IOService::probeCandidates( OSOrderedSet * matches )
 				if (__state[1] & kIOServiceSynchronousState) {
 					inst->__state[1] |= kIOServiceSynchronousState;
 				}
+				if (!inst->getProperty(gIONameKey)) {
+					inst->setName(symbol->getCStringNoCopy());
+				}
 
 				// give the driver the default match category if not specified
 				category = OSDynamicCast( OSSymbol,
@@ -3846,7 +3837,7 @@ IOService::probeCandidates( OSOrderedSet * matches )
 #if IOMATCHDEBUG
 				if (debugFlags & kIOLogProbe) {
 					LOG("%s::probe(%s)\n",
-					    inst->getMetaClass()->getClassName(), getName());
+					    inst->getName(), getName());
 				}
 #endif
 
@@ -4656,7 +4647,13 @@ IOService::doServiceMatch( IOOptionBits options )
 		if (matches) {
 			lockForArbitration();
 			if (0 == (__state[0] & kIOServiceFirstPublishState)) {
-				getMetaClass()->addInstance(this);
+				const OSMetaClass * meta = getMetaClass();
+				if (meta) {
+					meta->addInstance(this);
+				} else {
+					kprintf("IOService::doServiceMatch: null metaclass for service %s (%p)\n",
+					    getName(), this);
+				}
 				notifiers[0] = copyNotifiers(gIOFirstPublishNotification,
 				    kIOServiceFirstPublishState, 0xffffffff );
 			}
@@ -5082,7 +5079,9 @@ _IOConfigThread::main(void * arg, wait_result_t result)
 
 		IOTakeLock( gJobsLock );
 		job = (_IOServiceJob *) gJobs->getFirstObject();
-		job->retain();
+		if (job) {
+			job->retain();
+		}
 		gJobs->removeObject(job);
 		if (job) {
 			gOutstandingJobs--;
@@ -5093,6 +5092,22 @@ _IOConfigThread::main(void * arg, wait_result_t result)
 
 		if (job) {
 			nub = job->nub;
+			if (!nub) {
+				IOLog("config(%p): null nub in job type %d\n",
+				    IOSERVICE_OBFUSCATE(IOThreadSelf()), job->type);
+				job->release();
+				IOTakeLock( gJobsLock );
+				alive = (gOutstandingJobs > gNumWaitingThreads);
+				if (alive) {
+					gNumWaitingThreads++;
+				} else {
+					if (0 == --gNumConfigThreads) {
+						IOLockWakeup( gJobsLock, (event_t) &gNumConfigThreads, false );
+					}
+				}
+				IOUnlock( gJobsLock );
+				continue;
+			}
 
 			if (gIOKitDebug & kIOLogConfig) {
 				LOG("config(%p): starting on %s, %d\n",

@@ -25,7 +25,7 @@ target_compile_definitions(libfirehose_kernel PRIVATE
 
 target_compile_options(libfirehose_kernel PRIVATE 
     --sysroot=${RAVYN_SDKROOT} -isysroot${RAVYN_SDKROOT}
-    -mmacosx-version-min=10.15 -mkernel -Wno-packed
+    -mmacosx-version-min=${MACOS_VERSION_MIN} -mkernel -Wno-packed
     -Wno-error=implicit-function-declaration
     -Wno-implicit-function-declaration
     -Wno-sign-conversion 

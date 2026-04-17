@@ -1,0 +1,35 @@
+#!/bin/sh
+
+#  install
+#  hfs
+#
+#  Created by Chris Suter on 4/30/15.
+#
+
+if [ ! "$MACHINE" ] ; then
+	echo "MACHINE not specified"
+	exit 1
+fi
+
+ROOT=hfs-root.tbz
+
+# Virtual machine stuff
+[ "$VM" != "" -a "$VMRUN" != "" ] && { ping -c 1 -t 2 $MACHINE || {
+		VMX="$HOME/Documents/Virtual Machines.localized/$VM.vmwarevm/$VM.vmx"
+
+		"$VMRUN" revertToSnapshot "$VMX" "Safe" || exit 1
+		"$VMRUN" start "$VMX" || exit 1
+	}
+}
+
+rsync -P "$BUILT_PRODUCTS_DIR/$ROOT" $MACHINE: || exit 1
+
+ssh $MACHINE bash -x -s <<EOF
+sudo darwinup uninstall $ROOT
+sudo darwinup install $ROOT
+sudo kextcache -update-volume /
+sync
+echo Rebooting...
+nohup bash -c "sleep 0.6 ; sudo reboot -q" >/dev/null 2>/dev/null </dev/null &
+sleep 0.3
+EOF

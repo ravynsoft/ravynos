@@ -264,6 +264,7 @@ read_frandom(void * buffer, u_int numBytes)
 void
 register_and_init_prng(struct cckprng_ctx *ctx, const struct cckprng_funcs *funcs)
 {
+	kprintf("register_and_init_prng: ctx=%p funcs=%p\n", ctx, funcs);
 	assert(cpu_number() == master_cpu);
 	assert(!prng_ready);
 
@@ -295,6 +296,14 @@ random_cpu_init(int cpu)
 void
 read_random(void * buffer, u_int numbytes)
 {
+	/* Fall back to early DRBG if the kernel PRNG has not yet been registered.
+	 * This mirrors the guard already present in read_erandom() and makes
+	 * read_random() safe to call before register_and_init_prng() is invoked
+	 * (e.g. during early kernel_bootstrap_thread before kexts are fully up). */
+	if (!prng_ready) {
+		read_erandom(buffer, numbytes);
+		return;
+	}
 	prng_funcs.refresh(prng_ctx);
 	read_random_generate(buffer, numbytes);
 }
@@ -322,6 +331,12 @@ ensure_gsbase(void)
 static void
 read_random_generate(uint8_t *buffer, u_int numbytes)
 {
+	/* Should not be called without prng_ready, but guard defensively. */
+	if (!prng_ready) {
+		read_erandom(buffer, numbytes);
+		return;
+	}
+
 	ensure_gsbase();
 
 	while (numbytes > 0) {
@@ -345,7 +360,11 @@ write_random(void * buffer, u_int numbytes)
 	SHA256_Update(&ctx, buffer, numbytes);
 	SHA256_Final(seed, &ctx);
 
-	prng_funcs.reseed(prng_ctx, sizeof(seed), seed);
+	/* Silently drop reseed requests before registration; entropy is
+	 * not lost — the DRBG path remains active until prng_ready. */
+	if (prng_ready) {
+		prng_funcs.reseed(prng_ctx, sizeof(seed), seed);
+	}
 	cc_clear(sizeof(seed), seed);
 
 	return 0;

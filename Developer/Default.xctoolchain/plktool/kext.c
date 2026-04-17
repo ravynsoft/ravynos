@@ -2094,10 +2094,14 @@ __OSKextCreatePrelinkInfoDictionary(plkInfo   *plkInfo,
 
     int lenp = 0;
     EVP_DigestFinal_ex(ctx, (unsigned char *) &kernelCacheHash, &lenp);
-    kcID = CFDataCreate(kCFAllocatorDefault, kernelCacheHash, sizeof(uuid_t));
+
+    /* Add the kernelcache ID as big endian */
+    uint8_t biguuid[sizeof(uuid_t)];
+    for (size_t i = 0; i < sizeof(kernelCacheHash); ++i)
+        biguuid[i] = kernelCacheHash[sizeof(kernelCacheHash) - 1 - i];
+    kcID = CFDataCreate(kCFAllocatorDefault, biguuid, sizeof(uuid_t));
     if (kcID)
     {
-        /* Add the kernelcache ID */
         CFDictionarySetValue(prelinkInfoDict, CFSTR(kPrelinkInfoKCIDKey), kcID);
 
         fprintf(stdout, "KernelCache ID: ");

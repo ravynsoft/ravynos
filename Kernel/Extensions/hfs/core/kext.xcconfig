@@ -1,0 +1,52 @@
+//
+// Copyright (c) 2015 Apple Inc. All rights reserved.
+//
+// @APPLE_OSREFERENCE_LICENSE_HEADER_START@
+//
+// This file contains Original Code and/or Modifications of Original Code
+// as defined in and that are subject to the Apple Public Source License
+// Version 2.0 (the 'License'). You may not use this file except in
+// compliance with the License. The rights granted to you under the License
+// may not be used to create, or enable the creation or redistribution of,
+// unlawful or unlicensed copies of an Apple operating system, or to
+// circumvent, violate, or enable the circumvention or violation of, any
+// terms of an Apple operating system software license agreement.
+//
+// Please obtain a copy of the License at
+// http://www.opensource.apple.com/apsl/ and read it before using this file.
+//
+// The Original Code and all software distributed under the License are
+// distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+// EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+// INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+// Please see the License for the specific language governing rights and
+// limitations under the License.
+//
+// @APPLE_OSREFERENCE_LICENSE_HEADER_END@
+//
+
+// Used if building combined xnu & hfs roots
+//DEVICES=<ios-devices-to-build>
+//MACHINE=<osx-machine-net-address>
+//XNU_PATH=<path-to-xnu>
+//XNU_DST_PATH=$(XNU_PATH)/BUILD/dst
+//KERNEL_PATH=$(XNU_DST_PATH)/System/Library/Kernels/kernel.development
+//KERNEL_FRAMEWORK_PATH=$(XNU_DST_PATH)/System/Library/Frameworks/Kernel.framework
+//HEADER_SEARCH_PATHS=$(KERNEL_FRAMEWORK_PATH)/PrivateHeaders $(KERNEL_FRAMEWORK_PATH)/Headers
+
+// Enable this to see if Clang has any new warnings
+// WARNING_CFLAGS=-Weverything -Wno-unused-parameter -Wno-shorten-64-to-32 -Wno-reserved-id-macro -Wno-undef -Wno-missing-variable-declarations -Wno-padded -Wno-c11-extensions -Wno- documentation -Wno-variadic-macros -Wno-zero-length-array -Wno-documentation-unknown-command -Wno-packed -Wno-pedantic -Wno-format-non-iso -Wno-bad-function-cast -Wno-cast-align -Wno-disabled-macro-expansion -Wno-used-but-marked-unused -Wno-c++98-compat-pedantic -Wno-old-style-cast -Wno-c++98-compat -Wno-vla -Wno-switch-enum -Wno-c++-compat -Wno-global-constructors -Wno-shift-sign-overflow -Wno-covered-switch-default
+
+GCC_PREFIX_HEADER=core/kext-config.h
+GCC_PREPROCESSOR_DEFINITIONS=$(PREPROC_DEFN_$(CONFIGURATION))
+PREPROC_DEFN_Debug=DEBUG
+PRIVATE_HEADERS_FOLDER_PATH=/usr/local/include/hfs
+PUBLIC_HEADERS_FOLDER_PATH=/usr/include/hfs
+OTHER_CFLAGS=$(OTHER_CFLAGS_$(CONFIGURATION))
+OTHER_CFLAGS_Coverage=-fprofile-instr-generate -fcoverage-mapping
+
+BUILD_VARIANTS[sdk=macosx*] = normal kasan
+BUILD_VARIANTS[sdk=iphoneos*] = normal kasan
+CODE_SIGN_IDENTITY = -
+OTHER_CFLAGS_kasan = $(KASAN_DEFAULT_CFLAGS)

@@ -60,6 +60,7 @@
 #include <machine/cpu_capabilities.h>
 #include <machine/commpage.h>
 #include <machine/pmap.h>
+#include <pexpert/pexpert.h>
 #include <vm/vm_kern.h>
 #include <vm/vm_map.h>
 #include <stdatomic.h>
@@ -247,7 +248,7 @@ commpage_specific_addr_of(char *commPageBase, commpage_address_t addr_at_runtime
 static int
 commpage_cpus( void )
 {
-	int cpus;
+	int cpus = 0;
 
 	cpus = ml_get_max_cpus();                   // NB: this call can block
 

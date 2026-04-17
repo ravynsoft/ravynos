@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>AppleFileSystemDriver</string>
+	<key>CFBundleName</key>
+	<string>AppleFileSystemDriver</string>
+	<key>CFBundleIconFile</key>
+	<string></string>
+	<key>CFBundleIdentifier</key>
+	<string>com.apple.driver.AppleFileSystemDriver</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>KEXT</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>3.0.1</string>
+	<key>CFBundleShortVersionString</key>
+	<string>3.0.1</string>
+	<key>IOKitPersonalities</key>
+	<dict>
+		<key>AppleFileSystemDriver</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.apple.driver.AppleFileSystemDriver</string>
+			<key>IOClass</key>
+			<string>AppleFileSystemDriver</string>
+			<key>IOMatchCategory</key>
+			<string>AppleFileSystemDriver</string>
+			<key>IOProviderClass</key>
+			<string>IOResources</string>
+			<key>IOResourceMatch</key>
+			<string>boot-uuid</string>
+			<key>media-match</key>
+			<dict>
+				<key>IOPropertyMatch</key>
+				<array>
+					<dict>
+						<key>Content Hint</key>
+						<string>41504653-0000-11AA-AA11-00306543ECAC</string>
+						<key>Leaf</key>
+						<true/>
+					</dict>
+					<dict>
+						<key>Content Hint</key>
+						<string>48465300-0000-11AA-AA11-00306543ECAC</string>
+						<key>Leaf</key>
+						<true/>
+					</dict>
+					<dict>
+						<key>Content Hint</key>
+						<string>426F6F74-0000-11AA-AA11-00306543ECAC</string>
+						<key>Leaf</key>
+						<true/>
+					</dict>
+					<dict>
+						<key>Content Hint</key>
+						<string>Apple_HFS</string>
+						<key>Leaf</key>
+						<true/>
+					</dict>
+					<dict>
+						<key>Content Hint</key>
+						<string>Apple_HFSX</string>
+						<key>Leaf</key>
+						<true/>
+					</dict>
+					<dict>
+						<key>Content Hint</key>
+						<string>Apple_Boot</string>
+						<key>Leaf</key>
+						<true/>
+					</dict>
+					<dict>
+						<key>Content Hint</key>
+						<string>5265636F-7665-11AA-AA11-00306543ECAC</string>
+						<key>Leaf</key>
+						<true/>
+					</dict>
+					<dict>
+						<key>Content Hint</key>
+						<string>Apple_Recovery</string>
+						<key>Leaf</key>
+						<true/>
+					</dict>
+				</array>
+			</dict>
+		</dict>
+	</dict>
+	<key>OSBundleRequired</key>
+	<string>Local-Root</string>
+	<key>OSBundleLibraries</key>
+	<dict>
+		<key>com.apple.kpi.libkern</key>
+		<string>10.0.0d1</string>
+		<key>com.apple.kpi.iokit</key>
+		<string>10.0.0d1</string>
+		<key>com.apple.iokit.IOStorageFamily</key>
+		<string>1.6</string>
+	</dict>
+</dict>
+</plist>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+<dict>
+<key>Module</key>
+    <dict>
+        <key>Name</key>
+            <string>HFS_Japanese.kmod</string>
+        <key>File</key>
+            <string>HFS_Japanese.kmod</string>
+        <key>Requires</key>
+            <array></array>
+        <key>Initialize</key>
+            <string>hfs_japanese_start</string>
+        <key>Finalize</key>
+            <string>hfs_japanese_stop</string>
+        <key>Target</key>
+            <string>Kernel</string>
+        <key>Format</key>
+            <string>mach-o</string>
+    </dict>
+</dict>
+</plist>

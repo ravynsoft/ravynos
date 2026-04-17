@@ -1,0 +1,92 @@
+{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf270
+{\fonttbl\f0\froman\fcharset0 Times-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Monaco;
+}
+{\colortbl;\red255\green255\blue255;}
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\qc\pardirnatural
+
+\f0\b\fs36 \cf0 msdosfs Locking Model\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f1\b0\fs24 \cf0 \
+This document describes the locking model used by the msdosfs KEXT.\
+\
+There are five different kinds of locks used by msdosfs.  To avoid deadlock, msdosfs always acquires multiple locks in a specific, consistent order.  The different types of locks are acquired in this order:\
+	\'95 vnodes (denodes)\
+	\'95 denode hash\
+	\'95 rename\
+	\'95 cluster extent cache (de_cluster_lock)\
+	\'95 FAT\
+	\'95 buffer cache\
+\
+No lock of a particular type may be acquired if any locks of types further down in the list have been acquired.  For example, if the FAT lock is acquired, no vnode locks may be acquired until the FAT lock (and denode hash, rename, or buffer cache locks) are released.  Specific details about each of the above lock types is provided below.\
+\
+
+\b vnodes (denodes)
+\b0 \
+VFS calls us with a "use count" reference on all vnodes it passes to us.  But the reference does not prevent the underlying object from being renamed or deleted (or another object being created with the same name).  Therefore we cannot depend on a "child" vnode actually being a child of the "parent" vnode, or that the child still exists or still has the same name that was used to look up the vnode.\
+\
+The 
+\f2\fs18 \CocoaLigature0 de_lock
+\f1\fs24 \CocoaLigature1  in the denode protects the object.  The lock prevents the object's parent or name from changing (though it doesn't prevent other ancestors from changing, nor prevent the parent's name from changing), and protects changes to the object's size.  For directories, the lock prevents directory entries from being added, removed, or moved; it protects the name space within that directory.  The lock on a directory does not prevent changes to the contents of existing directory entries (other than the deName, and the flags which indicate whether the entry is a long name entry).  The lock on a file (including a symlink) protects that file's directory entry and its contents.\
+\
+When multiple denodes must be locked, they are locked in order of increasing address (of the denode itself, not the vnode).\
+	\
+
+\b denode hash
+\b0 \
+The 
+\f2\fs18 \CocoaLigature0 msdosfs_hash_lock
+\f1\fs24  is used to protect the denode hash table (
+\f2\fs18 dehashtbl
+\f1\fs24 ).  It is only locked long enough to search, insert or remove a denode.  When a new denode must be added to the hash, the 
+\f2\fs18 msdosfs_hash_lock
+\f1\fs24  is 
+\i not
+\i0  held while the denode is initialized (which generally requires I/O).  Instead, a minimally initialized denode with the 
+\f2\fs18 DE_INIT
+\f1\fs24  flag set is inserted into the hash.  When searching for a denode, if the 
+\f2\fs18 DE_INIT
+\f1\fs24  flag is set, then the 
+\f2\fs18 msdosfs_hash_lock
+\f1\fs24  is released, the thread sleeps waiting for 
+\f2\fs18 DE_INIT
+\f1\fs24  to be cleared, and then reacquires the 
+\f2\fs18 msdosfs_hash_lock
+\f1\fs24  to search again.\
+\
+The 
+\f2\fs18 msdosfs_hash_lock
+\f1\fs24  is global to msdosfs.kext; it is not per-volume.  The hash table is shared by all volumes.\
+\CocoaLigature1 \
+
+\b rename
+\b0 \
+Per-volume lock for renames which "reshape" the hierarchy.  If renaming a directory, and the directory will be moving to a new parent, then the 
+\f2\fs18 \CocoaLigature0 pm_rename_lock
+\f1\fs24 \CocoaLigature1  is taken.  This prevents the relationship between the "from" directory and the "to" directory from changing while rename verifies that the directory isn't being moved into one of its descendants.\
+	\
+
+\b cluster extent cache
+\b0  (
+\f2\fs18 de_cluster_lock
+\f1\fs24 )\
+This lock is used to protect the "cluster extent cache," which keeps track of the most recently mapped extent of contiguous clusters.  Specifically, it protects the 
+\f2\fs18 de_cluster_
+\f1\fs24 * fields that follow the 
+\f2\fs18 de_cluster_lock
+\f1\fs24  field in 
+\f2\fs18 struct denode
+\f1\fs24 .\
+\
+
+\b FAT
+\b0 \
+The 
+\f2\fs18 \CocoaLigature0 pm_fat_lock
+\f1\fs24 \CocoaLigature1  is a per-volume lock which protects that volume's File Allocation Table on disk.\
+\
+
+\b buffer cache
+\b0 \
+The buffer cache internally acquires a mutex when you "get" or read a buffer.  Only one buffer is acquired at a time.  Operations which affect multiple buffers must release a buffer before accessing another buffer.  Some operations (such as creating or removing a directory entry with multiple long name entries; or allocating or freeing multiple clusters) which affect multiple buffers protect the overall operation with one of the other lock types (for example, a directory's denode lock, or the FAT lock).\
+}

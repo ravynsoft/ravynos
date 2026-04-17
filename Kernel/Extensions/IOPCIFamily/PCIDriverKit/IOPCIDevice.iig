@@ -1,0 +1,312 @@
+/*
+ * Copyright (c) 2019-2019 Apple Inc. All rights reserved.
+ *
+ * @APPLE_OSREFERENCE_LICENSE_HEADER_START@
+ *
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. The rights granted to you under the License
+ * may not be used to create, or enable the creation or redistribution of,
+ * unlawful or unlicensed copies of an Apple operating system, or to
+ * circumvent, violate, or enable the circumvention or violation of, any
+ * terms of an Apple operating system software license agreement.
+ *
+ * Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this file.
+ *
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ *
+ * @APPLE_OSREFERENCE_LICENSE_HEADER_END@
+ */
+
+#ifndef _IOKIT_UIOPCIDEVICE_H
+#define _IOKIT_UIOPCIDEVICE_H
+
+#include <DriverKit/IOTypes.h>
+#include <DriverKit/IOService.iig>
+#include <DriverKit/IOMemoryDescriptor.iig>
+
+/*!
+   @iig implementation
+   #if KERNEL
+   #include <IOKit/pci/IOPCIDevice.h>
+   #endif
+   @iig end
+ */
+
+class KERNEL IOPCIDevice : public IOService
+{
+public:
+#pragma mark IOService Overrides
+    virtual bool
+    init() override;
+
+    virtual void
+    free() override;
+
+#pragma mark Session Management
+    /*!
+     * @brief       Open a session to the IOPCIDevice
+     * @discussion  This method opens a session to an IOPCIDevice for exclusive access and
+     *              allow access to the PCI Device's configuration and aperture space.
+     * @param       forClient The IOService that is opening a session.
+     * @param       options See IOService.h
+     * @return      KERN_SUCCESS is successful see IOReturn.h for error codes.
+     */
+    kern_return_t
+    Open(IOService*   forClient,
+         IOOptionBits options) LOCALONLY;
+
+
+    /*!
+     * @brief       Close a session to the IOPCIDevice
+     * @discussion  This method closes an open session to an IOPCIDevice. Closing the open session will also turn off the Bus Master Enable and
+     *              Memory Space Enable bits defined in the command register in the PCI spec
+     * @param       forClient The IOService that is closing its session.
+     * @param       options See IOService.h
+     * @return      KERN_SUCCESS is successful see IOReturn.h for error codes.
+     */
+    void
+    Close(IOService*   forClient,
+          IOOptionBits options) LOCALONLY;
+
+#pragma mark Memory Accessors
+    /*!
+     * @brief       Reads a 32-bit value from the PCI device's configuration space.
+     * @discussion  This method reads a 32-bit configuration space register on the device and returns its value. This is a blocking call.
+     * @param       offset An offset into configuration space, of which bits 0-1 are ignored.
+     * @param       readData An out parameter containing the 32-bit value in host byte order. -1 is written to readData on error.
+     */
+    void
+    ConfigurationRead32(uint64_t offset, uint32_t* readData) LOCALONLY;
+
+    /*!
+     * @brief       Reads a 16-bit value from the PCI device's configuration space.
+     * @discussion  This method reads a 16-bit configuration space register on the device and returns its value. This is a blocking call.
+     * @param       offset An offset into configuration space, of which bits 0-1 are ignored.
+     * @param       readData An out parameter containing the 16-bit value in host byte order. -1 is written to readData on error.
+     */
+    void
+    ConfigurationRead16(uint64_t offset, uint16_t* readData) LOCALONLY;
+
+    /*!
+     * @brief       Reads an 8-bit value from the PCI device's configuration space.
+     * @discussion  This method reads a 8-bit configuration space register on the device and returns its value. This is a blocking call.
+     * @param       offset An offset into configuration space, of which bits 0-1 are ignored.
+     * @param       readData An out parameter containing the 8-bit value in host byte order. -1 is written to readData on error.
+     */
+    void
+    ConfigurationRead8(uint64_t offset, uint8_t* readData) LOCALONLY;
+
+    /*!
+     * @brief       Writes a 32-bit value to the PCI device's configuration space.
+     * @discussion  This method writes a 32-bit value to a configuration space register on the device.
+     * @param       offset An offset into configuration space, of which bits 0-1 are ignored.
+     * @param       data A 32-bit value to be written in host byte order.
+     */
+    void
+    ConfigurationWrite32(uint64_t offset,
+                         uint32_t data) LOCALONLY;
+
+    /*!
+     * @brief       Writes a 16-bit value to the PCI device's configuration space.
+     * @discussion  This method writes a 16-bit value to a configuration space register on the device.
+     * @param       offset An offset into configuration space, of which bits 0-1 are ignored.
+     * @param       data A 16-bit value to be written in host byte order.
+     */
+    void
+    ConfigurationWrite16(uint64_t offset,
+                         uint16_t data) LOCALONLY;
+
+    /*!
+     * @brief       Writes an 8-bit value to the PCI device's configuration space.
+     * @discussion  This method writes an 8-bit value to a configuration space register on the device.
+     * @param       offset An offset into configuration space, of which bits 0-1 are ignored.
+     * @param       data An 8-bit value to be written in host byte order.
+     */
+    void
+    ConfigurationWrite8(uint64_t offset,
+                        uint8_t  data) LOCALONLY;
+
+    /*!
+     * @brief       Reads a 64-bit value from the PCI device's aperture at a given memory index.
+     * @discussion  This method reads a 64-bit register on the device and returns its value. This is a blocking call.
+     * @param       memoryIndex An index into the array of ranges assigned to the device.
+     * @param       offset An offset into the device's memory specified by the index.
+     * @param       readData An out parameter containing the 64-bit value in host byte order. -1 is written to readData on error.
+     */
+    void
+    MemoryRead64(uint8_t   memoryIndex,
+                 uint64_t  offset,
+                 uint64_t* readData) LOCALONLY;
+
+    /*!
+     * @brief       Reads a 32-bit value from the PCI device's aperture at a given memory index.
+     * @discussion  This method reads a 32-bit register on the device and returns its value. This is a blocking call.
+     * @param       memoryIndex An index into the array of ranges assigned to the device.
+     * @param       offset An offset into the device's memory specified by the index.
+     * @param       readData An out parameter containing the 32-bit value in host byte order. -1 is written to readData on error.
+     */
+    void
+    MemoryRead32(uint8_t   memoryIndex,
+                 uint64_t  offset,
+                 uint32_t* readData) LOCALONLY;
+
+    /*!
+     * @brief       Reads a 16-bit value from the PCI device's aperture at a given memory index.
+     * @discussion  This method reads a 16-bit register on the device and returns its value. This is a blocking call.
+     * @param       memoryIndex An index into the array of ranges assigned to the device.
+     * @param       offset An offset into the device's memory specified by the index.
+     * @param       readData An out parameter containing the 16-bit value in host byte order. -1 is written to readData on error.
+     */
+    void
+    MemoryRead16(uint8_t   memoryIndex,
+                 uint64_t  offset,
+                 uint16_t* readData) LOCALONLY;
+
+    /*!
+     * @brief       Reads an 8-bit value from the PCI device's aperture at a given memory index.
+     * @discussion  This method reads an 8-bit register on the device and returns its value. This is a blocking call.
+     * @param       memoryIndex An index into the array of ranges assigned to the device.
+     * @param       offset An offset into the device's memory specified by the index.
+     * @param       readData An out parameter containing the 8-bit. -1 is written to readData on error.
+     */
+    void
+    MemoryRead8(uint8_t  memoryIndex,
+                uint64_t offset,
+                uint8_t* readData) LOCALONLY;
+
+    /*!
+     * @brief       Writes a 64-bit value to the PCI device's aperture at a given memory index.
+     * @discussion  This method writes a 64-bit register on the device and returns its value.
+     * @param       memoryIndex An index into the array of ranges assigned to the device
+     * @param       offset An offset into the device's memory specified by the index.
+     * @param       data A 64-bit value to be written in host byte order.
+     */
+    void
+    MemoryWrite64(uint8_t  memoryIndex,
+                  uint64_t offset,
+                  uint64_t data) LOCALONLY;
+
+    /*!
+     * @brief       Writes a 32-bit value to the PCI device's aperture at a given memory index.
+     * @discussion  This method writes a 32-bit register on the device and returns its value.
+     * @param       memoryIndex An index into the array of ranges assigned to the device.
+     * @param       offset An offset into the device's memory specified by the index.
+     * @param       data A 32-bit value to be written in host byte order.
+     */
+    void
+    MemoryWrite32(uint8_t  memoryIndex,
+                  uint64_t offset,
+                  uint32_t data) LOCALONLY;
+
+    /*!
+     * @brief       Writes a 16-bit value to the PCI device's aperture at a given memory index.
+     * @discussion  This method writes a 16-bit register on the device and returns its value.
+     * @param       memoryIndex An index into the array of ranges assigned to the device.
+     * @param       offset An offset into the device's memory specified by the index.
+     * @param       data A 16-bit value to be written in host byte order.
+     */
+    void
+    MemoryWrite16(uint8_t  memoryIndex,
+                  uint64_t offset,
+                  uint16_t data) LOCALONLY;
+
+    /*!
+     * @brief       Writes an 8-bit value to the PCI device's aperture at a given memory index.
+     * @discussion  This method writes an 8-bit register on the device and returns its value.
+     * @param       memoryIndex An index into the array of ranges assigned to the device
+     * @param       offset An offset into the device's memory specified by the index.
+     * @param       data An 8-bit value.
+     */
+    void
+    MemoryWrite8(uint8_t  memoryIndex,
+                 uint64_t offset,
+                 uint8_t  data) LOCALONLY;
+
+#pragma mark Configuration Space helpers
+
+    /*!
+     * @brief       Search configuration space for a PCI capability register.
+     * @discussion  This method searches the device's configuration space for a PCI capability register matching the passed capability ID, if the device supports PCI capabilities.
+     * @param       capabilityID A PCI capability ID. PCI Express devices may support extended capabilities in configuration space starting at offset 0x100.
+     *              To search this space, the ID passed should be the negated value of the PCI-SIG assigned ID for the extended capability.
+     * @param       searchOffset The offset into configuration space to start the next capability search.
+     * @param       foundCapabilityOffset An optional out parameter to return the offset into configuration space where the capability was found. The offset can be used
+     *              in the searchOffset parameter to find all capability blocks that may exist on the device with the same ID.
+     * @result      kIOReturnSuccess if the capabilityID is found.
+     */
+    virtual kern_return_t
+    FindPCICapability(uint32_t  capabilityID,
+                      uint64_t  searchOffset,
+                      uint64_t* foundCapabilityOffset);
+
+    /*!
+     * @brief       Accessor to return the PCI device's bus, device, and function number.
+     * @discussion  This method is an accessor to return the PCI device's  bus, device and function number.
+     * @param       returnBusNumber An optional out parameter to be filled with the device's bus number.
+     * @param       returnDeviceNumber An optional out parameter to be filled with the device's device number.
+     * @param       returnFunctionNumber An optional out parameter to be filled with the device's function number.
+     * @result      kIOReturnSuccess if there were no errors.
+     */
+    virtual kern_return_t
+    GetBusDeviceFunction(uint8_t* returnBusNumber,
+                         uint8_t* returnDeviceNumber,
+                         uint8_t* returnFunctionNumber);
+
+#pragma mark Power Management
+
+    /*!
+     * @brief       Determine whether or not the device supports PCI Bus Power Management.
+     * @discussion  This method will look at the device's capabilties registers and determine whether or not the device supports the PCI BUS Power Management Specification.
+     * @param       state Check for support of a specific state (e.g. kPCIPMCPMESupportFromD3Cold). If state is 0, then check for a property in the registry
+     *              which tells which state the hardware expects the device to go to during sleep.
+     * @result      kIOReturnSuccess if the specified state is supported.
+     */
+    virtual kern_return_t
+    HasPCIPowerManagement(uint64_t state);
+
+    /*!
+     * @brief       Enable PCI power management for sleep state
+     * @discussion  This method will enable PCI Bus Powermanagement when going to sleep mode.
+     * @param       state Enables PCI Power Management by placing the function in the given state (e.g. kPCIPMCSPowerStateD3). If state is 0xffffffff, then
+     *              the IOPCIDevice determines the desired state. If state is kPCIPMCSPowerStateD0 (0) then PCI Power Management is disabled.
+     * @result      kIOReturnSuccess if there were no errors.
+     */
+    virtual kern_return_t
+    EnablePCIPowerManagement(uint64_t state);
+
+};
+
+#pragma mark Private Class Extension
+class
+    EXTENDS (IOPCIDevice)IOPCIDevicePrivate
+{
+    virtual kern_return_t
+    _MemoryAccess(uint64_t     operation,
+                  uint64_t     offset,
+                  uint64_t     data,
+                  uint64_t*    readData,
+                  IOService*   forClient,
+                  IOOptionBits options) final;
+
+    virtual kern_return_t
+    _CopyDeviceMemoryWithIndex(uint64_t             memoryIndex,
+                               IOMemoryDescriptor** returnMemory,
+                               IOService*           forClient) final;
+
+    virtual kern_return_t
+    _ManageSession(IOService*   forClient,
+                   bool         openClient,
+                   IOOptionBits openOptions) final;
+
+};
+
+#endif /* ! _IOKIT_UIOPCIDEVICE_H */

@@ -1,0 +1,17 @@
+{
+    BUNDLE_EXTENSION = kext; 
+    DYNAMIC_CODE_GEN = YES; 
+    FILESTABLE = {
+        OTHER_SOURCES = (Makefile.preamble, Makefile, Makefile.postamble, CustomInfo.xml); 
+        SUBPROJECTS = (hfs_japanese.kmodproj); 
+    }; 
+    LANGUAGE = English; 
+    MAKEFILEDIR = "$(MAKEFILEPATH)/pb_makefiles"; 
+    NEXTSTEP_BUILDTOOL = /bin/gnumake; 
+    NEXTSTEP_INSTALLDIR = /System/Library/Extensions; 
+    NEXTSTEP_JAVA_COMPILER = /usr/bin/javac; 
+    NEXTSTEP_OBJCPLUS_COMPILER = /usr/bin/cc; 
+    PROJECTNAME = hfs_japanese; 
+    PROJECTTYPE = "Kernel Extension"; 
+    PROJECTVERSION = 2.8; 
+}

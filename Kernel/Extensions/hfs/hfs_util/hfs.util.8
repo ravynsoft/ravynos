@@ -1,0 +1,144 @@
+.\""Copyright (c) 2001-2008 Apple Inc. All Rights Reserved.
+.\"The contents of this file constitute Original Code as defined in and are 
+.\"subject to the Apple Public Source License Version 1.2 (the 'License'). 
+.\"You may not use this file except in compliance with the
+.\"License. Please obtain a copy of the License at 
+.\"http://www.apple.com/publicsource and read it before using this file.
+.\"
+.\"This Original Code and all software distributed under the License are 
+.\"distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER 
+.\"EXPRESS OR IMPLIED, AND APPLE
+.\"HEREBY DISCLAIMS ALL SUCH WARRANTIES, INCLUDING WITHOUT LIMITATION, ANY 
+.\"WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+.\"QUIET ENJOYMENT OR NON-INFRINGEMENT. Please see the License for the 
+.\"specific language governing rights and limitations under the License."
+.Dd July 16, 2003
+.Dt HFS.UTIL 8 
+.Os Darwin
+.Sh NAME
+.Nm hfs.util
+.Nd HFS/HFS+ file system utility
+.Sh SYNOPSIS
+.Nm
+.Fl m
+.Ar device  mountpoint 
+.Op Ar mountflag1
+.Op Ar mountflag2
+.Op Ar mountflag3
+.Op Ar mountflag4
+.Pp
+.Nm
+.Fl p
+.Ar device
+.Op Ar mountflag1
+.Op Ar mountflag2
+.Op Ar mountflag3
+.Op Ar mountflag4
+.Pp
+.Nm
+.Fl J
+.Op Ar size
+.Ar mountpoint
+.Pp
+.Nm
+.Fl U
+.Ar mountpoint
+.Pp
+.Nm
+.Fl N
+.Ar device
+.Pp
+.Nm
+.Fl I
+.Ar mountpoint
+.Pp
+.Nm
+.Op Fl aksu
+.Ar device
+.Sh DESCRIPTION
+The
+.Nm
+command supports the mounting, probing, and unmounting of HFS file systems.
+.Pp
+Options:
+.Bl -tag -compact -offset indent
+.It Fl a 
+Adopt permissions for the HFS file system at
+.Ar device
+.It Fl I 
+Print out status information about the journal on the HFS 
+file system at
+.Ar mountpoint
+.It Fl J Op Ar size
+Enable journaling on the HFS file system mounted on
+.Ar mountpoint .
+An optional size may
+be specified (e.g. 32M for a 32 megabyte journal).
+.It Fl k 
+Get the UUID key for the HFS file system at
+.Ar device .
+.It Fl m
+Mount the HFS file system located on
+.Ar device
+onto
+.Ar mountpoint
+with the flags
+.Ar mountflag1 mountflag2 mountflag3 mountflag4
+.It Fl M
+Force mount the HFS file system located on
+.Ar device
+onto
+.Ar mountpoint
+with the flags
+.Ar mountflag1 mountflag2 mountflag3 mountflag4 .
+This is a deprecated option.
+.It Fl N
+Disable journaling on a HFS+ file system located at 
+.Ar device
+.It Fl p
+Probe the
+.Ar device
+for an HFS file system using the flags
+.Ar mountflag1 mountflag2 mountflag3 mountflag4
+.It Fl s 
+Set the UUID key (generates a new UUID value) for the
+HFS file system at
+.Ar device
+.It Fl u 
+Unmount the HFS file system located at
+.Ar device
+.It Fl U 
+Disable journaling on the HFS+ file system mounted on
+.Ar mountpoint
+.El
+.Pp
+The
+.Ar mountflags 
+referenced above are either:
+.Bl -bullet -compact -offset indent
+.It
+.Ar removable 
+or
+.Ar fixed
+.It
+.Ar readonly
+or
+.Ar writeable  
+.It
+.Ar suid
+or
+.Ar nosuid  
+.It
+.Ar dev
+or
+.Ar nodev
+.El
+.Pp
+Note that for the 
+.Ar device
+references above, you must only supply the last component of the path to the 
+device in question, such as disk0s2 rather than /dev/disk0s2. 
+.Sh SEE ALSO 
+.Xr diskarbitrationd 8
+.Sh HISTORY
+Derived from the Openstep Workspace Manager file system utility programs.

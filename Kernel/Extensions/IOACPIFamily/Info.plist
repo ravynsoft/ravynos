@@ -31,24 +31,7 @@
 			<key>IOProviderClass</key>
 			<string>IOPlatformExpertDevice</string>
 			<key>IOProbeScore</key>
-                        <integer>10000</integer>
-			<key>top-level</key>
-			<array>
-                            <!--
-				<dict>
-					<key>IOName</key>
-					<string>bios</string>
-				</dict>
-				<dict>
-					<key>IOName</key>
-					<string>8259-apic</string>
-				</dict>
-				<dict>
-					<key>IOName</key>
-					<string>pci</string>
-			        </dict>
-                            -->
-			</array>
+            <integer>10000</integer>
 		</dict>
 		<key>ACPI X86 CPU</key>
 		<dict>
@@ -63,6 +46,28 @@
 			<key>IOProviderClass</key>
 			<string>IOCPU</string>
 		</dict>
+		<key>ACPI RTC</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.apple.iokit.IOACPIFamily</string>
+			<key>IOClass</key>
+			<string>ACPIRTC</string>
+			<key>IOProviderClass</key>
+			<string>ACPIPlatformExpert</string>
+			<key>IOProbeScore</key>
+			<integer>9001</integer>
+		</dict>
+		<key>EFI NVRAM</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.apple.iokit.IOACPIFamily</string>
+			<key>IOClass</key>
+			<string>EFINVRAM</string>
+			<key>IOProviderClass</key>
+			<string>ACPIPlatformExpert</string>
+			<key>IOProbeScore</key>
+			<integer>9001</integer>
+		</dict>
 	</dict>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2026 ravynOS Project. All rights reserved.</string>
@@ -71,11 +76,15 @@
 		<key>com.apple.kpi.iokit</key>
 		<string>7.0</string>
 		<key>com.apple.kpi.libkern</key>
-		<string>8.0.0d0</string>
+		<string>8.0.0</string>
 		<key>com.apple.kpi.private</key>
-		<string>8.0.0b1</string>
+		<string>8.0.0</string>
 		<key>com.apple.kpi.unsupported</key>
-		<string>8.0.0b1</string>
+		<string>8.0.0</string>
+		<key>com.apple.iokit.IOPCIFamily</key>
+		<string>2.9</string>
+		<key>com.apple.driver.AppleAPIC</key>
+        <string>1.4</string>
 	</dict>
 	<key>OSBundleRequired</key>
 	<string>Root</string>

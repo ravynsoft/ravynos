@@ -1,0 +1,97 @@
+.\""Copyright (c) 2001 Apple Computer, Inc. All Rights Reserved.
+.\"The contents of this file constitute Original Code as defined in and are 
+.\"subject to the Apple Public Source License Version 1.2 (the 'License'). 
+.\"You may not use this file except in compliance with the
+.\"License. Please obtain a copy of the License at 
+.\"http://www.apple.com/publicsource and read it before using this file.
+.\"
+.\"This Original Code and all software distributed under the License are 
+.\"distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER 
+.\"EXPRESS OR IMPLIED, AND APPLE
+.\"HEREBY DISCLAIMS ALL SUCH WARRANTIES, INCLUDING WITHOUT LIMITATION, ANY 
+.\"WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+.\"QUIET ENJOYMENT OR NON-INFRINGEMENT. Please see the License for the 
+.\"specific language governing rights and limitations under the License."
+.Dd March 24, 2001
+.Dt MSDOS.UTIL 8 
+.Os Darwin
+.Sh NAME
+.Nm msdos.util
+.Nd DOS/Windows (FAT) file system utility
+.Sh SYNOPSIS
+.Nm
+.Fl m Ar mountflag1 mountflag2 mountflag3 mountflag4
+.Ar device node
+.Pp
+.Nm
+.Fl p Ar mountflag1 mountflag2 mountflag3 mountflag4
+.Ar device
+.Pp
+.Nm
+.Fl u
+.Ar device
+.Pp
+.Nm
+.Fl k
+.Ar device
+.Pp
+.Nm
+.Fl n
+.Ar device name
+.Sh DESCRIPTION
+The
+.Nm
+command supports the mounting, probing, and unmounting of FAT file systems.
+.Pp
+Options:
+.Bl -tag -compact -offset indent
+.It Fl m Ar mountflag1 mountflag2 mountflag3 mountflag4
+mount
+.It Fl n 
+set name
+.It Fl p Ar mountflag1 mountflag2 mountflag3 mountflag4
+probe for mounting
+.It Fl u 
+unmount
+.It Fl k
+print volume UUID
+.El
+.Pp
+.Ar mountflags 
+above are either:
+.Bl -bullet -compact -offset indent
+.It
+.Ar removable 
+or
+.Ar fixed
+.It
+.Ar readonly
+or
+.Ar writeable  
+.It
+.Ar suid
+or
+.Ar nosuid  
+.It
+.Ar dev
+or
+.Ar nodev
+.El
+.Pp
+FAT volumes do not actually have a volume UUID.
+They have an optional 4-byte volume ID.
+If a volume has an ID, then it will be converted to a version 3 UUID
+using MD5 to checksum the kFSUUIDNamespaceSHA1 UUID folowed by the volume ID.
+.Pp
+For the
+.Fl k
+option, if the volume has a volume ID, the exit status will be 253 and the UUID
+will be printed to standard out, without any trailing newline.
+Otherwise, if the volume appears to be FAT, the exit status will be 255.
+If the volume does not appear to be FAT, the exit status will be 254.
+.Sh FILES
+.Pa /System/Library/Filesystems/msdos.fs/Contents/Resources/msdos.util
+.Sh SEE ALSO 
+.Xr diskarbitrationd 8
+.Sh HISTORY
+Derived from the Openstep Workspace Manager file system utility programs.

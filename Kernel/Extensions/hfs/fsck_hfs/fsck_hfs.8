@@ -1,0 +1,252 @@
+.\" Copyright (c) 2002,2008 Apple Inc. All rights reserved.
+.\" 
+.\" The contents of this file constitute Original Code as defined in and
+.\" are subject to the Apple Public Source License Version 1.1 (the
+.\" "License").  You may not use this file except in compliance with the
+.\" License.  Please obtain a copy of the License at
+.\" http://www.apple.com/publicsource and read it before using this file.
+.\" 
+.\" This Original Code and all software distributed under the License are
+.\" distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+.\" EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+.\" INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT.  Please see the
+.\" License for the specific language governing rights and limitations
+.\" under the License.
+.\" 
+.\"     @(#)fsck_hfs.8
+.Dd August 5, 2008
+.Dt FSCK_HFS 8
+.Os "Mac OS X"
+.Sh NAME
+.Nm fsck_hfs
+.Nd HFS file system consistency check
+.Sh SYNOPSIS
+.Nm fsck_hfs
+.Fl q
+.Op Fl df
+.Ar special ...
+.Nm fsck_hfs
+.Fl p
+.Op Fl df
+.Ar special ...
+.Nm fsck_hfs
+.Op Fl n | y | r
+.Op Fl dfgxlES
+.Op Fl D Ar flags
+.Op Fl b Ar size
+.Op Fl B Ar path
+.Op Fl m Ar mode
+.Op Fl c Ar size
+.Op Fl R Ar flags
+.Ar special ...
+.Sh DESCRIPTION
+.Pp
+The
+.Nm
+utility verifies and repairs standard HFS and HFS+ file systems.
+.Pp
+The first form of
+.Nm
+quickly checks the specified file systems to determine whether
+they were cleanly unmounted.
+.Pp
+The second form of
+.Nm
+preens the specified file systems.
+It is normally started by
+.Xr fsck 8
+run from
+.Pa /etc/rc.boot
+during automatic reboot, when a HFS file system is detected.
+When preening file systems,
+.Nm
+will fix common inconsistencies for file systems that were not
+unmounted cleanly.
+If more serious problems are found,
+.Nm
+does not try to fix them, indicates that it was not
+successful, and exits.
+.Pp
+The third form of
+.Nm
+checks the specified file systems and tries to repair all
+detected inconsistencies.
+.Pp
+If no options are specified 
+.Nm
+will always check and attempt to fix the specified file systems.
+.Pp
+The options are as follows:
+.Bl -hang -offset indent
+.It Fl c Ar size
+Specify the
+.Ar size 
+of the cache used by  
+.Nm
+internally.  Bigger 
+.Ar size 
+can result in better performance but can result in deadlock when
+used with 
+.Fl l 
+option.  Size can be specified as a decimal, octal, or 
+hexadecimal number.  If the number ends with a ``k'', ``m'', 
+or ``g'', the number is multiplied by 1024 (1K), 1048576 (1M),
+or 1073741824 (1G), respectively.  
+.It Fl d
+Display debugging information.
+This option may provide useful information when 
+.Nm
+cannot repair a damaged file system.
+.It Fl D Ar flags
+Print extra debugging information.  The
+.Ar flags
+are a bitmap that control which kind of debug information is printed.
+The following values are currently implemented:
+.Bl -hang -offset indent -compact
+.It 0x0001
+Informational messages
+.It 0x0002
+Error messages
+.It 0x0010
+Extended attributes related messages
+.It 0x0020
+Overlapped extents related messages
+.El
+.It Fl b Ar size
+Specify the size, in bytes, of the physical blocks used by the
+.Fl B
+option.
+.It Fl B Ar path
+Print the files containing the physical blocks listed in the file
+.Ar path .
+The file should contain one or more decimal, octal (with leading 0) or
+hexadecimal (with leading 0x) numbers separated by white space.  The physical
+block numbers are relative to the start of the partition, so if you
+have block numbers relative to the start of the device, you will have to
+subtract the block number of the start of the partition.  The size of a
+physical block is given with the
+.Fl b
+option; the default is 512 bytes per block.
+.It Fl f
+When used with the
+.Fl p
+option, force
+.Nm
+to check `clean' file systems, otherwise it means force
+.Nm
+to check and repair journaled HFS+ file systems.
+.It Fl g
+Causes
+.Nm
+to generate its output strings in GUI format.
+This option is used when another application with a graphical user interface
+(like Mac OS X Disk Utility) is invoking the
+.Nm
+tool.
+.It Fl x
+Causes
+.Nm
+to generate its output strings in XML (plist) format.  This option
+implies the
+.Fl g
+option.
+.It Fl l
+Lock down the file system and perform a test-only check.
+This makes it possible to check a file system that is currently mounted,
+although no repairs can be made.
+.It Fl m Ar mode
+Mode is an octal number that will be used to set the permissions for the
+lost+found directory when it is created.
+The lost+found directory is only created when a volume is repaired and orphaned
+files or directories are detected.
+.Nm
+places orphaned files and directories into the lost+found directory (located
+at the root of the volume).
+The default mode is 01777.
+.It Fl p
+Preen the specified file systems.
+.It Fl q
+Causes
+.Nm
+to quickly check whether the volume was unmounted cleanly.
+If the volume was unmounted cleanly, then the exit status is 0.
+If the volume was not unmounted cleanly, then the exit status will be non-zero.
+In either case, a message is printed to standard output describing whether the
+volume was clean or dirty.
+.It Fl y
+Always attempt to repair any damage that is found.
+.It Fl n
+Never attempt to repair any damage that is found.
+.It Fl E
+Cause
+.Nm
+to exit (with a value of 47) if it encounters any
+major errors.  A ``major error'' is considered one which
+would impact using the volume in normal usage; an inconsistency
+which would not impact such use is considered ``minor'' for this
+option.  Only valid with the
+.Fl n
+option.
+.It Fl S
+Cause
+.Nm
+to scan the entire device looking for I/O errors.  It will
+attempt to map the blocks with errors to names, similar to
+the
+.Fl B
+option.
+.It Fl R Ar flags
+Rebuilds the requested btree.  The following flags are supported:
+.Bl -hang -offset indent -compact
+.It a
+Attribute btree
+.It c
+Catalog btree
+.It e
+Extents overflow btree
+.El
+Rebuilding a btree will only
+work if there is enough free space on the file system for the new btree
+file, and if
+.Nm
+is able to traverse each of the nodes in the requested btree successfully.
+Rebuilding btrees is not supported on HFS Standard volumes.
+.It Fl r
+Rebuild the catalog btree.  This is synonymous with
+.Fl Rc .
+.El
+.Pp
+Because of inconsistencies between the block device and the buffer cache,
+the raw device should always be used.
+.Sh EXIT VALUES
+.Nm
+indicates some status by exit value.  The current list of exit status results
+is:
+.Bl -hang -offset indent -compact
+.It 0
+No errors found, or successfully repaired.
+.It 3
+A quick-check (the
+.Fl n
+option) found a dirty filesystem; no repairs were made.  There is a potential
+corruption in the filesystem, and either the journal could not be read, or a
+runtime corruption was present so the HFS Volume Inconsistent bit was set.
+.It 4
+During boot, the root filesystem was found to be dirty; repairs were
+made, and the filesystem was remounted.  The system should be rebooted.
+.It 8
+A corrupt filesystem was found during a check, or repairs did not succeed.
+.It 47
+A major error was found with
+.Fl E .
+.El
+.Sh SEE ALSO
+.Xr fsck 8
+.Sh BUGS
+.Nm
+is not able to fix some inconsistencies that it detects.
+.Sh HISTORY
+The
+.Nm
+command appeared in Mac OS X Server 1.0 .

@@ -1365,14 +1365,21 @@ void* ImageLoaderMachO::getEntryFromLC_UNIXTHREAD() const
 	for (uint32_t i = 0; i < cmd_count; ++i) {
 		if ( cmd->cmd == LC_UNIXTHREAD ) {
 	#if __i386__
-			const i386_thread_state_t* registers = (i386_thread_state_t*)(((char*)cmd) + 16);
-			void* entry = (void*)(registers->eip + fSlide);
+			const uint32_t* regs32 = (uint32_t*)(((char*)cmd) + 16);
+			void* entry = (void*)(regs32[10] + fSlide); // i386_thread_state_t.eip
 			// <rdar://problem/8543820&9228031> verify entry point is in image
 			if ( this->containsAddress(entry) )
 				return entry;
 	#elif __x86_64__
-			const x86_thread_state64_t* registers = (x86_thread_state64_t*)(((char*)cmd) + 16);
-			void* entry = (void*)(registers->rip + fSlide);
+			const uint64_t* regs64 = (uint64_t*)(((char*)cmd) + 16);
+			void* entry = (void*)(regs64[16] + fSlide); // x86_thread_state64_t.rip
+			// <rdar://problem/8543820&9228031> verify entry point is in image
+			if ( this->containsAddress(entry) )
+				return entry;
+	#elif __arm64__ && !__arm64e__
+			// temp support until <rdar://39514191> is fixed
+			const uint64_t* regs64 = (uint64_t*)(((char*)cmd) + 16);
+			void* entry = (void*)(regs64[32] + fSlide); // arm_thread_state64_t.__pc
 			// <rdar://problem/8543820&9228031> verify entry point is in image
 			if ( this->containsAddress(entry) )
 				return entry;

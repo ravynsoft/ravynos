@@ -579,6 +579,7 @@ kernel_bootstrap_thread(void)
 #ifdef  IOKIT
 	kernel_bootstrap_log("PE_init_iokit");
 	PE_init_iokit();
+	kernel_bootstrap_log("PE_init_iokit completed");
 #endif
 
 	assert(ml_get_interrupts_enabled() == FALSE);
@@ -614,7 +615,6 @@ kernel_bootstrap_thread(void)
 	vm_commpage_text_init();
 
 #if CONFIG_MACF
-	kernel_bootstrap_log("mac_policy_initmach");
 	mac_policy_initmach();
 #if CONFIG_VNGUARD
 	vnguard_policy_init();
@@ -671,9 +671,7 @@ kernel_bootstrap_thread(void)
 	if (result != KERN_SUCCESS) {
 		panic("kernel_do_post: Tests failed with result = 0x%08x\n", result);
 	}
-	kernel_bootstrap_log("kernel_do_post - done");
 #endif /* CONFIG_XNUPOST */
-
 
 	/*
 	 *	Start the user bootstrap.

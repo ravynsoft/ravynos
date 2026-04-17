@@ -1,0 +1,366 @@
+# capfile
+# Capistrano recipes to simplify two-machine debugging for Mac OS X
+#
+# Based on Apple's Hello Debugger documentation
+# http://developer.apple.com/documentation/Darwin/Conceptual/KEXTConcept/KEXTConceptDebugger/hello_debugger.html
+#
+# Author: Dan Wilson (wilson_daniel@apple.com)
+# Copyright 2008-2014
+#
+# Requires Capistrano Ruby gem v2.x
+# sudo gem install capistrano -v 2.15.5
+#
+# To list recipes:
+# cap -f Scripts/capfile -T
+#
+# To set up target machine:
+# cap -f Scripts/capfile easyssh:enable
+# cap -f Scripts/capfile nvram:debug:enable
+
+# To copy headers:
+# cap -f Scripts/capfile usbx:headers
+#
+# To build, copy, and reboot target:
+# cap -f Scripts/capfile usbx:deploy
+
+#
+# Dynamically set variables
+#
+set(:target_machine) do
+  result = ENV['target'] || ""
+  if result.empty?
+    result = Capistrano::CLI.ui.ask "Enter a SSH login for the debugging target, e.g. username@hostname: "
+    puts "You can avoid this prompt by exporting 'target' in your environment.\n"
+  end
+  result
+end
+
+set(:ios_train) do
+  result = ENV['IOSTRAIN'] || ""
+  if result.empty?
+    result = Capistrano::CLI.ui.ask "Enter iOS train name: "
+    puts "You can avoid this prompt by exporting 'IOSTRAIN' in your environment.\n"
+  end
+  result
+end
+
+set(:bridgeos_train) do
+  result = ENV['BRIDGEOSTRAIN'] || ""
+  if result.empty?
+    result = Capistrano::CLI.ui.ask "Enter bridgeOS train name: "
+    puts "You can avoid this prompt by exporting 'BRIDGEOSTRAIN' in your environment.\n"
+  end
+  result
+end
+
+set(:watchos_train) do
+  result = ENV['WATCHOSTRAIN'] || ""
+  if result.empty?
+    result = Capistrano::CLI.ui.ask "Enter WatchOS train name: "
+    puts "You can avoid this prompt by exporting 'WATCHOSTRAIN' in your environment.\n"
+  end
+  result
+end
+
+set(:macos_train) do
+  result = ENV['MACOSTRAIN'] || ENV['OSXTRAIN'] || ""
+  if result.empty?
+    result = Capistrano::CLI.ui.ask "Enter macOS train name: "
+    puts "You can avoid this prompt by exporting 'MACOSTRAIN' in your environment.\n"
+  end
+  result
+end
+
+#
+# Recipe settings
+#
+# Use a pseudo-tty to prevent sudo from entering non-interactive mode.
+default_run_options[:pty] = true
+
+role :targets, "#{target_machine}"
+
+#
+# Tasks
+#
+namespace :easyssh do
+  desc "Remove SSH key for target from .ssh/known_hosts"
+  task :clean do
+    system "cat ~/.ssh/known_hosts | grep -v `(echo $target | cut -f2 -d@)` > ~/.ssh/known_hosts"
+  end
+
+  desc "Enable no-password SSH on a remote system"
+  task :enable, :roles => :targets do
+    if not File.exist?("#{ENV['HOME']}/.ssh/id_rsa.pub")
+      `ssh-keygen -t rsa`
+    end
+    upload "#{ENV['HOME']}/.ssh/id_rsa.pub", "/tmp/debugger_host_id_rsa.pub"
+    run "mkdir ~/.ssh || echo Continuing anyway..."
+    run "cat /tmp/debugger_host_id_rsa.pub >> ~/.ssh/authorized_keys"
+    run "rm /tmp/debugger_host_id_rsa.pub"
+  end
+end
+
+namespace :nvram do
+  namespace :debug do
+    desc "Enable debugging on a remote system and reboot it"
+    task :enable, :roles => :targets do
+      original_boot_args = capture("nvram boot-args")
+
+      current_boot_args = original_boot_args
+      current_boot_args.gsub!('boot-args', '')
+      current_boot_args.strip!
+      current_boot_args.gsub!(/(^|\s)debug=\S*/, '')
+      current_boot_args.strip!
+      current_boot_args.gsub!(/(^|\s)kdp_match_name=\S*/, '')
+      current_boot_args.strip!
+      current_boot_args.gsub!(/(^|\s)-v/,'')
+      current_boot_args.strip!
+      current_boot_args.gsub!(/(^|\s)kext-dev-mode=\S*/,'')
+      current_boot_args.strip!
+      current_boot_args.gsub!(/(^|\s)rootless=\S*/,'')
+      current_boot_args.strip!
+      current_boot_args += " debug=0x814e kdp_match_name=mojo -v kext-dev-mode=1 rootless=0"
+      current_boot_args.strip!
+
+      if current_boot_args != original_boot_args
+        sudo "nvram boot-args='#{current_boot_args}'"
+        sudo "reboot"
+      end
+    end
+
+    desc "Disable debugging on a remote system and reboot it"
+    task :disable, :roles => :targets do
+      original_boot_args = capture("nvram boot-args")
+
+      current_boot_args = original_boot_args
+      current_boot_args.gsub!('boot-args', '')
+      current_boot_args.strip!
+      current_boot_args.gsub!(/(^|\s)debug=\S*/, '')
+      current_boot_args.strip!
+      current_boot_args.gsub!(/(^|\s)kdp_match_name=\S*/, '')
+      current_boot_args.strip!
+      current_boot_args.gsub!(/(^|\s)-v/,'')
+      current_boot_args.strip!
+      current_boot_args.gsub!(/(^|\s)kext-dev-mode=\S*/,'')
+      current_boot_args.strip!
+      current_boot_args.gsub!(/(^|\s)rootless=\S*/,'')
+      current_boot_args.strip!
+
+      if current_boot_args != original_boot_args
+        sudo "nvram boot-args='#{current_boot_args}'"
+        sudo "reboot"
+      end
+    end
+
+    desc "Check current debug setting"
+    task :status, :roles => :targets do
+      current_boot_args = capture("nvram boot-args").gsub('boot-args', '').strip
+      puts "boot-args #{current_boot_args}"
+    end
+  end
+end
+
+namespace :ios do
+  desc "Copy IOPCIFamily headers for iOS"
+  task :headers do
+    system "sudo xbs buildit . -noinstall -noverify -arch arm -release #{ios_train} -project IOPCIFamily -mergeToSDKs"
+  end
+
+  desc "Build IOPCIFamily root for iOS"
+  task :root do
+    system "sudo xbs buildit . -release #{ios_train} -project IOPCIFamily -archive"
+  end
+
+  desc "Build IOPCIFamily for iOS"
+  task :build do
+    system "sudo xbs buildit . -release #{ios_train} -project IOPCIFamily"
+  end
+end
+
+namespace :bridgeos do
+  desc "Copy IOPCIFamily headers for bridgeOS"
+  task :headers do
+    system "sudo xbs buildit . -noinstall -noverify -arch arm -release #{bridgeos_train} -project IOPCIFamily -mergeToSDKs"
+  end
+
+  desc "Build IOPCIFamily root for bridgeOS"
+  task :root do
+    system "sudo xbs buildit . -release #{bridgeos_train} -project IOPCIFamily -archive"
+  end
+
+  desc "Build IOPCIFamily for bridgeOS"
+  task :build do
+    system "sudo xbs buildit . -release #{bridgeos_train} -project IOPCIFamily "
+  end
+end
+
+namespace :watchos do
+  desc "Copy IOPCIFamily headers for watchOS"
+  task :headers do
+    system "sudo xbs buildit . -noinstall -noverify -arch arm -release #{watchos_train} -project IOPCIFamily -mergeToSDKs"
+  end
+
+  desc "Build IOPCIFamily root for watchOS"
+  task :root do
+    system "sudo ~rc/bin/buildit . -release #{watchos_train} -project IOPCIFamily -archive"
+  end
+
+  desc "Build IOPCIFamily for watchOS"
+  task :build do
+    system "sudo ~rc/bin/buildit . -release #{watchos_train} -project IOPCIFamily"
+  end
+end
+
+namespace :macos do
+  desc "Copy IOPCIFamily headers for macOS"
+  task :headers do
+    system "sudo xbs buildit . -noverify -release #{macos_train} -project IOPCIFamily -buildAlias IOPCIFamily -noinstall -mergeToSDKs"
+  end
+
+  desc "Build IOPCIFamily root for macOS"
+  task :root do
+    buildSelect = fetch(:buildSelect, 'buildit')
+    if buildSelect == 'xcode'
+        system "sudo xcodebuild install -target IOPCIFamily_macOS -configuration Debug"
+        system "tar  -czf /tmp/Shared_XcodeBuild_IOPCIFamily_DSTROOT_osx.tar.gz -C /tmp/IOPCIFamily.dst/ System"
+    else
+        system "sudo xbs buildit . -noverify -release #{macos_train} -project IOPCIFamily -buildAlias IOPCIFamily -archive"
+    end
+  end
+
+  desc "Build IOPCIFamily for macOS"
+  task :build do
+    system "sudo xbs buildit . -noverify -release #{macos_train} -project IOPCIFamily"
+  end
+
+  desc "Copy IOPCIFamily"
+  task :copy, :roles => :targets do
+    buildSelect = fetch(:buildSelect, 'buildit')
+    if buildSelect == 'xcode'
+         sourceFile = "/tmp/Shared_XcodeBuild_IOPCIFamily_DSTROOT_osx.tar.gz"
+    else
+        sourceFile = "/tmp/IOPCIFamily.roots/Archives/Shared_IOPCIFamily_DSTROOT_osx.tar.gz"
+    end
+    destFile = "/tmp/Shared_IOPCIFamily_DSTROOT_osx-#{Time.now.strftime('%Y%m%d-%H%M%S')}.tar.gz"
+    upload sourceFile, destFile
+    sudo "darwinup install #{destFile}"
+    sudo "rm #{destFile}"
+    sudo "kextcache -i /"
+  end
+
+  desc "Reboot target machine"
+  task :reboot, :roles => :targets do
+    sudo "reboot"
+  end
+
+  desc "Deploy and reboot IOPCIFamily to target"
+  task :deploy do
+    transaction do
+      root
+      copy
+      reboot
+    end
+  end
+end
+
+namespace :driverkit do
+  desc "Copy IOPCIFamily__driverkit headers for DriverKit"
+  task :headers do
+    system "sudo xbs buildit . -noinstall -noverify -release #{macos_train} -project IOPCIFamily -buildAlias IOPCIFamily__driverkit -mergeToSDKs"
+  end
+
+  desc "Build IOPCIFamily__driverkit root for DriverKit"
+  task :root do
+    buildSelect = fetch(:buildSelect, 'buildit')
+    if buildSelect == 'xcode'
+        system "sudo xcodebuild install -target IOPCIFamily_DriverKit -configuration Debug"
+        system "tar  -czf /tmp/Shared_XcodeBuild_IOPCIFamily_DSTROOT_osx.tar.gz -C /tmp/IOPCIFamily.dst/ System"
+    else
+        system "sudo xbs buildit . -noverify  -release #{macos_train} -project IOPCIFamily -buildAlias IOPCIFamily__driverkit  -archive -codesign"
+    end
+  end
+
+  desc "Build IOPCIFamily__driverkit for DriverKit"
+  task :build do
+    system "sudo xbs buildit . -noverify -release #{macos_train} -project IOPCIFamily -sdkForPlatform macosx=macosx.internal"
+  end
+
+  desc "Copy IOPCIFamily__driverkit"
+  task :copy, :roles => :targets do
+    buildSelect = fetch(:buildSelect, 'buildit')
+    if buildSelect == 'xcode'
+         sourceFile = "/tmp/Shared_XcodeBuild_IOPCIFamily_DSTROOT_osx.tar.gz"
+    else
+        sourceFile = "/tmp/IOPCIFamily.roots/Archives/Shared_IOPCIFamily_DSTROOT_osx.tar.gz"
+    end
+    destFile = "/tmp/Shared_IOPCIFamily_DSTROOT_osx-#{Time.now.strftime('%Y%m%d-%H%M%S')}.tar.gz"
+    upload sourceFile, destFile
+    sudo "darwinup install #{destFile}"
+    sudo "rm #{destFile}"
+    sudo "sudo darwinup -p /System/Library/DriverExtensions/ install /AppleInternal/CoreOS/IOPCIFamily/PCIDriverKitTests/"
+    sudo "kextcache -i /"
+  end
+
+  desc "Reboot target machine"
+  task :reboot, :roles => :targets do
+    sudo "reboot"
+  end
+
+  desc "Deploy and reboot IOPCIFamily to target"
+  task :deploy do
+    transaction do
+      root
+      copy
+      reboot
+    end
+  end
+end
+
+namespace :pex8733 do
+
+  desc "Build PCIDriverKitPEX8733 root for DriverKit"
+  task :root do
+    buildSelect = fetch(:buildSelect, 'buildit')
+    if buildSelect == 'xcode'
+        system "sudo xcodebuild install -target PCIDriverKitPEX8733 -configuration Debug"
+        system "tar  -czf /tmp/Shared_XcodeBuild_IOPCIFamily_DSTROOT_osx.tar.gz -C /tmp/IOPCIFamily.dst/ AppleInternal"
+    else
+        system "sudo xbs buildit . -noverify  -release #{macos_train} -project IOPCIFamily -buildAlias IOPCIFamily__driverkit -target PCIDriverKitPEX8733  -archive -codesign"
+    end
+  end
+
+  desc "Build PCIDriverKitPEX8733 for DriverKit"
+  task :build do
+    system "sudo xbs buildit . -noverify  -release #{macos_train} -project IOPCIFamily -buildAlias IOPCIFamily__driverkit -target PCIDriverKitPEX8733"
+  end
+
+  desc "Copy PCIDriverKitPEX8733"
+  task :copy, :roles => :targets do
+    buildSelect = fetch(:buildSelect, 'buildit')
+    if buildSelect == 'xcode'
+         sourceFile = "/tmp/Shared_XcodeBuild_IOPCIFamily_DSTROOT_osx.tar.gz"
+    else
+        sourceFile = "/tmp/IOPCIFamily.roots/Archives/Shared_IOPCIFamily_DSTROOT_osx.tar.gz"
+    end
+    destFile = "/tmp/Shared_IOPCIFamily_DSTROOT_osx-#{Time.now.strftime('%Y%m%d-%H%M%S')}.tar.gz"
+    upload sourceFile, destFile
+    sudo "darwinup install #{destFile}"
+    sudo "rm #{destFile}"
+    sudo "sudo darwinup -p /System/Library/DriverExtensions/ install /AppleInternal/CoreOS/IOPCIFamily/PCIDriverKitTests/"
+    sudo "kextcache -i /"
+  end
+
+  desc "Reboot target machine"
+  task :reboot, :roles => :targets do
+    sudo "reboot"
+  end
+
+  desc "Deploy and reboot PCIDriverKitPEX8733 to target"
+  task :deploy do
+    transaction do
+      root
+      copy
+      reboot
+    end
+  end
+end

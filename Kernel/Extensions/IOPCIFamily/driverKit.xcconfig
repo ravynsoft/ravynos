@@ -1,0 +1,14 @@
+//
+//  Config.xcconfig
+//  IOPCIFamily
+//
+//  Created by Kevin Strasberg on 10/28/19.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+DRIVERKIT[sdk=driverkit*] = 1
+DRIVERKITRUNTIMEROOT[sdk=driverkit*] = $(DRIVERKITROOT)/Runtime
+DRIVERKITROOT[sdk=driverkit*] = /System/DriverKit
+

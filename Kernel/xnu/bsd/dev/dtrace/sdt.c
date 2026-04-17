@@ -42,6 +42,7 @@
 #include <sys/dtrace_glue.h>
 
 #include <sys/sdt_impl.h>
+#include <pexpert/pexpert.h>
 extern int dtrace_kernel_symbol_mode;
 
 /* #include <machine/trap.h */
@@ -462,6 +463,15 @@ sdt_early_init( void )
 		struct symtab_command       *orig_st = NULL;
 		kernel_nlist_t              *sym = NULL;
 		char                        *strings;
+		size_t                      strsize;
+		const char                  *last_good_name = "<none>";
+		uint32_t                    bad_strx_count = 0;
+		uint32_t                    unterminated_count = 0;
+		uint32_t                    empty_name_count = 0;
+		uint32_t                    bad_jstrx_count = 0;
+		uint32_t                    bad_jname_count = 0;
+		uint32_t                    diag_printed = 0;
+		uint32_t                    sdt_symdiag = 0;
 		unsigned int                i;
 
 		g_sdt_mach_module.sdt_nprobes = 0;
@@ -503,12 +513,44 @@ sdt_early_init( void )
 			return;
 		}
 
-		sym = (kernel_nlist_t *)(orig_le->vmaddr + orig_st->symoff - orig_le->fileoff);
-		strings = (char *)(orig_le->vmaddr + orig_st->stroff - orig_le->fileoff);
+		if (orig_st->nsyms == 0 || orig_st->strsize == 0) {
+			return;
+		}
+
+		(void)PE_parse_boot_argn("sdt_symdiag", &sdt_symdiag, sizeof(sdt_symdiag));
+
+		/* Validate LC_SYMTAB offsets against __LINKEDIT before touching symbol names. */
+		uint64_t le_start = orig_le->vmaddr;
+		uint64_t le_end = le_start + orig_le->vmsize;
+		uint64_t sym_bytes = ((uint64_t)orig_st->nsyms) * sizeof(kernel_nlist_t);
+		uint64_t sym_addr;
+		uint64_t str_addr;
+
+		if (le_end < le_start || sym_bytes == 0) {
+			return;
+		}
+		if (orig_st->symoff < orig_le->fileoff || orig_st->stroff < orig_le->fileoff) {
+			return;
+		}
+
+		sym_addr = orig_le->vmaddr + (uint64_t)orig_st->symoff - orig_le->fileoff;
+		str_addr = orig_le->vmaddr + (uint64_t)orig_st->stroff - orig_le->fileoff;
+		strsize = orig_st->strsize;
+
+		if (sym_addr < le_start || sym_addr >= le_end || sym_addr + sym_bytes > le_end) {
+			return;
+		}
+		if (str_addr < le_start || str_addr >= le_end || str_addr + strsize > le_end) {
+			return;
+		}
+
+		sym = (kernel_nlist_t *)(uintptr_t)sym_addr;
+		strings = (char *)(uintptr_t)str_addr;
 
 		for (i = 0; i < orig_st->nsyms; i++) {
 			uint8_t n_type = sym[i].n_type & (N_TYPE | N_EXT);
-			char *name = strings + sym[i].n_un.n_strx;
+			uint32_t strx = sym[i].n_un.n_strx;
+			char *name;
 			const char *prev_name;
 			unsigned long best;
 			unsigned int j;
@@ -518,9 +560,38 @@ sdt_early_init( void )
 				continue;
 			}
 
-			if (0 == sym[i].n_un.n_strx) { /* iff a null, "", name. */
+			if (strx == 0 || strx >= strsize) { /* null/invalid string table index. */
+				bad_strx_count++;
+				if (sdt_symdiag >= 2 && diag_printed < 8) {
+					printf("sdt_early_init: bad strx i=%u n_type=0x%x n_value=0x%llx strx=%u strsize=%lu last=%s\n",
+					    i, n_type, (unsigned long long)sym[i].n_value, strx, (unsigned long)strsize, last_good_name);
+					diag_printed++;
+				}
 				continue;
 			}
+
+			name = strings + strx;
+			if (strnlen(name, strsize - strx) == strsize - strx) {
+				unterminated_count++;
+				if (sdt_symdiag >= 2 && diag_printed < 8) {
+					printf("sdt_early_init: unterminated name i=%u n_type=0x%x n_value=0x%llx strx=%u max=%lu last=%s\n",
+					    i, n_type, (unsigned long long)sym[i].n_value, strx, (unsigned long)(strsize - strx), last_good_name);
+					diag_printed++;
+				}
+				continue;
+			}
+
+			if (*name == '\0') {
+				empty_name_count++;
+				if (sdt_symdiag >= 2 && diag_printed < 8) {
+					printf("sdt_early_init: empty name i=%u n_type=0x%x n_value=0x%llx strx=%u last=%s\n",
+					    i, n_type, (unsigned long long)sym[i].n_value, strx, last_good_name);
+					diag_printed++;
+				}
+				continue;
+			}
+
+			last_good_name = name;
 
 			/* Lop off omnipresent leading underscore. */
 			if (*name == '_') {
@@ -543,13 +614,25 @@ sdt_early_init( void )
 				 */
 				for (j = 0; j < orig_st->nsyms; j++) {
 					uint8_t jn_type = sym[j].n_type & N_TYPE;
-					char *jname = strings + sym[j].n_un.n_strx;
+					uint32_t jstrx = sym[j].n_un.n_strx;
+					char *jname;
 
 					if ((N_SECT != jn_type && N_ABS != jn_type)) {
 						continue;
 					}
 
-					if (0 == sym[j].n_un.n_strx) { /* iff a null, "", name. */
+					if (jstrx == 0 || jstrx >= strsize) { /* null/invalid string table index. */
+						bad_jstrx_count++;
+						continue;
+					}
+
+					jname = strings + jstrx;
+					if (strnlen(jname, strsize - jstrx) == strsize - jstrx) {
+						bad_jname_count++;
+						continue;
+					}
+
+					if (*jname == '\0') {
 						continue;
 					}
 
@@ -557,7 +640,7 @@ sdt_early_init( void )
 						jname += 1;
 					}
 
-					if (*(unsigned long *)sym[i].n_value <= (unsigned long)sym[j].n_value) {
+					if ((unsigned long)sym[i].n_value <= (unsigned long)sym[j].n_value) {
 						continue;
 					}
 
@@ -570,7 +653,7 @@ sdt_early_init( void )
 				sdpd->sdpd_func = kmem_alloc((len = strlen(prev_name) + 1), KM_SLEEP);
 				strncpy(sdpd->sdpd_func, prev_name, len); /* NUL termination is ensured. */
 
-				sdpd->sdpd_offset = *(unsigned long *)sym[i].n_value;
+				sdpd->sdpd_offset = (unsigned long)sym[i].n_value;
 #if defined(__arm__)
 				/* PR8353094 - mask off thumb-bit */
 				sdpd->sdpd_offset &= ~0x1U;
@@ -579,8 +662,8 @@ sdt_early_init( void )
 #endif  /* __arm__ */
 
 #if 0
-				printf("sdt_init: sdpd_offset=0x%lx, n_value=0x%lx, name=%s\n",
-				    sdpd->sdpd_offset, *(unsigned long *)sym[i].n_value, name);
+					printf("sdt_init: sdpd_offset=0x%lx, n_value=0x%lx, name=%s\n",
+					    sdpd->sdpd_offset, (unsigned long)sym[i].n_value, name);
 #endif
 
 				sdpd->sdpd_next = g_sdt_mach_module.sdt_probes;
@@ -588,6 +671,13 @@ sdt_early_init( void )
 			} else {
 				prev_name = name;
 			}
+		}
+
+		if (sdt_symdiag &&
+		    (bad_strx_count || unterminated_count || empty_name_count || bad_jstrx_count || bad_jname_count)) {
+			printf("sdt_early_init: anomalies: bad_strx=%u unterminated=%u empty=%u bad_jstrx=%u bad_jname=%u nsyms=%u strsize=%lu\n",
+			    bad_strx_count, unterminated_count, empty_name_count,
+			    bad_jstrx_count, bad_jname_count, orig_st->nsyms, (unsigned long)strsize);
 		}
 	}
 }
