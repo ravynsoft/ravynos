@@ -24,6 +24,7 @@
 #ifndef Array_h
 #define Array_h
 
+#include <assert.h>
 #include <algorithm>
 #include <stdint.h>
 #include <stddef.h>

@@ -64,9 +64,12 @@
 #include <sys/fsgetpath.h>
 #include <System/sys/content_protection.h>
 
-#if TARGET_OS_SIMULATOR
+
+#if TARGET_OS_SIMULATOR || !__has_include(<libamfi.h>)
 	enum {
 		AMFI_DYLD_INPUT_PROC_IN_SIMULATOR = (1 << 0),
+		AMFI_DYLD_INPUT_PROC_HAS_RESTRICT_SEG = (1 << 1),
+		AMFI_DYLD_INPUT_PROC_IS_ENCRYPTED = (1 << 2),
 	};
 	enum amfi_dyld_policy_output_flag_set {
 		AMFI_DYLD_OUTPUT_ALLOW_AT_PATH = (1 << 0),
@@ -78,12 +81,17 @@
 		AMFI_DYLD_OUTPUT_ALLOW_LIBRARY_INTERPOSING = (1 << 6),
 	};
 	extern "C" int amfi_check_dyld_policy_self(uint64_t input_flags, uint64_t* output_flags);
+
+int amfi_check_dyld_policy_self(uint64_t, uint64_t *) { return -1; }
+
 #else
 	#include <libamfi.h>
 #endif
 
-#include <sandbox.h>
-#include <sandbox/private.h>
+#if !TARGET_OS_SIMULATOR && !TARGET_OS_DRIVERKIT && !defined(WITHOUT_SANDBOX)
+	#include <sandbox.h>
+	#include <sandbox/private.h>
+#endif
 #if __has_feature(ptrauth_calls)
 	#include <ptrauth.h>
 #endif
@@ -132,8 +140,6 @@ extern "C" int __fork();
 // not libc header for send() syscall interface
 extern "C" ssize_t __sendto(int, const void *, size_t, int, const struct sockaddr *, socklen_t);
 
-
-// ARM and x86_64 are the only architecture that use cpu-sub-types
 #define CPU_SUBTYPES_SUPPORTED  ((__arm__ || __arm64__ || __x86_64__) && !TARGET_OS_SIMULATOR)
 
 #if __LP64__
@@ -1294,7 +1300,7 @@ static void setRunInitialzersOldWay()
 
 static bool sandboxBlocked(const char* path, const char* kind)
 {
-#if TARGET_OS_SIMULATOR
+#if TARGET_OS_SIMULATOR || TARGET_OS_DRIVERKIT || defined(WITHOUT_SANDBOX)
 	// sandbox calls not yet supported in simulator runtime
 	return false;
 #else
@@ -6182,6 +6188,11 @@ static ClosureMode getPlatformDefaultClosureMode() {
 #endif // __MAC_OS_X_VERSION_MIN_REQUIRED
 }
 
+static bool inDenyList(const char*)
+{
+	return false;
+}
+
 //
 // Entry point for dyld.  The kernel loads dyld and jumps to __dyld_start which
 // sets up some registers and call this function.
@@ -6193,29 +6204,36 @@ _main(const macho_header* mainExecutableMH, uintptr_t mainExecutableSlide,
 		int argc, const char* argv[], const char* envp[], const char* apple[], 
 		uintptr_t* startGlue)
 {
+	printf("[dyld] _main: entry, mainExecutableMH=%p, slide=0x%lx\n", mainExecutableMH, mainExecutableSlide);
+
 	if (dyld3::kdebug_trace_dyld_enabled(DBG_DYLD_TIMING_LAUNCH_EXECUTABLE)) {
 		launchTraceID = dyld3::kdebug_trace_dyld_duration_start(DBG_DYLD_TIMING_LAUNCH_EXECUTABLE, (uint64_t)mainExecutableMH, 0, 0);
 	}
+	printf("[dyld] kdebug_trace_dyld_enabled\n");
 
 	//Check and see if there are any kernel flags
 	dyld3::BootArgs::setFlags(hexToUInt64(_simple_getenv(apple, "dyld_flags"), nullptr));
+	printf("[dyld] BootArgs::setFlags done\n");
 
     // Grab the cdHash of the main executable from the environment
 	uint8_t mainExecutableCDHashBuffer[20];
 	const uint8_t* mainExecutableCDHash = nullptr;
 	if ( hexToBytes(_simple_getenv(apple, "executable_cdhash"), 40, mainExecutableCDHashBuffer) )
 		mainExecutableCDHash = mainExecutableCDHashBuffer;
+	printf("[dyld] executable_cdhash parsed\n");
 
 #if !TARGET_OS_SIMULATOR
 	// Trace dyld's load
 	notifyKernelAboutImage((macho_header*)&__dso_handle, _simple_getenv(apple, "dyld_file"));
 	// Trace the main executable's load
 	notifyKernelAboutImage(mainExecutableMH, _simple_getenv(apple, "executable_file"));
+	printf("[dyld] notifyKernelAboutImage done\n");
 #endif
 
 	uintptr_t result = 0;
 	sMainExecutableMachHeader = mainExecutableMH;
 	sMainExecutableSlide = mainExecutableSlide;
+	printf("[dyld] main executable saved\n");
 
 
 	// Set the platform ID in the all image infos so debuggers can tell the process type
@@ -6279,6 +6297,7 @@ _main(const macho_header* mainExecutableMH, uintptr_t mainExecutableSlide,
 	CRSetCrashLogMessage("dyld: launch started");
 
 	setContext(mainExecutableMH, argc, argv, envp, apple);
+	printf("[dyld] setContext done\n");
 
 	// Pickup the pointer to the exec path.
 	sExecPath = _simple_getenv(apple, "executable_path");
@@ -6484,24 +6503,30 @@ _main(const macho_header* mainExecutableMH, uintptr_t mainExecutableSlide,
 		// try using launch closure
 		if ( mainClosure != nullptr ) {
 			CRSetCrashLogMessage("dyld3: launch started");
+			printf("[dyld] launchWithClosure starting\n");
 			bool launched = launchWithClosure(mainClosure, sSharedCacheLoadInfo.loadAddress, (dyld3::MachOLoaded*)mainExecutableMH,
 											  mainExecutableSlide, argc, argv, envp, apple, &result, startGlue);
+			printf("[dyld] launchWithClosure returned, launched=%d, result=%p\n", launched, (void*)result);
 			if ( !launched && allowClosureRebuilds ) {
 				// closure is out of date, build new one
 				mainClosure = buildLaunchClosure(mainExecutableCDHash, mainFileInfo, envp);
 				if ( mainClosure != nullptr ) {
 					launched = launchWithClosure(mainClosure, sSharedCacheLoadInfo.loadAddress, (dyld3::MachOLoaded*)mainExecutableMH,
 												 mainExecutableSlide, argc, argv, envp, apple, &result, startGlue);
+					printf("[dyld] launchWithClosure retry returned, launched=%d, result=%p\n", launched, (void*)result);
 				}
 			}
 			if ( launched ) {
 				gLinkContext.startedInitializingMainExecutable = true;
+				printf("[dyld] About to return result=%p to kernel/init\n", (void*)result);
 #if __has_feature(ptrauth_calls)
 				// start() calls the result pointer as a function pointer so we need to sign it.
 				result = (uintptr_t)__builtin_ptrauth_sign_unauthenticated((void*)result, 0, 0);
+				printf("[dyld] After ptrauth_sign, result=%p\n", (void*)result);
 #endif
 				if (sSkipMain)
 					result = (uintptr_t)&fake_main;
+				printf("[dyld] Returning control to _main. Entry point is at %p\n", (void*)result);
 				return result;
 			}
 			else {

@@ -71,16 +71,16 @@ target_link_options(libdyld PRIVATE
     -flat_namespace -undefined warning
     -Wl,-no_inits -Wl,-no_warn_unused_dylibs
     "-Wl,-unexported_symbol,__ZNSt3*"
-    -mmacosx-version-min=10.15 -Wl,-install_name,/usr/lib/system/libdyld.dylib
+    -mmacos-version-min=10.15 -Wl,-install_name,/usr/lib/system/libdyld.dylib
     -Wl,-current_version,732.2
     -L${RAVYN_SDKROOT}/usr/lib/system -umbrella System
     -lsystem_malloc -lsystem_pthread -lsystem_platform -lsystem_kernel
     -lsystem_c -lCrashReporterClient
     -Wl,-upward-lsystem_platform -Wl,-upward-lsystem_malloc
     -Wl,-upward-lsystem_c -Wl,-upward-lsystem_pthread
-    # -Wl,-upward-lxpc
+    -Wl,-upward-lxpc
     -Wl,-upward-lsystem_blocks -Wl,-upward-lsystem_kernel
-    # -Wl,-upward-ldispatch
+    -Wl,-upward-ldispatch
     -Wl,-upward-lcompiler_rt -lunwind -lc++ -lc++abi
 )
 
@@ -88,47 +88,107 @@ add_custom_command(TARGET libdyld POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libdyld>
 		${RAVYN_SDKROOT}/usr/lib/system)
 
-# add_executable(dyld
-# 	./src/dyldStartup.s
-# 	./src/dyldInitialization.cpp
-# 	./src/dyld2.cpp
-# 	./dyld3/ClosureFileSystemPhysical.cpp
-# 	./src/dyldAPIs.cpp
-# 	./src/dyldExceptions.c
-# 	./src/dyld_debugger.cpp
-# 	./dyld3/Tracing.cpp
-# 	./src/glue.c
-# 	./src/ImageLoaderMegaDylib.cpp
-# 	./src/ImageLoader.cpp
-# 	./src/ImageLoaderMachO.cpp
-# 	./src/stub_binding_helper.s
-# 	./src/dyldNew.cpp
-# 	./src/ImageLoaderMachOClassic.cpp
-# 	./src/ImageLoaderMachOCompressed.cpp
-# 	./dyld3/Loading.cpp
-# 	./dyld3/Diagnostics.cpp
-# 	./dyld3/SharedCacheRuntime.cpp
-# 	./dyld3/shared-cache/DyldSharedCache.cpp
-# 	./dyld3/shared-cache/FileUtils.cpp
-# 	./dyld3/MachOLoaded.cpp
-# 	./dyld3/MachOFile.cpp
-# 	./dyld3/MachOAnalyzer.cpp
-# 	./dyld3/Closure.cpp
-# 	./dyld3/ClosureWriter.cpp
-# 	./dyld3/BootArgs.cpp
-# 	./dyld3/ClosureBuilder.cpp
-# 	./dyld3/PathOverrides.cpp
-# )
-# set_source_files_properties(./dyld3/ClosureFileSystemPhysical.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
-# set_source_files_properties(./dyld3/Tracing.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
-# set_source_files_properties(./src/glue.c TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-builtin")
-# set_source_files_properties(./src/ImageLoaderMachOCompressed.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-O3")
-# set_source_files_properties(./dyld3/Loading.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
-# set_source_files_properties(./dyld3/Diagnostics.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
-# set_source_files_properties(./dyld3/MachOLoaded.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
-# set_source_files_properties(./dyld3/MachOFile.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
-# set_source_files_properties(./dyld3/MachOAnalyzer.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
-# set_source_files_properties(./dyld3/Closure.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
-# set_source_files_properties(./dyld3/ClosureWriter.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
-# set_source_files_properties(./dyld3/ClosureBuilder.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
-# set_source_files_properties(./dyld3/PathOverrides.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
+if(false)
+add_executable(dyld
+	./src/dyldStartup.s
+ 	./src/dyldInitialization.cpp
+ 	./src/dyld2.cpp
+ 	./dyld3/ClosureFileSystemPhysical.cpp
+ 	./src/dyldAPIs.cpp
+ 	./src/dyldExceptions.c
+ 	./src/dyld_debugger.cpp
+ 	./dyld3/Tracing.cpp
+ 	./src/glue.c
+ 	./src/ImageLoaderMegaDylib.cpp
+ 	./src/ImageLoader.cpp
+ 	./src/ImageLoaderMachO.cpp
+ 	./src/stub_binding_helper.s
+ 	./src/dyldNew.cpp
+ 	./src/ImageLoaderMachOClassic.cpp
+ 	./src/ImageLoaderMachOCompressed.cpp
+ 	./dyld3/Loading.cpp
+ 	./dyld3/Diagnostics.cpp
+ 	./dyld3/SharedCacheRuntime.cpp
+ 	./dyld3/shared-cache/DyldSharedCache.cpp
+ 	./dyld3/shared-cache/FileUtils.cpp
+ 	./dyld3/MachOLoaded.cpp
+ 	./dyld3/MachOFile.cpp
+ 	./dyld3/MachOAnalyzer.cpp
+ 	./dyld3/Closure.cpp
+ 	./dyld3/ClosureWriter.cpp
+ 	./dyld3/BootArgs.cpp
+ 	./dyld3/ClosureBuilder.cpp
+ 	./dyld3/PathOverrides.cpp
+)
+set_source_files_properties(./dyld3/ClosureFileSystemPhysical.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
+set_source_files_properties(./dyld3/Tracing.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
+set_source_files_properties(./src/glue.c TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-builtin")
+set_source_files_properties(./src/ImageLoaderMachOCompressed.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-O3")
+set_source_files_properties(./dyld3/Loading.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
+set_source_files_properties(./dyld3/Diagnostics.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
+set_source_files_properties(./dyld3/MachOLoaded.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
+set_source_files_properties(./dyld3/MachOFile.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
+set_source_files_properties(./dyld3/MachOAnalyzer.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
+set_source_files_properties(./dyld3/Closure.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
+set_source_files_properties(./dyld3/ClosureWriter.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
+set_source_files_properties(./dyld3/ClosureBuilder.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
+set_source_files_properties(./dyld3/PathOverrides.cpp TARGET_DIRECTORY dyld PROPERTIES COMPILE_OPTIONS "-fno-exceptions")
+
+target_compile_definitions(dyld PRIVATE
+        BUILDING_DYLD WITHOUT_SANDBOX BROKEN_VECTOR_BASE
+	_USE_EXTENDED_LOCALES_ __DARWIN_C_LEVEL=__DARWIN_C_FULL TARGET_OS_BRIDGE=0
+)
+
+target_compile_options(dyld PRIVATE
+    --target=${CpuArch}-apple-darwin -DPRIVATE
+    --sysroot=${RAVYN_SDKROOT} -isysroot${RAVYN_SDKROOT}
+    $<$<COMPILE_LANGUAGE:C,CXX>:-include${SDK_SOURCE_DIR}/usr/include/AvailabilityInternal.h>
+    $<$<COMPILE_LANGUAGE:C,CXX>:-include${SDK_SOURCE_DIR}/usr/include/AvailabilityVersions.h>
+    $<$<COMPILE_LANGUAGE:C,CXX>:-include${SDK_SOURCE_DIR}/usr/include/AvailabilityMacros.h>
+    $<$<COMPILE_LANGUAGE:C,CXX>:-include${SDK_SOURCE_DIR}/usr/include/Availability.h>
+    $<$<COMPILE_LANGUAGE:C,CXX>:-include${SDK_SOURCE_DIR}/usr/include/mach.h>
+    $<$<COMPILE_LANGUAGE:C,CXX>:-include${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_c/include/xlocale/_stdlib.h>
+    -Wno-nullability-completeness -Wno-incompatible-sysroot -Wno-availability
+    $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>
+)
+
+target_include_directories(dyld PRIVATE
+    ${SDK_SOURCE_DIR}/usr/include/c++/v1
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
+    ../Libsystem/libsystem_c/include ../Libsystem/libsystem_c/locale
+    ../Libsystem/libsystem_c/locale/FreeBSD ../Libsystem/libsystem_c/stdtime
+    ../Libsystem/libsystem_c/stdtime/FreeBSD ../Libsystem/private
+    ../Libsystem/liblaunch ../openbsm
+    ../Libsystem/private include dyld3 dyld3/shared-cache launch-cache src
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/wrappers/libproc
+    ${ROOT_BINARY_DIR}/${CpuArch}
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
+    ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
+)
+
+target_link_options(dyld PRIVATE
+    --target=${CpuArch}-apple-darwin
+    --sysroot=${RAVYN_SDKROOT} -isysroot${RAVYN_SDKROOT}
+    -mmacos-version-min=10.15 -Wl,-v
+    -Wl,-current_version,732.2
+    -Wl,-static -Wl,-dylinker
+    -Wl,-dylinker_install_name,/usr/lib/dyld
+    -Wl,-no_warn_unused_dylibs -e __dyld_start
+    -Wl,-pagezero_size,0
+    -Wl,-image_base,0 -nodefaultlibs -nostdlib
+    -Wl,-exported_symbol,__dyld_start
+    -Wl,-order_file,${CMAKE_CURRENT_SOURCE_DIR}/dyld.order
+    -Wl,-order_file_statistics
+    -L${CMAKE_CURRENT_BINARY_DIR}/../CrashReporterClient -lCrashReporterClient
+    -L${CMAKE_CURRENT_BINARY_DIR}/../Libsystem/libsystem_c -lc -lc_dyld
+    -L${CMAKE_CURRENT_BINARY_DIR}/../Libsystem/libsystem_kernel
+        -lsystem_kernel -lmach -lsyscalls
+    -L${CMAKE_CURRENT_BINARY_DIR}/../Libsystem/libsystem_platform -lsystem_platform
+    -L${CMAKE_CURRENT_BINARY_DIR}/../llvm_target/libcxx/lib -lc++ -lc++abi
+    -L${CMAKE_CURRENT_BINARY_DIR}/../llvm_target/libunwind/lib -lunwind
+    -L${CMAKE_CURRENT_BINARY_DIR}/../llvm_target/compiler-rt/lib/ravynos
+        -lclang_rt.builtins-x86_64
+)
+
+endif()
