@@ -2518,7 +2518,7 @@ intptr_t ImageLoaderMachO::assignSegmentAddresses(const LinkContext& context)
 				lowAddr = segLow;
 			if ( segHigh > highAddr )
 				highAddr = segHigh;
-				
+
 			if ( needsToSlide || !imageHasPreferredLoadAddress || inPIE || !reserveAddressRange(segPreferredLoadAddress(i), segSize(i)) )
 				needsToSlide = true;
 		}
@@ -2674,7 +2674,7 @@ void ImageLoaderMachO::mapSegments(const void* memoryImage, uint64_t imageLen, c
 	this->setSlide(slide);
 	// set R/W permissions on all segments at slide location
 	for(unsigned int i=0, e=segmentCount(); i < e; ++i) {
-		segProtect(i, context);		
+		segProtect(i, context);
 	}
 }
 
