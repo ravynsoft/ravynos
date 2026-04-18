@@ -4444,9 +4444,32 @@ struct hfs_sysctl_chain *sysctl_list;
 
 void hfs_sysctl_register(void)
 {
+/* For some reason, this code is an infinite loop unless we detect
+ * duplicates and break out. The duplicates are likely due to e being
+ * a circular list. This is a hack - if you traced the log message
+ * back here, please fix the underlying issue and remove this hack.
+ */
+        struct hfs_sysctl_chain *seen[32];
+        int seen_count = 0;
+        struct hfs_sysctl_chain **array = &seen[0];
 	struct hfs_sysctl_chain *e = sysctl_list;
+
 	while (e) {
+	        int found = 0;
+                for (int i = 0; i < seen_count; i++) {
+                        if (array[i] == e) {
+                                found = 1;
+                                break;
+                        }
+                }
+	        if (found) {
+                        kprintf("hfs_sysctl_register: duplicate sysctl entry %p\n", e);
+                        break;
+                }
 		sysctl_register_oid(e->oid);
+		if (seen_count < 32) {
+                        array[seen_count++] = e;
+                }
 		e = e->next;
 	}
 }
