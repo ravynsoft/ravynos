@@ -90,7 +90,13 @@ static void indent(int, FILE *);
 static int nextfield(char *);
 static void skipbl(void);
 static int readline(FILE *);
-static void error(const char *, ...) __printf0like(1, 2) __dead2;
+#ifndef __printflike
+#define __printflike(a, b) __attribute__((__format__ (__printf__, a, b)))
+#endif
+#ifndef __dead2
+#define __dead2 __attribute__((noreturn))
+#endif
+static void error(const char *, ...) __printflike(1, 2) __dead2;
 static char *savestr(const char *);
 
 

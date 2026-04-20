@@ -1,0 +1,190 @@
+.\"***************************************************************************
+.\" Copyright 2018-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 1998-2006,2010 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" $Id: curs_scroll.3x,v 1.59 2025/04/05 22:20:39 tom Exp $
+.TH curs_scroll 3X 2025-04-05 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.ie \n(.g \{\
+.ds `` \(lq
+.ds '' \(rq
+.\}
+.el \{\
+.ie t .ds `` ``
+.el   .ds `` ""
+.ie t .ds '' ''
+.el   .ds '' ""
+.\}
+.
+.de bP
+.ie n  .IP \(bu 4
+.el    .IP \(bu 2
+..
+.SH NAME
+\fB\%scroll\fP,
+\fB\%scrl\fP,
+\fB\%wscrl\fP \-
+scroll a \fIcurses\fP window
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>
+.PP
+\fBint scroll(WINDOW * \fIwin\fP);
+.PP
+\fBint scrl(int \fIn\fP);
+\fBint wscrl(WINDOW * \fIwin\fP, int \fIn\fP);
+.fi
+.SH DESCRIPTION
+.B scroll
+scrolls the given window up one line.
+That is,
+every visible line we might number
+.I i
+becomes line
+.IR i "\-1."
+.B \%wscrl
+and
+.B \%scrl
+scroll the specified window or
+.BR \%stdscr ","
+respectively,
+up or down per the sign of
+.IR n "."
+.bP
+For positive
+.IR n ","
+line
+.IR i + n
+becomes
+.I i
+(scrolling up);
+.bP
+for negative
+.IR n ","
+line
+.IR i \- n
+becomes
+.I i
+(scrolling down).
+.PP
+A line that scrolls beyond the window boundaries disappears;
+.I curses
+populates a new one emerging at the opposite boundary
+with the background character;
+see \fB\%bkgd\fP(3X)
+(wide-character API users: \fB\%bkgrnd\fP(3X)).
+As an optimization,
+if the scrolling region of the window is the entire screen,
+the physical screen may be scrolled at the same time;
+see \fB\%curscr\fP(3X).
+.PP
+The cursor does not move.
+These functions perform no operation unless scrolling is enabled for the
+window via \fB\%scrollok\fP(3X).
+.SH "RETURN VALUE"
+These functions return
+.B ERR
+upon failure and
+.B OK
+upon success.
+.PP
+In
+.IR \%ncurses ","
+they return
+.B ERR
+if
+.bP
+the
+.I curses
+screen has not been initialized,
+.bP
+(for functions taking a
+.I \%WINDOW
+pointer argument)
+.I win
+is a null pointer,
+or
+.bP
+scrolling is not enabled in the window
+(as by \fB\%scrollok\fP(3X)).
+.SH NOTES
+.B \%scroll
+and
+.B \%scrl
+may be implemented as macros.
+.PP
+Unusually,
+there is no
+.B \%wscroll
+function;
+.B scroll
+behaves as one would expect
+.B \%wscroll
+to,
+accepting a
+.I \%WINDOW
+pointer argument.
+.SH PORTABILITY
+X/Open Curses Issue\ 4 describes these functions.
+It specifies no error conditions for them.
+.PP
+SVr4 describes a successful return value only as
+\*(``an integer value other than
+.IR ERR \*(''. \" Courier roman in source; SVID 4, vol. 3, p. 531
+.PP
+SVr4 indicates that the optimization of physically scrolling immediately
+if the scroll region is the entire screen \*(``is\*('' performed,
+not \*(``may be\*('' performed.
+.I \%ncurses
+deliberately does not guarantee that this occurs,
+to leave open the possibility of better optimization of multiple scroll
+actions on the next update.
+.PP
+Neither SVr4
+.I curses
+nor X/Open Curses specify whether these functions zero the attributes or
+color pair identifier of the background character.
+In
+.IR \%ncurses ","
+they do not.
+.SH HISTORY
+4BSD (1980)
+introduced
+.IR scroll ","
+defining it as a function.
+.PP
+SVr3.1 (1987)
+added
+.I \%scrl
+and
+.IR \%wscrl ","
+redefining
+.I \%scroll
+as a macro wrapping the latter.
+.SH SEE ALSO
+\fB\%curses\fP(3X),
+\fB\%curs_outopts\fP(3X)

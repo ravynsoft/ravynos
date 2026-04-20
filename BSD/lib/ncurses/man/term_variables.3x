@@ -1,0 +1,275 @@
+.\"***************************************************************************
+.\" Copyright 2019-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 2010-2015,2017 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" $Id: term_variables.3x,v 1.44 2025/11/12 01:27:41 tom Exp $
+.TH term_variables 3X 2025-11-11 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.ie \n(.g \{\
+.ds `` \(lq
+.ds '' \(rq
+.\}
+.el \{\
+.ie t .ds `` ``
+.el   .ds `` ""
+.ie t .ds '' ''
+.el   .ds '' ""
+.\}
+.
+.SH NAME
+\fB\%SP\fP,
+\fB\%acs_map\fP,
+\fB\%boolcodes\fP,
+\fB\%boolfnames\fP,
+\fB\%boolnames\fP,
+\fB\%cur_term\fP,
+\fB\%numcodes\fP,
+\fB\%numfnames\fP,
+\fB\%numnames\fP,
+\fB\%strcodes\fP,
+\fB\%strfnames\fP,
+\fB\%strnames\fP,
+\fB\%ttytype\fP \-
+\fIterminfo\fR global variables
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>
+\fB#include <term.h>
+.PP
+\fBchtype acs_map[];
+.PP
+\fBSCREEN * SP;
+.PP
+\fBTERMINAL * cur_term;
+.PP
+\fBchar ttytype[];
+.PP
+\fBNCURSES_CONST char * const boolcodes[];
+\fBNCURSES_CONST char * const boolfnames[];
+\fBNCURSES_CONST char * const boolnames[];
+.PP
+\fBNCURSES_CONST char * const numcodes[];
+\fBNCURSES_CONST char * const numfnames[];
+\fBNCURSES_CONST char * const numnames[];
+.PP
+\fBNCURSES_CONST char * const strcodes[];
+\fBNCURSES_CONST char * const strfnames[];
+\fBNCURSES_CONST char * const strnames[];
+.fi
+.SH DESCRIPTION
+This page summarizes variables provided by the
+.I curses
+library's lower-level
+.I \%term\%info
+interface.
+Locate a more complete description in the \fBcurs_terminfo\fP(3X) manual
+page.
+.PP
+Depending on
+.IR \%ncurses 's
+build-time configuration,
+these may be actual variables,
+or macros
+(see \fBcurs_threads\fP(3X))
+that provide read-only access to
+.IR curses 's
+state.
+In either case,
+applications should treat them as read-only to avoid confusing the
+library.
+.SS "Alternate Character Set Mapping"
+After initializing the
+.I curses
+or
+.I \%term\%info
+interfaces,
+the
+.B acs_map
+array holds information used to translate cells with the
+.B \%A_ALTCHARSET
+video attribute into line-drawing characters.
+.PP
+The encoding of the information in this array has changed periodically.
+Application developers need only know that it is used for the
+\*(``ACS_\*('' constants in
+.IR \%curses.h "."
+.PP
+The comparable data for the wide-character library are not exposed as
+symbols in the API.
+.SS "Current Terminal Data"
+After initializing the
+.I curses
+or
+.I \%term\%info
+interfaces,
+.B cur_term
+contains data describing the current terminal.
+It is also updated as a side effect of \fBset_term\fP(3X) and
+\fBdelscreen\fP(3X).
+.PP
+It is possible to save a value of
+.B cur_term
+for subsequent use as a parameter to \fBset_term\fP(3X)
+for switching between screens.
+Alternatively,
+one can save the return value from \fBnewterm\fP(3X) or
+\fBsetupterm\fP(3X) to reuse in \fBset_term\fP(3X).
+.SS "\fIterminfo\fP Lookup Tables"
+The \fB@TIC@\fP(1) and \fB@INFOCMP@\fP(1) programs use lookup tables for
+the long and short names of
+.I \%term\%info
+capabilities,
+as well as the corresponding names for
+.I termcap
+capabilities.
+These are available to other applications,
+though the hash tables used by the
+.I \%term\%info
+and
+.I termcap
+functions are not.
+.PP
+.I \%term\%info
+stores capability names in arrays with an \*(``f\*('' (eff) in their
+names:
+.BR \%boolfnames ","
+.BR \%numfnames ","
+and
+.BR \%strfnames "."
+It stores the briefer capability codes in arrays without the
+\*(``f\*('':
+.BR \%boolnames ","
+.BR \%numnames ","
+and
+.BR \%strnames "."
+The corresponding
+.I termcap
+capability codes are stored in
+.BR \%boolcodes ","
+.BR \%numcodes ","
+and
+.BR \%strcodes "."
+\fB\%terminfo\fP(5) catalogs these.
+.\"
+.SS "Terminal Type"
+A terminal description begins with one or more terminal names
+separated by \*(``|\*('' (vertical bars).
+On initialization of the
+.I curses
+or
+.I \%term\%info
+interfaces,
+\fBsetupterm\fP(3X) copies the terminal name to the array
+.BR ttytype "."
+.\"
+.SS "\fIterminfo\fP Names"
+In addition to the variables,
+.I term.h
+also defines a symbol for each
+.I \%term\%info
+capability name.
+These are in terms of the symbol
+.BR CUR ","
+which is defined
+.PP
+.RS
+.EX
+#define CUR ((TERMTYPE *)(cur_term))\->
+.EE
+.RE
+.PP
+These symbols provide a faster method of accessing
+.I \%term\%info
+capabilities than using,
+for example,
+\fBtigetstr\fP(3X).
+.PP
+The definition of
+.B CUR
+is implementation-dependent,
+but each
+.I \%term\%info
+library defines these names to point
+into the in-memory description of the current terminal.
+For example,
+in
+.IR \%ncurses ","
+the expressions
+.B tigetstr("key_dc")
+and
+\*(``\c\" `` string not reliable in a macro call on DWB/Heirloom nroffs
+.B "CUR Strings[59]\c"
+\*('' \" '' string not reliable in a macro call on DWB/Heirloom nroffs
+are equivalent.
+.\"
+.SS "\fIterminfo\fP and \fIcurses"
+\fB\%setupterm\fP(3X) initializes the lower-level
+.I \%term\%info
+interface.
+The higher-level
+.I curses
+interface uses the
+.I \%term\%info
+interface internally;
+the symbol
+.B SP
+bridges the
+.I curses
+.I SCREEN
+type with the
+.I \%term\%info
+.I TERMINAL
+type.
+.\"
+.SH PORTABILITY
+X/Open Curses does not describe any of these symbols except for
+.IR \%cur_term "."
+(The inclusion of
+.I \%cur_term
+appears to be an oversight,
+since other comparable low-level information is omitted by X/Open.)
+.PP
+Other implementations may have comparable variables.
+Some implementations provide the variables in their libraries,
+but omit them from the header files.
+.PP
+All implementations that provide
+.I \%term\%info
+interfaces add definitions
+as described in the
+.RI \*(`` terminfo
+Names\*('' section above.
+Most,
+but not all,
+base the definition upon the
+.I \%cur_term
+variable.
+.SH SEE ALSO
+\fB\%curses\fP(3X),
+\fB\%curs_terminfo\fP(3X),
+\fB\%curs_threads\fP(3X),
+\fB\%terminfo\fP(5)

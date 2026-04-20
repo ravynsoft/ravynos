@@ -1,0 +1,20 @@
+Source: adacurses
+Maintainer: Thomas E. Dickey <dickey@invisible-island.net>
+Section: misc
+Priority: optional
+Build-Depends: debhelper (>= 5),
+  chrpath,
+  gnat,
+  gprbuild
+Homepage: https://invisible-island.net/ncurses/ncurses-Ada95.html
+Standards-Version: 4.6.1.0
+
+Package: adacurses
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Ada95 binding for ncurses
+ This package installs as "adacurses" to avoid conflict with other packages.
+ This is the Ada95 binding from the ncurses distribution.
+ .
+ In addition to a library, this package installs sample programs in
+ "bin/AdaCurses" to avoid conflict with other packages.

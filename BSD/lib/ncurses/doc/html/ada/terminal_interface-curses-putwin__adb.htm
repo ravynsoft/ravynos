@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+<title>terminal_interface-curses-putwin.adb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style type="text/css">
+*.comment {
+	color: green;
+}
+*.symbol {
+	color: red;
+}
+</style>
+</head>
+<body>
+<hr><div style="text-align:center"><h1> File : terminal_interface-curses-putwin.adb </h1></div><hr>
+<pre>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                           <strong>GNAT</strong> ncurses Binding                           --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                    Terminal_Interface.Curses.PutWin                      --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                                 B O D Y                                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>-- Copyright 2020 Thomas E. Dickey                                          --</em></span>
+<span class="comment"><em>-- Copyright 2000-2002,2003 Free Software Foundation, Inc.                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Permission is hereby granted, free of charge, to any person obtaining a  --</em></span>
+<span class="comment"><em>-- copy of this software and associated documentation files (the            --</em></span>
+<span class="comment"><em>-- "Software"), to deal in the Software without restriction, including      --</em></span>
+<span class="comment"><em>-- without limitation the rights to use, copy, modify, merge, publish,      --</em></span>
+<span class="comment"><em>-- distribute, distribute with modifications, sublicense, and/or sell       --</em></span>
+<span class="comment"><em>-- copies of the Software, and to permit persons to whom the Software is    --</em></span>
+<span class="comment"><em>-- furnished to do so, subject to the following conditions:                 --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- The above copyright notice and this permission notice shall be included  --</em></span>
+<span class="comment"><em>-- in all copies or substantial portions of the Software.                   --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  --</em></span>
+<span class="comment"><em>-- OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               --</em></span>
+<span class="comment"><em>-- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   --</em></span>
+<span class="comment"><em>-- IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   --</em></span>
+<span class="comment"><em>-- DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    --</em></span>
+<span class="comment"><em>-- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    --</em></span>
+<span class="comment"><em>-- THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Except as contained in this notice, the name(s) of the above copyright   --</em></span>
+<span class="comment"><em>-- holders shall not be used in advertising or otherwise to promote the     --</em></span>
+<span class="comment"><em>-- sale, use or other dealings in this Software without prior written       --</em></span>
+<span class="comment"><em>-- authorization.                                                           --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--  Author:  Juergen Pfeifer, 1996</em></span>
+<span class="comment"><em>--  Version Control:</em></span>
+<span class="comment"><em>--  @Revision: 1.5 @</em></span>
+<span class="comment"><em>--  Binding Version 01.00</em></span>
+
+<b>with</b> Ada.Streams.Stream_IO.C_Streams;
+<b>with</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C_Streams;
+<b>with</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-aux__ads.htm#ref_46_35">Aux</a>; <b>use</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-aux__ads.htm#ref_46_35">Aux</a>;
+
+<b>package</b> <b>body</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<span class="symbol"><a name="ref_46_40" href="terminal_interface-curses-putwin__ads.htm#ref_44_35">PutWin</a></span> <b>is</b>
+
+   <b>package</b> <span class="symbol"><a name="ref_48_12">ICS</a></span> <b>renames</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C_Streams;
+   <b>package</b> <span class="symbol"><a name="ref_49_12">ACS</a></span> <b>renames</b> Ada.Streams.Stream_IO.C_Streams;
+   <b>use</b> <b>type</b> <a href="terminal_interface-curses-aux__ads.htm#ref_49_12">C_Int</a>;
+
+   <b>procedure</b> <span class="symbol"><a name="ref_52_14" href="terminal_interface-curses-putwin__ads.htm#ref_46_14">Put_Window</a></span> (<span class="symbol"><a name="ref_52_26" href="terminal_interface-curses-putwin__ads.htm#ref_46_26">Win</a></span>  : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>;
+                         <span class="symbol"><a name="ref_53_26" href="terminal_interface-curses-putwin__ads.htm#ref_47_26">File</a></span> : Ada.Streams.Stream_IO.File_Type) <b>is</b>
+      <b>function</b> <span class="symbol"><a name="ref_54_16">putwin</a></span> (<span class="symbol"><a name="ref_54_24">Win</a></span> : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>; <span class="symbol"><a name="ref_54_38">f</a></span> : <a href="terminal_interface-curses-putwin__adb.htm#ref_48_12">ICS</a>.FILEs) <b>return</b> <a href="terminal_interface-curses-aux__ads.htm#ref_49_12">C_Int</a>;
+      <b>pragma</b> Import (C, putwin, "putwin");
+
+      <span class="symbol"><a name="ref_57_7">R</a></span> : <b>constant</b> <a href="terminal_interface-curses-aux__ads.htm#ref_49_12">C_Int</a> := <a href="terminal_interface-curses-putwin__adb.htm#ref_54_16">putwin</a> (<a href="terminal_interface-curses-putwin__ads.htm#ref_46_26">Win</a>, <a href="terminal_interface-curses-putwin__adb.htm#ref_49_12">ACS</a>.C_Stream (<a href="terminal_interface-curses-putwin__ads.htm#ref_47_26">File</a>));
+   <b>begin</b>
+      <b>if</b> <a href="terminal_interface-curses-putwin__adb.htm#ref_57_7">R</a> /= <a href="terminal_interface-curses-aux__ads.htm#ref_63_4">Curses_Ok</a> <b>then</b>
+         <b>raise</b> <a href="terminal_interface-curses__ads.htm#ref_522_4">Curses_Exception</a>;
+      <b>end</b> <b>if</b>;
+   <b>end</b> <a href="terminal_interface-curses-putwin__ads.htm#ref_46_14">Put_Window</a>;
+
+   <b>function</b> <span class="symbol"><a name="ref_64_13" href="terminal_interface-curses-putwin__ads.htm#ref_49_13">Get_Window</a></span> (<span class="symbol"><a name="ref_64_25" href="terminal_interface-curses-putwin__ads.htm#ref_49_25">File</a></span> : Ada.Streams.Stream_IO.File_Type)
+                        <b>return</b> <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a> <b>is</b>
+      <b>function</b> <span class="symbol"><a name="ref_66_16">getwin</a></span> (<span class="symbol"><a name="ref_66_24">f</a></span> : <a href="terminal_interface-curses-putwin__adb.htm#ref_48_12">ICS</a>.FILEs) <b>return</b> <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>;
+      <b>pragma</b> Import (C, getwin, "getwin");
+
+      <span class="symbol"><a name="ref_69_7">W</a></span> : <b>constant</b> <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a> := <a href="terminal_interface-curses-putwin__adb.htm#ref_66_16">getwin</a> (<a href="terminal_interface-curses-putwin__adb.htm#ref_49_12">ACS</a>.C_Stream (<a href="terminal_interface-curses-putwin__ads.htm#ref_49_25">File</a>));
+   <b>begin</b>
+      <b>if</b> <a href="terminal_interface-curses-putwin__adb.htm#ref_69_7">W</a> = <a href="terminal_interface-curses__ads.htm#ref_57_4">Null_Window</a> <b>then</b>
+         <b>raise</b> <a href="terminal_interface-curses__ads.htm#ref_522_4">Curses_Exception</a>;
+      <b>else</b>
+         <b>return</b> <a href="terminal_interface-curses-putwin__adb.htm#ref_69_7">W</a>;
+      <b>end</b> <b>if</b>;
+   <b>end</b> <a href="terminal_interface-curses-putwin__ads.htm#ref_49_13">Get_Window</a>;
+
+<b>end</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-putwin__ads.htm#ref_44_35">PutWin</a>;
+</pre></body></html>

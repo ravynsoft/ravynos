@@ -1,0 +1,161 @@
+<!--
+  ****************************************************************************
+  * Copyright 2018-2024,2025 Thomas E. Dickey                                *
+  * Copyright 1998-2016,2017 Free Software Foundation, Inc.                  *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+  * "Software"), to deal in the Software without restriction, including      *
+  * without limitation the rights to use, copy, modify, merge, publish,      *
+  * distribute, distribute with modifications, sublicense, and/or sell       *
+  * copies of the Software, and to permit persons to whom the Software is    *
+  * furnished to do so, subject to the following conditions:                 *
+  *                                                                          *
+  * The above copyright notice and this permission notice shall be included  *
+  * in all copies or substantial portions of the Software.                   *
+  *                                                                          *
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+  * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+  * THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+  *                                                                          *
+  * Except as contained in this notice, the name(s) of the above copyright   *
+  * holders shall not be used in advertising or otherwise to promote the     *
+  * sale, use or other dealings in this Software without prior written       *
+  * authorization.                                                           *
+  ****************************************************************************
+  * @Id: clear.1,v 1.53 2025/04/05 21:56:26 tom Exp @
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta name="generator" content="Manpage converted by man2html - see https://invisible-island.net/scripts/readme.html#others_scripts">
+<TITLE>clear 1 2025-04-05 ncurses 6.6 User commands</TITLE>
+<link rel="author" href="mailto:bug-ncurses@gnu.org">
+
+</HEAD>
+<BODY>
+<H1 class="no-header">clear 1 2025-04-05 ncurses 6.6 User commands</H1>
+<PRE>
+<STRONG><A HREF="clear.1.html">clear(1)</A></STRONG>                         User commands                        <STRONG><A HREF="clear.1.html">clear(1)</A></STRONG>
+
+
+</PRE><H2><a name="h2-NAME">NAME</a></H2><PRE>
+       <STRONG>clear</STRONG> - clear the terminal screen
+
+
+</PRE><H2><a name="h2-SYNOPSIS">SYNOPSIS</a></H2><PRE>
+       <STRONG>clear</STRONG> [<STRONG>-x</STRONG>] [<STRONG>-T</STRONG> <EM>terminal-type</EM>]
+
+       <STRONG>clear</STRONG> <STRONG>-V</STRONG>
+
+
+</PRE><H2><a name="h2-DESCRIPTION">DESCRIPTION</a></H2><PRE>
+       <STRONG>clear</STRONG>  clears your terminal's screen and its scrollback buffer, if any.
+       <STRONG>clear</STRONG> retrieves the terminal type from the environment  variable  <EM>TERM</EM>,
+       then  consults the <EM>terminfo</EM> terminal capability database entry for that
+       type to determine how to perform these actions.
+
+       The capabilities to clear the screen and scrollback  buffer  are  named
+       "clear"   and   "E3",  respectively.   The  latter  is  a  <EM>user-defined</EM>
+       <EM>capability</EM>, applying an extension mechanism introduced in  <EM>ncurses</EM>  5.0
+       (1999).
+
+
+</PRE><H2><a name="h2-OPTIONS">OPTIONS</a></H2><PRE>
+       <STRONG>clear</STRONG> recognizes the following options.
+
+       <STRONG>-T</STRONG> <EM>type</EM>  produces   instructions   suitable   for  the  terminal  <EM>type</EM>.
+                Normally, this option is  unnecessary,  because  the  terminal
+                type  is inferred from the environment variable <EM>TERM</EM>.  If this
+                option is specified, <STRONG>clear</STRONG> ignores the  environment  variables
+                <EM>LINES</EM> and <EM>COLUMNS</EM> as well.
+
+       <STRONG>-V</STRONG>       reports  the  version  of <EM>ncurses</EM> associated with this program
+                and exits with a successful status.
+
+       <STRONG>-x</STRONG>       prevents <STRONG>clear</STRONG> from attempting to clear the scrollback buffer.
+
+
+</PRE><H2><a name="h2-PORTABILITY">PORTABILITY</a></H2><PRE>
+       Neither IEEE Std 1003.1/The  Open  Group  Base  Specifications  Issue 7
+       (POSIX.1-2008) nor X/Open Curses Issue 7 documents <STRONG>clear</STRONG>.
+
+       The  latter documents <STRONG>tput</STRONG>, which could be used to replace this utility
+       either via a shell script or by an alias (such as a symbolic  link)  to
+       run <STRONG>tput</STRONG> as <STRONG>clear</STRONG>.
+
+
+</PRE><H2><a name="h2-HISTORY">HISTORY</a></H2><PRE>
+       A <STRONG>clear</STRONG> command using the <EM>termcap</EM> database and library appeared in 2BSD
+       (1979).  Eighth Edition Unix (1985) later included it.
+
+       The  commercial Unix arm of AT&amp;T adapted a different BSD program (<STRONG>tset</STRONG>)
+       to make a new command, <STRONG>tput</STRONG>, and replaced  the  <STRONG>clear</STRONG>  program  with  a
+       shell script that called "<STRONG>tput</STRONG> <STRONG>clear</STRONG>".
+
+           /usr/bin/tput ${1:+-T$1} clear 2&gt; /dev/null
+           exit
+
+       In  1989,  when  Keith  Bostic  revised the BSD <STRONG>tput</STRONG> command to make it
+       similar to AT&amp;T's <STRONG>tput</STRONG>, he added a <STRONG>clear</STRONG> shell script as well.
+
+           exec tput clear
+
+       The remainder of the script in each case is a copyright notice.
+
+       In 1995, <EM>ncurses</EM>'s <STRONG>clear</STRONG> began by adapting BSD's original <STRONG>clear</STRONG> command
+       to use <EM>terminfo</EM>.  The <STRONG>E3</STRONG> extension came later.
+
+       <STRONG>o</STRONG>   In June 1999, <EM>xterm</EM> provided an extension to the  standard  control
+           sequence  for  clearing  the screen.  Rather than clearing just the
+           visible part of the screen using
+
+               printf '\033[2J'
+
+           one could clear the scrollback buffer as well by using
+
+               printf '\033[<STRONG>3</STRONG>J'
+
+           instead.  "XTerm  Control  Sequences"  documents  this  feature  as
+           originating with <EM>xterm</EM>.
+
+       <STRONG>o</STRONG>   A few other terminal emulators adopted it, such as PuTTY in 2006.
+
+       <STRONG>o</STRONG>   In  April  2011, a Red Hat developer submitted a patch to the Linux
+           kernel,  modifying  its  console  driver  to  do  the  same  thing.
+           Documentation  of  this  change,  appearing  in  Linux 3.0, did not
+           mention <EM>xterm</EM>, although that program was cited in the Red  Hat  bug
+           report (#683733) motivating the feature.
+
+       <STRONG>o</STRONG>   Subsequently,  more  terminal  developers adopted the feature.  The
+           next relevant step was to change the <EM>ncurses</EM> <STRONG>clear</STRONG> program in  2013
+           to incorporate this extension.
+
+       <STRONG>o</STRONG>   In 2013, the <STRONG>E3</STRONG> capability was not exercised by "<STRONG>tput</STRONG> <STRONG>clear</STRONG>".  That
+           oversight  was  addressed in 2016 by reorganizing <STRONG>tput</STRONG> to share its
+           logic with <STRONG>clear</STRONG> and <STRONG>tset</STRONG>.
+
+
+</PRE><H2><a name="h2-SEE-ALSO">SEE ALSO</a></H2><PRE>
+       <STRONG><A HREF="tput.1.html">tput(1)</A></STRONG>, <STRONG>xterm(1)</STRONG>, <STRONG><A HREF="terminfo.5.html">terminfo(5)</A></STRONG>
+
+ncurses 6.6                       2025-04-05                          <STRONG><A HREF="clear.1.html">clear(1)</A></STRONG>
+</PRE>
+<div class="nav">
+<ul>
+<li><a href="#h2-NAME">NAME</a></li>
+<li><a href="#h2-SYNOPSIS">SYNOPSIS</a></li>
+<li><a href="#h2-DESCRIPTION">DESCRIPTION</a></li>
+<li><a href="#h2-OPTIONS">OPTIONS</a></li>
+<li><a href="#h2-PORTABILITY">PORTABILITY</a></li>
+<li><a href="#h2-HISTORY">HISTORY</a></li>
+<li><a href="#h2-SEE-ALSO">SEE ALSO</a></li>
+</ul>
+</div>
+</BODY>
+</HTML>

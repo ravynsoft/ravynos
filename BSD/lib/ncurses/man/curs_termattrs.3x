@@ -1,0 +1,220 @@
+.\"***************************************************************************
+.\" Copyright 2018-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 1998-2010,2015 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" $Id: curs_termattrs.3x,v 1.61 2025/08/23 22:39:20 tom Exp $
+.TH curs_termattrs 3X 2025-08-23 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.ie \n(.g \{\
+.ds `` \(lq
+.ds '' \(rq
+.\}
+.el \{\
+.ie t .ds `` ``
+.el   .ds `` ""
+.ie t .ds '' ''
+.el   .ds '' ""
+.\}
+.SH NAME
+\fB\%baudrate\fP,
+\fB\%erasechar\fP,
+\fB\%erasewchar\fP,
+\fB\%has_ic\fP,
+\fB\%has_il\fP,
+\fB\%killchar\fP,
+\fB\%killwchar\fP,
+\fB\%longname\fP,
+\fB\%term_attrs\fP,
+\fB\%termattrs\fP,
+\fB\%termname\fP \-
+get and set terminal attributes with \fIcurses\fP
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>
+.PP
+\fBint baudrate(void);
+\fBchar erasechar(void);
+\fBint erasewchar(wchar_t * \fIwc\fP);
+\fBbool has_ic(void);
+\fBbool has_il(void);
+\fBchar killchar(void);
+\fBint killwchar(wchar_t * \fIwc\fP);
+\fBchar * longname(void);
+\fBattr_t term_attrs(void);
+\fBchtype termattrs(void);
+\fBchar * termname(void);
+.fi
+.SH DESCRIPTION
+.SS baudrate
+.B \%baudrate
+returns the line speed of the terminal,
+an integer value measured in bits per second,
+for example
+.BR 9600 "."
+.SS "erasechar, erasewchar"
+.B \%erasechar
+returns the terminal's erase character.
+.PP
+.B \%erasewchar
+stores the erase character in the location referenced by
+.IR wc "."
+If no erase character has been defined,
+it fails and the location referenced by
+.I wc
+is not changed.
+.SS "has_ic, has_il"
+.B \%has_ic
+returns
+.B TRUE
+if the terminal has insert- and delete-character capabilities.
+.PP
+.B \%has_il
+returns
+.B TRUE
+if the terminal has insert- and delete-line capabilities,
+or can simulate them using scrolling regions.
+It might be used to determine whether it would be appropriate
+to use \fBscrollok\fP(3X) to turn on scrolling.
+.SS "killchar, killwchar"
+.B \%killchar
+returns the terminal's line kill character.
+.PP
+.B \%killwchar
+stores the line-kill character in the location referenced by
+.IR wc "."
+If no line-kill character has been defined,
+it fails and the location referenced by
+.I wc
+is not changed.
+.SS longname
+.B \%longname
+returns a pointer to static storage
+containing a verbose description of the terminal being managed by
+.IR curses "."
+The maximum length of a verbose description is 128 characters.
+The storage is populated only after \fBinitscr\fP(3X) or
+\fBnewterm\fP(3X) is called.
+This storage is overwritten by each call to
+.B \%newterm
+and not restored by \fBset_term\fP(3X),
+so its contents should be saved between calls to
+.B \%initscr
+or
+.B \%newterm
+if
+.B \%longname
+is to be used with multiple terminals.
+.SS "termattrs, term_attrs"
+If a given terminal does not support a video attribute that an
+application program is trying to use,
+.I curses
+may substitute a
+different video attribute for it.
+.B \%termattrs
+and
+.B \%term_attrs
+return a logical \*(``or\*('' of all video attributes supported by the
+terminal using
+.B A_
+and
+.B WA_
+constants respectively.
+This information is useful when a
+.I curses
+program
+needs complete control over the appearance of the screen.
+.SS termname
+.B \%termname
+returns the terminal name used by \fBsetupterm\fP(3X).
+.SH RETURN VALUE
+.B \%longname
+and
+.B \%termname
+return
+.I NULL
+on error.
+.PP
+Functions that return an integer return
+.B ERR
+upon failure and
+.B OK
+upon success.
+.SH NOTES
+.BR \%erasewchar ","
+.BR \%killwchar ","
+and
+.B \%term_attrs
+are part of
+.IR \%ncurses "'s"
+wide-character API,
+and are not available in its non-wide-character configuration.
+.PP
+.B \%termattrs
+may be implemented as a macro.
+.SH PORTABILITY
+X/Open Curses Issue\ 4 describes these functions.
+.PP
+SVr4 describes a successful return value only as
+\*(``an integer value other than
+.IR ERR \*(''. \" Courier roman in source; SVID 4, vol. 3, p. 535
+.PP
+Most versions of
+.I curses
+truncate the string returned by
+.I \%termname
+to 14 characters.
+.SH HISTORY
+4BSD (1980)
+introduced
+.IR \%longname "."
+.PP
+SVr2 (1984)
+added
+.IR \%baudrate ","
+.IR \%erasechar ","
+.IR \%killchar ","
+.IR \%has_ic ","
+and
+.IR \%has_il "."
+.PP
+SVr3 (1987)
+supplied
+.IR \%termname "."
+Later that year,
+SVr3.1 brought
+.IR \%termattrs "."
+.PP
+X/Open Curses Issue\ 4 (1995)
+specified
+.IR \%erasewchar ","
+.IR \%killwchar ","
+and
+.IR \%term_attrs "."
+.SH SEE ALSO
+\fB\%curses\fP(3X),
+\fB\%curs_initscr\fP(3X),
+\fB\%curs_outopts\fP(3X)

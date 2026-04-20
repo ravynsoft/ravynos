@@ -1,0 +1,401 @@
+.\"***************************************************************************
+.\" Copyright 2018-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 2002-2012,2017 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" $Id: curs_get_wstr.3x,v 1.79 2025/10/21 00:08:50 tom Exp $
+.TH curs_get_wstr 3X 2025-10-20 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.ie \n(.g \{\
+.ds `` \(lq
+.ds '' \(rq
+.ds ^  \(ha
+.\}
+.el \{\
+.ie t .ds `` ``
+.el   .ds `` ""
+.ie t .ds '' ''
+.el   .ds '' ""
+.ds       ^  ^
+.\}
+.
+.de bP
+.ie n  .IP \(bu 4
+.el    .IP \(bu 2
+..
+.SH NAME
+\fB\%get_wstr\fP,
+\fB\%getn_wstr\fP,
+\fB\%wget_wstr\fP,
+\fB\%wgetn_wstr\fP,
+\fB\%mvget_wstr\fP,
+\fB\%mvgetn_wstr\fP,
+\fB\%mvwget_wstr\fP,
+\fB\%mvwgetn_wstr\fP \-
+read a wide-character string from a \fIcurses\fR terminal keyboard
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>
+.PP
+\fBint get_wstr(wint_t * \fIwstr\fP);
+\fBint wget_wstr(WINDOW * \fIwin\fP, wint_t * \fIwstr\fP);
+\fBint mvget_wstr(int \fIy\fP, int \fIx\fP, wint_t * \fIwstr\fP);
+\fBint mvwget_wstr(WINDOW * \fIwin\fP, int \fIy\fP, int \fIx\fP, wint_t * \fIwstr\fP);
+.PP
+\fBint getn_wstr(wint_t * \fIwstr\fP, int \fIn\fP);
+\fBint wgetn_wstr(WINDOW * \fIwin\fP, wint_t * \fIwstr\fP, int \fIn\fP);
+\fBint mvgetn_wstr(int \fIy\fP, int \fIx\fP, wint_t * \fIwstr\fP, int \fIn\fP);
+\fBint mvwgetn_wstr(WINDOW * \fIwin\fP, int \fIy\fP, int \fIx\fP, wint_t * \fIwstr\fP, int \fIn\fP);
+.fi
+.SH DESCRIPTION
+.B \%wget_wstr
+populates a user-supplied wide-character string buffer
+.I wstr
+by repeatedly calling \fBwget_wch\fP(3X)
+with the
+.I win
+argument
+until a line feed or carriage return character is input.
+The function
+.bP
+does not copy the terminating character to
+.IR wstr ";"
+.bP
+populates
+.I wstr
+with
+.I WEOF
+(as defined in
+.IR \%wchar.h )
+if an end-of-file condition occurs on the input;
+.bP
+always terminates the string with a null wide character
+(after any
+.IR WEOF );
+.bP
+interprets the screen's wide erase and wide kill characters
+(see \fB\%erasewchar\fP(3X) and \fB\%killwchar\fP(3X));
+.bP
+recognizes function keys only if the screen's keypad option is enabled
+(see \fB\%keypad\fP(3X));
+.bP
+treats the function keys
+.B \%KEY_LEFT
+and
+.B \%KEY_BACKSPACE
+the same as the wide erase character;
+and
+.bP
+discards function key inputs other than those
+treated as the wide erase or wide kill characters,
+calling \fBbeep\fP(3X).
+.PP
+The wide erase character replaces the character at the end of the buffer
+with a null wide character,
+while the wide kill character does the same for the entire buffer.
+.PP
+If the screen's echo option is enabled
+(see \fBecho\fP(3X)),
+.B \%wget_wstr
+updates
+.I win
+with \fB\%wadd_wch\fP(3X).
+Further,
+.bP
+the wide erase character
+and its function key synonyms
+move the cursor to the left,
+and
+.bP
+the wide kill character returns the cursor to where it was located when
+.B \%wget_wstr
+was called.
+.PP
+.B \%wgetn_wstr
+is similar,
+but reads at most
+.I n
+wide characters,
+aiding the application to avoid overrunning the buffer to which
+.I wstr
+points.
+.I curses
+ignores an attempt to input more than
+.I n
+wide characters
+(other than the terminating line feed or carriage return),
+calling \fBbeep\fP(3X).
+If
+.I n
+is negative,
+.B \%wgetn_wstr
+reads up to
+.I LINE_MAX
+wide characters
+(see
+.IR sysconf (3)).
+.PP
+\fB\%ncurses\fP(3X) describes the variants of these functions.
+.SH RETURN VALUE
+These functions return
+.B OK
+on success and
+.B ERR
+on failure.
+.PP
+In
+.IR \%ncurses ","
+these functions fail if
+.bP
+the
+.I curses
+screen has not been initialized,
+.bP
+(for functions taking a
+.I \%WINDOW
+pointer argument)
+.I win
+is a null pointer,
+.bP
+.I wstr
+is a null pointer,
+or
+.bP
+an internal \fB\%wget_wch\fP(3X) call fails.
+.PP
+Functions prefixed with \*(``mv\*('' first perform cursor movement and
+fail if the position
+.RI ( y ,
+.IR x )
+is outside the window boundaries.
+.SH NOTES
+All of these functions except
+.B \%wgetn_wstr
+may be implemented as macros.
+.PP
+Reading input that overruns the buffer pointed to by
+.I wstr
+causes undefined results.
+Use the
+.BR n -infixed
+functions,
+and allocate sufficient storage for
+.I wstr
+\(em at least
+.IR n +1
+times
+.BR sizeof(wchar_t) "."
+.PP
+These functions cannot store a
+.B KEY_
+value in
+.I wstr
+because there is no way to distinguish it
+from a valid
+.I \%wchar_t
+value.
+.PP
+While these functions conceptually implement
+a series of calls to
+.BR \%wget_wch ","
+they also temporarily change properties of the
+.I curses
+screen to permit simple editing of the input buffer.
+Each function saves the screen's state,
+calls \fBnl\fP(3X),
+and,
+if the screen was in canonical (\*(``cooked\*('') mode,
+\fB\%cbreak\fP(3X).
+Before returning,
+it restores the saved screen state.
+Other implementations differ in detail,
+affecting which control characters they can accept in the buffer;
+see section \*(``PORTABILITY\*('' below.
+.PP
+Unlike \fBgetstr\fP(3X) and related functions of
+.IR \%ncurses 's
+non-wide API,
+these functions do not return
+.B \%KEY_RESIZE
+if a
+.I \%SIGWINCH
+event interrupts the function.
+.SH EXTENSIONS
+.BR \%getn_wstr ","
+.BR \%wgetn_wstr ","
+.BR \%mvgetn_wstr ","
+and
+.BR \%mvwgetn_wstr "'s"
+handing of negative
+.I n
+values is an
+.I \%ncurses
+extension.
+.SH PORTABILITY
+Applications employing
+.I \%ncurses
+extensions should condition their use on the visibility of the
+.B \%NCURSES_VERSION
+preprocessor macro.
+.PP
+X/Open Curses Issue\ 4 describes these functions.
+It specifies no error conditions for them.
+.PP
+Issue\ 4 documented these functions as passing an array of
+.IR wchar_t ","
+but that was an error,
+conflicting with the following language in the standard.
+.RS
+.PP
+The effect of
+.IR \%get_wstr "()"
+is as though a series of calls to
+.IR \%get_wch "()"
+were made,
+until a newline character,
+end-of-line character,
+or end-of-file character is processed.
+.\" X/Open Curses Issue 4, Version 2, p. 96.
+.RE
+.PP
+.I \%get_wch
+can return a negative value
+.RI ( WEOF ),
+but
+.I \%wchar_t
+is a unsigned type.
+All of the vendors implement these functions using
+.IR \%wint_t ","
+following the Issue\ 7 standard.
+.PP
+X/Open Curses Issue\ 7 is unclear whether the terminating null wide character
+counts toward the length parameter
+.IR n "."
+A similar issue affected
+.I \%wgetnstr
+in Issue\ 4,
+Version\ 2;
+Issue\ 7 revised that function's description to address the issue,
+but not that of
+.IR \%wget_nwstr ","
+leaving it ambiguous.
+.I \%ncurses
+counts the terminator in the length.
+.PP
+X/Open Curses does not specify what happens if the length
+.I n
+is negative.
+.bP
+For consistency with
+.IR \%wgetnstr ","
+.I \%ncurses
+6.2 uses a limit based on
+.IR LINE_MAX "."
+.bP
+Some other implementations
+(such as Solaris
+.IR xcurses )
+do the same,
+while others
+.RI \%( PDCurses )
+do not permit a negative
+.IR n "."
+.bP
+NetBSD\ 7
+.I curses
+imitates
+.I \%ncurses
+6.1 and earlier,
+treating a negative
+.I n
+as an unbounded count of wide characters.
+.PP
+Implementations vary in their handling of input control characters.
+.bP
+While they may enable the screen's echo option,
+some do not take it out of raw mode,
+and may take cbreak mode into account
+when deciding whether to handle echoing within
+.I \%wgetn_wstr
+or to rely on it as a side effect of calling
+.IR \%wget_wch "."
+.IP
+Since 1995,
+.I \%ncurses
+has provided handlers for
+.I SIGINTR
+and
+.I SIGQUIT
+events,
+which are typically generated at the keyboard with
+.B \*^C
+and
+.B \*^\e
+respectively.
+In cbreak mode,
+those handlers catch a signal and stop the program,
+whereas other implementations write those characters into the buffer.
+.bP
+Starting with
+.I \%ncurses
+6.3 (2021),
+.I \%wgetn_wstr
+preserves raw mode if the screen was already in that state,
+allowing one to enter the characters the terminal interprets
+as interrupt and quit events
+into the buffer,
+for consistency with SVr4
+.IR curses 's
+.IR \%wgetnstr .
+.SH HISTORY
+X/Open Curses Issue\ 4 (1995) initially specified these functions.
+The System\ V Interface Definition Version\ 4
+of the same year
+specified functions named
+.I \%wgetwstr
+and
+.I \%wgetnwstr
+(and the usual variants).
+.\" SVID 4, vol 3., p. 500
+These were later additions to
+.RI SVr4. x ,
+not appearing in the first SVr4 (1989).
+Except in name,
+their declarations did not differ from X/Open's later
+.I \%wget_wstr
+and
+.I \%wgetn_wstr
+until
+X/Open Curses Issue 7 (2009)
+eventually changed the type of the buffer argument to a pointer to
+.IR \%wint_t "."
+.SH SEE ALSO
+\fB\%curs_getstr\fP(3X) describes comparable functions of the
+.I \%ncurses
+library in its non-wide-character configuration.
+.PP
+\fB\%curses\fP(3X),
+\fB\%curs_get_wch\fP(3X)

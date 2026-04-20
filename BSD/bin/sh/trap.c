@@ -54,6 +54,8 @@
 #include "myhistedit.h"
 #endif
 
+#include <signal.h>
+#define sys_nsig NSIG
 
 /*
  * Sigmode records the current value of the signal handlers for the various

@@ -1,0 +1,268 @@
+<!--
+  ****************************************************************************
+  * Copyright 2020-2024,2025 Thomas E. Dickey                                *
+  * Copyright 1998-2015,2016 Free Software Foundation, Inc.                  *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+  * "Software"), to deal in the Software without restriction, including      *
+  * without limitation the rights to use, copy, modify, merge, publish,      *
+  * distribute, distribute with modifications, sublicense, and/or sell       *
+  * copies of the Software, and to permit persons to whom the Software is    *
+  * furnished to do so, subject to the following conditions:                 *
+  *                                                                          *
+  * The above copyright notice and this permission notice shall be included  *
+  * in all copies or substantial portions of the Software.                   *
+  *                                                                          *
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+  * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+  * THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+  *                                                                          *
+  * Except as contained in this notice, the name(s) of the above copyright   *
+  * holders shall not be used in advertising or otherwise to promote the     *
+  * sale, use or other dealings in this Software without prior written       *
+  * authorization.                                                           *
+  ****************************************************************************
+  * @Id: curs_window.3x,v 1.71 2025/08/23 22:50:00 tom Exp @
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta name="generator" content="Manpage converted by man2html - see https://invisible-island.net/scripts/readme.html#others_scripts">
+<TITLE>curs_window 3x 2025-08-23 ncurses 6.6 Library calls</TITLE>
+<link rel="author" href="mailto:bug-ncurses@gnu.org">
+
+</HEAD>
+<BODY>
+<H1 class="no-header">curs_window 3x 2025-08-23 ncurses 6.6 Library calls</H1>
+<PRE>
+<STRONG><A HREF="curs_window.3x.html">curs_window(3x)</A></STRONG>                  Library calls                 <STRONG><A HREF="curs_window.3x.html">curs_window(3x)</A></STRONG>
+
+
+</PRE><H2><a name="h2-NAME">NAME</a></H2><PRE>
+       <STRONG>newwin</STRONG>,  <STRONG>delwin</STRONG>,  <STRONG>mvwin</STRONG>,  <STRONG>subwin</STRONG>,  <STRONG>derwin</STRONG>,  <STRONG>mvderwin</STRONG>,  <STRONG>dupwin</STRONG>, <STRONG>wsyncup</STRONG>,
+       <STRONG>syncok</STRONG>, <STRONG>wcursyncup</STRONG>, <STRONG>wsyncdown</STRONG> - create and manipulate <EM>curses</EM> windows
+
+
+</PRE><H2><a name="h2-SYNOPSIS">SYNOPSIS</a></H2><PRE>
+       <STRONG>#include</STRONG> <STRONG>&lt;curses.h&gt;</STRONG>
+
+       <STRONG>WINDOW</STRONG> <STRONG>*</STRONG> <STRONG>newwin(</STRONG>
+            <STRONG>int</STRONG> <EM>nlines</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>ncols</EM><STRONG>,</STRONG>
+            <STRONG>int</STRONG> <EM>begin</EM><STRONG>_</STRONG><EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>begin</EM><STRONG>_</STRONG><EM>x</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>delwin(WINDOW</STRONG> <STRONG>*</STRONG> <EM>win</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>mvwin(WINDOW</STRONG> <STRONG>*</STRONG> <EM>win</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>x</EM><STRONG>);</STRONG>
+       <STRONG>WINDOW</STRONG> <STRONG>*</STRONG> <STRONG>subwin(WINDOW</STRONG> <STRONG>*</STRONG> <EM>orig</EM><STRONG>,</STRONG>
+            <STRONG>int</STRONG> <EM>nlines</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>ncols</EM><STRONG>,</STRONG>
+            <STRONG>int</STRONG> <EM>begin</EM><STRONG>_</STRONG><EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>begin</EM><STRONG>_</STRONG><EM>x</EM><STRONG>);</STRONG>
+       <STRONG>WINDOW</STRONG> <STRONG>*</STRONG> <STRONG>derwin(WINDOW</STRONG> <STRONG>*</STRONG> <EM>orig</EM><STRONG>,</STRONG>
+            <STRONG>int</STRONG> <EM>nlines</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>ncols</EM><STRONG>,</STRONG>
+            <STRONG>int</STRONG> <EM>begin</EM><STRONG>_</STRONG><EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>begin</EM><STRONG>_</STRONG><EM>x</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>mvderwin(WINDOW</STRONG> <STRONG>*</STRONG> <EM>win</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>par</EM><STRONG>_</STRONG><EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>par</EM><STRONG>_</STRONG><EM>x</EM><STRONG>);</STRONG>
+       <STRONG>WINDOW</STRONG> <STRONG>*</STRONG> <STRONG>dupwin(WINDOW</STRONG> <STRONG>*</STRONG> <EM>win</EM><STRONG>);</STRONG>
+       <STRONG>void</STRONG> <STRONG>wsyncup(WINDOW</STRONG> <STRONG>*</STRONG> <EM>win</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>syncok(WINDOW</STRONG> <STRONG>*</STRONG> <EM>win</EM><STRONG>,</STRONG> <STRONG>bool</STRONG> <EM>bf</EM><STRONG>);</STRONG>
+       <STRONG>void</STRONG> <STRONG>wcursyncup(WINDOW</STRONG> <STRONG>*</STRONG> <EM>win</EM><STRONG>);</STRONG>
+       <STRONG>void</STRONG> <STRONG>wsyncdown(WINDOW</STRONG> <STRONG>*</STRONG> <EM>win</EM><STRONG>);</STRONG>
+
+
+</PRE><H2><a name="h2-DESCRIPTION">DESCRIPTION</a></H2><PRE>
+
+</PRE><H3><a name="h3-newwin">newwin</a></H3><PRE>
+       Calling <STRONG>newwin</STRONG> creates and returns a pointer to a new window  with  the
+       given  number  of lines and columns.  The upper left-hand corner of the
+       window is at
+              line <EM>begin</EM>_<EM>y</EM>,
+              column <EM>begin</EM>_<EM>x</EM>
+
+       If either <EM>nlines</EM> or <EM>ncols</EM> is zero, they default to
+              <STRONG>LINES</STRONG> <STRONG>-</STRONG> <EM>begin</EM>_<EM>y</EM> and
+              <STRONG>COLS</STRONG> <STRONG>-</STRONG> <EM>begin</EM>_<EM>x</EM>.
+
+       A new full-screen window is created by calling <STRONG>newwin(0,0,0,0)</STRONG>.
+
+       Regardless of the function  used  for  creating  a  new  window  (e.g.,
+       <STRONG>newwin</STRONG>, <STRONG>subwin</STRONG>, <STRONG>derwin</STRONG>, <STRONG>newpad</STRONG>), rather than a duplicate (with <STRONG>dupwin</STRONG>),
+       all  of  the  window  modes are initialized to the default values.  The
+       following functions set a window's modes after it is created:
+
+              <STRONG>idcok</STRONG>, <STRONG>idlok</STRONG>,  <STRONG>immedok</STRONG>,  <STRONG>keypad</STRONG>,  <STRONG>leaveok</STRONG>,  <STRONG>nodelay</STRONG>,  <STRONG>notimeout</STRONG>,
+              <STRONG>scrollok</STRONG>, <STRONG>setscrreg</STRONG>, <STRONG>syncok</STRONG>, <STRONG>wbkgdset</STRONG>, <STRONG>wbkgrndset</STRONG>, and <STRONG>wtimeout</STRONG>.
+
+
+</PRE><H3><a name="h3-delwin">delwin</a></H3><PRE>
+       Calling  <STRONG>delwin</STRONG> deletes the named window, freeing all memory associated
+       with it (it  does  not  actually  erase  the  window's  screen  image).
+       Subwindows must be deleted before the main window can be deleted.
+
+
+</PRE><H3><a name="h3-mvwin">mvwin</a></H3><PRE>
+       Calling <STRONG>mvwin</STRONG> moves the window so that the upper left-hand corner is at
+       position  (<EM>x</EM>,  <EM>y</EM>).   If  the  move would cause the window to be off the
+       screen, it is an error and the window is not moved.  Moving  subwindows
+       is allowed, but should be avoided.
+
+
+</PRE><H3><a name="h3-subwin">subwin</a></H3><PRE>
+       Calling  <STRONG>subwin</STRONG>  creates and returns a pointer to a new window with the
+       given number of lines, <EM>nlines</EM>, and columns, <EM>ncols</EM>.  The  window  is  at
+       position (<EM>begin</EM>_<EM>y</EM>, <EM>begin</EM>_<EM>x</EM>) on the screen.  The subwindow shares memory
+       with  the window <EM>orig</EM>, its <EM>ancestor</EM>, so that changes made to one window
+       will affect both windows.  When using this routine, it is necessary  to
+       call  <STRONG>touchwin</STRONG>  or  <STRONG>touchline</STRONG>  on  <EM>orig</EM>  before calling <STRONG>wrefresh</STRONG> on the
+       subwindow.
+
+
+</PRE><H3><a name="h3-derwin">derwin</a></H3><PRE>
+       Calling <STRONG>derwin</STRONG> is the same as calling <STRONG>subwin,</STRONG> except that  <EM>begin</EM>_<EM>y</EM>  and
+       <EM>begin</EM>_<EM>x</EM>  are  relative to the origin of the window <EM>orig</EM> rather than the
+       screen.  There is no difference between the subwindows and the  derived
+       windows.
+
+
+</PRE><H3><a name="h3-mvderwin">mvderwin</a></H3><PRE>
+       Calling  <STRONG>mvderwin</STRONG>  moves  a  derived  window  (or subwindow) inside its
+       parent window.  The screen-relative parameters of the  window  are  not
+       changed.  This routine is used to display different parts of the parent
+       window at the same physical position on the screen.
+
+
+</PRE><H3><a name="h3-dupwin">dupwin</a></H3><PRE>
+       Calling <STRONG>dupwin</STRONG> creates an exact duplicate of the window <EM>win</EM>.
+
+
+</PRE><H3><a name="h3-wsyncup">wsyncup</a></H3><PRE>
+       Calling  <STRONG>wsyncup</STRONG>  touches  all  locations  in ancestors of <EM>win</EM> that are
+       changed in <EM>win</EM>.  If <STRONG>syncok</STRONG> is called with  second  argument  <STRONG>TRUE</STRONG>  then
+       <STRONG>wsyncup</STRONG>  is  called  automatically  whenever  there  is a change in the
+       window.
+
+
+</PRE><H3><a name="h3-wsyncdown">wsyncdown</a></H3><PRE>
+       The <STRONG>wsyncdown</STRONG> routine touches  each  location  in  <EM>win</EM>  that  has  been
+       touched  in  any  of  its  ancestor windows.  This routine is called by
+       <STRONG>wrefresh</STRONG>, so it should almost never be necessary to call it manually.
+
+
+</PRE><H3><a name="h3-wcursyncup">wcursyncup</a></H3><PRE>
+       The routine <STRONG>wcursyncup</STRONG> updates the current cursor position of  all  the
+       ancestors  of  the window to reflect the current cursor position of the
+       window.
+
+
+</PRE><H2><a name="h2-RETURN-VALUE">RETURN VALUE</a></H2><PRE>
+       Functions that return integers return <STRONG>ERR</STRONG>  upon  failure  and  <STRONG>OK</STRONG>  upon
+       success.
+
+       Functions that return pointers return a null pointer on failure.
+
+       <EM>ncurses</EM> defines several error conditions.
+
+       <STRONG>o</STRONG>   <STRONG>delwin</STRONG> returns <STRONG>ERR</STRONG> if <EM>win</EM> is a null pointer, or if it is the parent
+           of another window.
+
+           <EM>ncurses</EM>  maintains  a  list of windows, and checks that the pointer
+           passed to <STRONG>delwin</STRONG> is one that it created, returning <STRONG>ERR</STRONG>  if  it  was
+           not.
+
+       <STRONG>o</STRONG>   <STRONG>derwin</STRONG>  returns  <STRONG>ERR</STRONG>  if  <EM>orig</EM>  is a null pointer, or if any of the
+           ordinate or dimension arguments is negative, or  if  the  resulting
+           window does not fit inside the parent window.
+
+       <STRONG>o</STRONG>   <STRONG>dupwin</STRONG> returns <STRONG>ERR</STRONG> if <EM>win</EM> is a null pointer.
+
+       <STRONG>o</STRONG>   <STRONG>mvderwin</STRONG>  returns  <STRONG>ERR</STRONG>  if <EM>win</EM> is a null pointer, or if any part of
+           the window would be placed off-screen.
+
+       <STRONG>o</STRONG>   <STRONG>mvwin</STRONG> returns <STRONG>ERR</STRONG> if <EM>win</EM> is a null pointer, if <EM>win</EM> is a pad, or  if
+           any part of the window would be placed off-screen.
+
+       <STRONG>o</STRONG>   <STRONG>newwin</STRONG> returns <STRONG>ERR</STRONG> if any of its arguments is negative.
+
+       <STRONG>o</STRONG>   <STRONG>subwin</STRONG>  returns  <STRONG>ERR</STRONG>  if  <EM>orig</EM>  is a null pointer, or if any of the
+           ordinate or dimension arguments is negative, or  if  the  resulting
+           window does not fit inside the parent window.
+
+       <STRONG>o</STRONG>   <STRONG>syncok</STRONG> returns <STRONG>ERR</STRONG> if <EM>win</EM> is a null pointer.
+
+       Functions  that  return  a window pointer fail if memory allocation for
+       their data structures fails.
+
+       All of these functions fail if the screen has not been initialized; see
+       <STRONG><A HREF="curs_initscr.3x.html">initscr(3x)</A></STRONG> or <STRONG><A HREF="curs_initscr.3x.html">newterm(3x)</A></STRONG>.
+
+
+</PRE><H2><a name="h2-NOTES">NOTES</a></H2><PRE>
+       <STRONG>syncok</STRONG> may be implemented as a macro.
+
+       Calling <STRONG>syncup</STRONG> on a window and making many small changes  to  it  could
+       degrade performance.
+
+
+</PRE><H2><a name="h2-PORTABILITY">PORTABILITY</a></H2><PRE>
+       X/Open Curses Issue 4 describes these functions.  It specifies no error
+       conditions for <EM>delwin</EM>, <EM>derwin</EM>, <EM>dupwin</EM>, <EM>newwin</EM>, <EM>mvderwin</EM>, or <EM>syncok</EM>.
+
+       For  functions  returning  integers  (except  <EM>delwin</EM>), SVr4 describes a
+       successful return value only as "an integer value other than <EM>ERR</EM>".
+
+       Regarding <EM>delwin</EM>, X/Open Curses states that
+
+              [t]he application must delete  subwindows  before  deleting  the
+              main window.
+
+       If  <EM>delwin</EM>  is  asked to delete a parent window, it can succeed only if
+       the <EM>curses</EM> library keeps a list of its subwindows.  SVr4 <EM>curses</EM> kept  a
+       count  of  the  number  of  subwindows  rather  than a list.  It simply
+       returned <STRONG>ERR</STRONG> when asked to delete a subwindow.  Solaris  X/Open  <EM>curses</EM>
+       (<EM>xcurses</EM>)  does  not  make  even  that  check, and will delete a parent
+       window that still has subwindows.  <EM>PDCurses</EM> also behaves this way.
+
+       <EM>ncurses</EM> 4.0 (1996) and later maintains  a  list  of  windows  for  each
+       screen  to  ensure  that a window has no subwindows before allowing its
+       deletion.  NetBSD <EM>curses</EM> has followed suit since 2003.
+
+       SVr4 <EM>curses</EM> documentation is unclear about what <EM>wsyncup</EM>  and  <EM>wsyncdown</EM>
+       actually  do.   It  seems to imply that they are supposed to touch only
+       those lines that are affected by changes to a window's ancestors.   The
+       description  and behavior of these functions in <EM>ncurses</EM> is patterned on
+       the X/Open Curses standard; this approach may result in slower updates.
+
+
+</PRE><H2><a name="h2-SEE-ALSO">SEE ALSO</a></H2><PRE>
+       <STRONG><A HREF="ncurses.3x.html">curses(3x)</A></STRONG>,   <STRONG><A HREF="curs_initscr.3x.html">curs_initscr(3x)</A></STRONG>,    <STRONG><A HREF="curs_refresh.3x.html">curs_refresh(3x)</A></STRONG>,    <STRONG><A HREF="curs_touch.3x.html">curs_touch(3x)</A></STRONG>,
+       <STRONG><A HREF="curs_variables.3x.html">curs_variables(3x)</A></STRONG>
+
+ncurses 6.6                       2025-08-23                   <STRONG><A HREF="curs_window.3x.html">curs_window(3x)</A></STRONG>
+</PRE>
+<div class="nav">
+<ul>
+<li><a href="#h2-NAME">NAME</a></li>
+<li><a href="#h2-SYNOPSIS">SYNOPSIS</a></li>
+<li><a href="#h2-DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#h3-newwin">newwin</a></li>
+<li><a href="#h3-delwin">delwin</a></li>
+<li><a href="#h3-mvwin">mvwin</a></li>
+<li><a href="#h3-subwin">subwin</a></li>
+<li><a href="#h3-derwin">derwin</a></li>
+<li><a href="#h3-mvderwin">mvderwin</a></li>
+<li><a href="#h3-dupwin">dupwin</a></li>
+<li><a href="#h3-wsyncup">wsyncup</a></li>
+<li><a href="#h3-wsyncdown">wsyncdown</a></li>
+<li><a href="#h3-wcursyncup">wcursyncup</a></li>
+</ul>
+</li>
+<li><a href="#h2-RETURN-VALUE">RETURN VALUE</a></li>
+<li><a href="#h2-NOTES">NOTES</a></li>
+<li><a href="#h2-PORTABILITY">PORTABILITY</a></li>
+<li><a href="#h2-SEE-ALSO">SEE ALSO</a></li>
+</ul>
+</div>
+</BODY>
+</HTML>

@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "shims.h"
 #include "shell.h"
 #include "parser.h"
 #include "nodes.h"

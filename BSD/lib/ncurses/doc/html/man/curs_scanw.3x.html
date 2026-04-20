@@ -1,0 +1,192 @@
+<!--
+  ****************************************************************************
+  * Copyright 2018-2024,2025 Thomas E. Dickey                                *
+  * Copyright 1998-2010,2017 Free Software Foundation, Inc.                  *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+  * "Software"), to deal in the Software without restriction, including      *
+  * without limitation the rights to use, copy, modify, merge, publish,      *
+  * distribute, distribute with modifications, sublicense, and/or sell       *
+  * copies of the Software, and to permit persons to whom the Software is    *
+  * furnished to do so, subject to the following conditions:                 *
+  *                                                                          *
+  * The above copyright notice and this permission notice shall be included  *
+  * in all copies or substantial portions of the Software.                   *
+  *                                                                          *
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+  * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+  * THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+  *                                                                          *
+  * Except as contained in this notice, the name(s) of the above copyright   *
+  * holders shall not be used in advertising or otherwise to promote the     *
+  * sale, use or other dealings in this Software without prior written       *
+  * authorization.                                                           *
+  ****************************************************************************
+  * @Id: curs_scanw.3x,v 1.62 2025/07/05 13:03:05 tom Exp @
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta name="generator" content="Manpage converted by man2html - see https://invisible-island.net/scripts/readme.html#others_scripts">
+<TITLE>curs_scanw 3x 2025-07-05 ncurses 6.6 Library calls</TITLE>
+<link rel="author" href="mailto:bug-ncurses@gnu.org">
+
+</HEAD>
+<BODY>
+<H1 class="no-header">curs_scanw 3x 2025-07-05 ncurses 6.6 Library calls</H1>
+<PRE>
+<STRONG><A HREF="curs_scanw.3x.html">curs_scanw(3x)</A></STRONG>                   Library calls                  <STRONG><A HREF="curs_scanw.3x.html">curs_scanw(3x)</A></STRONG>
+
+
+</PRE><H2><a name="h2-NAME">NAME</a></H2><PRE>
+       <STRONG>scanw</STRONG>,  <STRONG>wscanw</STRONG>,  <STRONG>mvscanw</STRONG>,  <STRONG>mvwscanw</STRONG>, <STRONG>vwscanw</STRONG>, <STRONG>vw_scanw</STRONG> - read formatted
+       input from a <EM>curses</EM> window
+
+
+</PRE><H2><a name="h2-SYNOPSIS">SYNOPSIS</a></H2><PRE>
+       <STRONG>#include</STRONG> <STRONG>&lt;curses.h&gt;</STRONG>
+
+       <STRONG>int</STRONG> <STRONG>scanw(const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG><EM>fmt</EM><STRONG>,</STRONG> <STRONG>...);</STRONG>
+       <STRONG>int</STRONG> <STRONG>wscanw(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG><EM>fmt</EM><STRONG>,</STRONG> <STRONG>...);</STRONG>
+       <STRONG>int</STRONG> <STRONG>mvscanw(int</STRONG> <EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>x</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG><EM>fmt</EM><STRONG>,</STRONG> <STRONG>...);</STRONG>
+       <STRONG>int</STRONG> <STRONG>mvwscanw(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>x</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG><EM>fmt</EM><STRONG>,</STRONG> <STRONG>...);</STRONG>
+
+       <STRONG>int</STRONG> <STRONG>vw_scanw(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG><EM>fmt</EM><STRONG>,</STRONG> <STRONG>va_list</STRONG> <EM>varglist</EM><STRONG>);</STRONG>
+
+       <EM>/*</EM> <EM>obsolete</EM> <EM>*/</EM>
+       <STRONG>int</STRONG> <STRONG>vwscanw(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG><EM>fmt</EM><STRONG>,</STRONG> <STRONG>va_list</STRONG> <EM>varglist</EM><STRONG>);</STRONG>
+
+
+</PRE><H2><a name="h2-DESCRIPTION">DESCRIPTION</a></H2><PRE>
+       <STRONG>scanw</STRONG>, <STRONG>wscanw</STRONG>, <STRONG>mvscanw</STRONG>, and <STRONG>mvwscanw</STRONG> are  analogous  to  <STRONG>scanf(3)</STRONG>.   In
+       effect,  they  call  <STRONG><A HREF="curs_getstr.3x.html">wgetstr(3x)</A></STRONG>  with  <EM>win</EM>  (or  <STRONG>stdscr</STRONG>)  as its first
+       argument,  then  attempt  conversion  of  the  resulting  string   with
+       <STRONG>vsscanf(3)</STRONG>.   Fields in the string that do not map to a variable in the
+       <EM>fmt</EM> parameter are discarded.
+
+       <STRONG>vwscanw</STRONG> and <STRONG>vw_scanw</STRONG> are analogous to <STRONG>vscanf(3)</STRONG>, and perform  a  <STRONG>wscanw</STRONG>
+       using  a  variable  argument  list.  The third argument is a <EM>va</EM><STRONG>_</STRONG><EM>list</EM>, a
+       pointer to a list of arguments, as defined in <EM>stdarg.h</EM>.
+
+
+</PRE><H2><a name="h2-RETURN-VALUE">RETURN VALUE</a></H2><PRE>
+       These functions return <STRONG>ERR</STRONG>  upon  failure  and  otherwise  a  count  of
+       successful conversions; this quantity may be zero.
+
+       In  <EM>ncurses</EM>, failure occurs if <STRONG>vsscanf(3)</STRONG> returns <STRONG>EOF</STRONG>, or if the window
+       pointer <EM>win</EM> is null.
+
+       Functions prefixed with "mv" first perform cursor movement and fail  if
+       the position (<EM>y</EM>, <EM>x</EM>) is outside the window boundaries.
+
+
+</PRE><H2><a name="h2-NOTES">NOTES</a></H2><PRE>
+       No  wide  character  counterpart  functions  are  defined by the "wide"
+       <EM>ncurses</EM> configuration nor by any standard.  They  are  unnecessary:  to
+       retrieve  and  convert  a  wide-character string from a <EM>curses</EM> terminal
+       keyboard, use these functions with the <STRONG>scanf(3)</STRONG> conversions  "%lc"  and
+       "%ls" for wide characters and strings, respectively.
+
+       <EM>ncurses</EM>  implements <STRONG>vsscanf(3)</STRONG> internally if it is unavailable when the
+       library is configured.
+
+
+</PRE><H2><a name="h2-PORTABILITY">PORTABILITY</a></H2><PRE>
+       X/Open Curses Issue 4 describes these functions.  It specifies no error
+       conditions for them.
+
+       <EM>ncurses</EM> defines <STRONG>vw_scanw</STRONG> and  <STRONG>vwscanw</STRONG>  identically  to  support  legacy
+       applications.  However, the latter is obsolete.
+
+       <STRONG>o</STRONG>   X/Open Curses Issue 4 Version 2 (1996), marked <STRONG>vwscanw</STRONG> as requiring
+           <EM>varargs.h</EM>  and  "TO BE WITHDRAWN", and specified <STRONG>vw_scanw</STRONG> using the
+           <EM>stdarg.h</EM> interface.
+
+       <STRONG>o</STRONG>   X/Open Curses Issue 5,  Draft  2  (December  2007)  marked  <STRONG>vwscanw</STRONG>
+           (along with <STRONG>vwscanw</STRONG> and the <EM>termcap</EM> interface) as withdrawn.  After
+           incorporating  review  comments,  this became X/Open Curses Issue 7
+           (2009).
+
+       <STRONG>o</STRONG>   <EM>ncurses</EM> provides <STRONG>vwscanw</STRONG>, but marks it as deprecated.
+
+       X/Open Curses Issues 4 and 7 both state that these functions return <STRONG>ERR</STRONG>
+       or <STRONG>OK</STRONG>.  This is likely an erratum.
+
+       <STRONG>o</STRONG>   Since the underlying <STRONG>scanf(3)</STRONG>  returns  the  number  of  successful
+           conversions,  and  SVr4  <EM>curses</EM> was documented to use this feature,
+           this may have been an  editorial  solecism  introduced  by  X/Open,
+           rather than an intentional change.
+
+       <STRONG>o</STRONG>   This  implementation retains compatibility with SVr4 <EM>curses</EM>.  As of
+           2018,  NetBSD  <EM>curses</EM>  also  returns  the  number   of   successful
+           conversions.   Both  <EM>ncurses</EM>  and  NetBSD <EM>curses</EM> call <STRONG>vsscanf(3)</STRONG> to
+           scan the string, which returns <STRONG>EOF</STRONG> on error.
+
+       <STRONG>o</STRONG>   Portable applications should test only if the return value is  <STRONG>ERR</STRONG>,
+           and  not  compare  it  to  <STRONG>OK</STRONG>,  since  that  value  (zero) might be
+           misleading.
+
+           One portable way to get useful results  would  be  to  use  a  "%n"
+           conversion  at the end of the format string, and check the value of
+           the  corresponding  variable  to  determine  how  many  conversions
+           succeeded.
+
+
+</PRE><H2><a name="h2-HISTORY">HISTORY</a></H2><PRE>
+       4BSD  (1980) introduced <EM>wscanw</EM> and its variants.  It implemented all as
+       functions, not macros; this initial distribution of <EM>curses</EM> preceded the
+       ANSI C standard of 1989, prior to which a variadic macro  facility  was
+       not  widely  available.   <EM>scanw</EM>  went  unused in Berkeley distributions
+       until 4.3BSD-Reno (1990), which employed it in a game.   4BSD's  <EM>wscanw</EM>
+       did  not  use <EM>varargs.h</EM>, which had been available since Seventh Edition
+       Unix (1979).  In 1991 (a couple  of  years  after  SVr4  was  generally
+       available,  and  after  the C standard was published), other developers
+       updated the library, using <EM>stdarg.h</EM> internally in 4.4BSD <EM>curses</EM>.   Even
+       with  this improvement, BSD <EM>curses</EM> did not use function prototypes (nor
+       even declare functions) in <EM>curses.h</EM> until 1992.
+
+       4BSD documented <EM>scanw</EM> and <EM>wscanw</EM> tersely as "scanf through <EM>stdscr</EM>"  and
+       "scanf through <EM>win</EM>", respectively.  SVr3 (1987) stated
+
+              [t]hese  routines correspond to <STRONG>scanf(3S)</STRONG>, as do their arguments
+              and return values.  <EM>wgetstr</EM>() is called on the window,  and  the
+              resulting line is used as input for the scan.
+
+       SVr3  added  <EM>vwscanw</EM>,  describing  its  third  parameter  as a <EM>va</EM><STRONG>_</STRONG><EM>list</EM>,
+       defined in <EM>varargs.h</EM>, and referred the reader to the manual  pages  for
+       <EM>varargs</EM>   and   <EM>vprintf</EM>   for  detailed  descriptions.   (Because  SVr3
+       documentation does not mention <EM>vscanf</EM>, the reference to  <EM>vprintf</EM>  might
+       not be an error).
+
+       SVr4  (1989)  introduced  no  new variations of <EM>scanw</EM>, but provided for
+       using either <EM>varargs.h</EM> or <EM>stdarg.h</EM> to define the <EM>va</EM><STRONG>_</STRONG><EM>list</EM> type.
+
+       X/Open Curses Issue 4  (1995)  defined  <EM>vw</EM><STRONG>_</STRONG><EM>scanw</EM>  to  replace  <EM>vwscanw</EM>,
+       stating that its <EM>va</EM><STRONG>_</STRONG><EM>list</EM> type is defined in <EM>stdarg.h</EM>.
+
+
+</PRE><H2><a name="h2-SEE-ALSO">SEE ALSO</a></H2><PRE>
+       <STRONG><A HREF="ncurses.3x.html">curses(3x)</A></STRONG>, <STRONG><A HREF="curs_getstr.3x.html">curs_getstr(3x)</A></STRONG>, <STRONG><A HREF="curs_printw.3x.html">curs_printw(3x)</A></STRONG>, <STRONG>scanf(3)</STRONG>, <STRONG>vscanf(3)</STRONG>
+
+ncurses 6.6                       2025-07-05                    <STRONG><A HREF="curs_scanw.3x.html">curs_scanw(3x)</A></STRONG>
+</PRE>
+<div class="nav">
+<ul>
+<li><a href="#h2-NAME">NAME</a></li>
+<li><a href="#h2-SYNOPSIS">SYNOPSIS</a></li>
+<li><a href="#h2-DESCRIPTION">DESCRIPTION</a></li>
+<li><a href="#h2-RETURN-VALUE">RETURN VALUE</a></li>
+<li><a href="#h2-NOTES">NOTES</a></li>
+<li><a href="#h2-PORTABILITY">PORTABILITY</a></li>
+<li><a href="#h2-HISTORY">HISTORY</a></li>
+<li><a href="#h2-SEE-ALSO">SEE ALSO</a></li>
+</ul>
+</div>
+</BODY>
+</HTML>

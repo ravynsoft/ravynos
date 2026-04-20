@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+<title>terminal_interface-curses-trace.adb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style type="text/css">
+*.comment {
+	color: green;
+}
+*.symbol {
+	color: red;
+}
+</style>
+</head>
+<body>
+<hr><div style="text-align:center"><h1> File : terminal_interface-curses-trace.adb </h1></div><hr>
+<pre>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                           <strong>GNAT</strong> ncurses Binding                           --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                      Terminal_Interface.Curses.Trace                     --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                                 B O D Y                                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>-- Copyright 2020 Thomas E. Dickey                                          --</em></span>
+<span class="comment"><em>-- Copyright 2001-2011,2014 Free Software Foundation, Inc.                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Permission is hereby granted, free of charge, to any person obtaining a  --</em></span>
+<span class="comment"><em>-- copy of this software and associated documentation files (the            --</em></span>
+<span class="comment"><em>-- "Software"), to deal in the Software without restriction, including      --</em></span>
+<span class="comment"><em>-- without limitation the rights to use, copy, modify, merge, publish,      --</em></span>
+<span class="comment"><em>-- distribute, distribute with modifications, sublicense, and/or sell       --</em></span>
+<span class="comment"><em>-- copies of the Software, and to permit persons to whom the Software is    --</em></span>
+<span class="comment"><em>-- furnished to do so, subject to the following conditions:                 --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- The above copyright notice and this permission notice shall be included  --</em></span>
+<span class="comment"><em>-- in all copies or substantial portions of the Software.                   --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  --</em></span>
+<span class="comment"><em>-- OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               --</em></span>
+<span class="comment"><em>-- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   --</em></span>
+<span class="comment"><em>-- IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   --</em></span>
+<span class="comment"><em>-- DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    --</em></span>
+<span class="comment"><em>-- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    --</em></span>
+<span class="comment"><em>-- THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Except as contained in this notice, the name(s) of the above copyright   --</em></span>
+<span class="comment"><em>-- holders shall not be used in advertising or otherwise to promote the     --</em></span>
+<span class="comment"><em>-- sale, use or other dealings in this Software without prior written       --</em></span>
+<span class="comment"><em>-- authorization.                                                           --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--  Author:  Juergen Pfeifer, 1996</em></span>
+<span class="comment"><em>--  Version Control:</em></span>
+<span class="comment"><em>--  @Revision: 1.12 @</em></span>
+<span class="comment"><em>--  Binding Version 01.00</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<b>with</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C; <b>use</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C;
+
+<b>package</b> <b>body</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<span class="symbol"><a name="ref_44_40" href="terminal_interface-curses-trace__ads.htm#ref_43_35">Trace</a></span> <b>is</b>
+
+   <b>procedure</b> <span class="symbol"><a name="ref_46_14" href="terminal_interface-curses-trace__ads.htm#ref_115_14">Trace_On</a></span> (<span class="symbol"><a name="ref_46_24" href="terminal_interface-curses-trace__ads.htm#ref_115_24">x</a></span> : <a href="terminal_interface-curses-trace__ads.htm#ref_46_9">Trace_Attribute_Set</a>) <b>is</b>
+      <b>procedure</b> <span class="symbol"><a name="ref_47_17">traceC</a></span> (<span class="symbol"><a name="ref_47_25">y</a></span> : <a href="terminal_interface-curses-trace__ads.htm#ref_46_9">Trace_Attribute_Set</a>);
+      <b>pragma</b> Import (C, traceC, "trace");
+   <b>begin</b>
+      <a href="terminal_interface-curses-trace__adb.htm#ref_47_17">traceC</a> (<a href="terminal_interface-curses-trace__ads.htm#ref_115_24">x</a>);
+   <b>end</b> <a href="terminal_interface-curses-trace__ads.htm#ref_115_14">Trace_On</a>;
+
+   <b>procedure</b> <span class="symbol"><a name="ref_53_14" href="terminal_interface-curses-trace__ads.htm#ref_119_14">Trace_Put</a></span> (<span class="symbol"><a name="ref_53_25" href="terminal_interface-curses-trace__ads.htm#ref_119_25">str</a></span> : String) <b>is</b>
+      <b>procedure</b> <span class="symbol"><a name="ref_54_17">tracef</a></span> (<span class="symbol"><a name="ref_54_25">format</a></span> : char_array; <span class="symbol"><a name="ref_54_46">s</a></span> : char_array);
+      <b>pragma</b> Import (C, tracef, "_traces");
+      <span class="comment"><em>--  _traces() is defined in c_varargs_to_ada.h</em></span>
+   <b>begin</b>
+      <a href="terminal_interface-curses-trace__adb.htm#ref_54_17">tracef</a> (To_C ("%s"), To_C (<a href="terminal_interface-curses-trace__ads.htm#ref_119_25">str</a>));
+   <b>end</b> <a href="terminal_interface-curses-trace__ads.htm#ref_119_14">Trace_Put</a>;
+
+<b>end</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-trace__ads.htm#ref_43_35">Trace</a>;
+</pre></body></html>

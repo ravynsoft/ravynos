@@ -1,0 +1,494 @@
+.\"***************************************************************************
+.\" Copyright 2018-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 1998-2016,2017 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" $Id: curs_kernel.3x,v 1.89 2025/08/16 19:50:07 tom Exp $
+.TH curs_kernel 3X 2025-08-16 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.ie \n(.g \{\
+.ds `` \(lq
+.ds '' \(rq
+.\}
+.el \{\
+.ie t .ds `` ``
+.el   .ds `` ""
+.ie t .ds '' ''
+.el   .ds '' ""
+.\}
+.
+.de bP
+.ie n  .IP \(bu 4
+.el    .IP \(bu 2
+..
+.SH NAME
+\fB\%def_prog_mode\fP,
+\fB\%def_shell_mode\fP,
+\fB\%reset_prog_mode\fP,
+\fB\%reset_shell_mode\fP,
+\fB\%resetty\fP,
+\fB\%savetty\fP,
+\fB\%getsyx\fP,
+\fB\%setsyx\fP,
+\fB\%curs_set\fP,
+\fB\%mvcur\fP,
+\fB\%napms\fP,
+\fB\%ripoffline\fP \-
+low-level \fIcurses\fR routines
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>
+.PP
+\fBint def_prog_mode(void);
+\fBint def_shell_mode(void);
+.PP
+\fBint reset_prog_mode(void);
+\fBint reset_shell_mode(void);
+.PP
+\fBint resetty(void);
+\fBint savetty(void);
+.PP
+\fBvoid getsyx(int \fIy\fP, int \fIx\fP);
+\fBvoid setsyx(int \fIy\fP, int \fIx\fP);
+.PP
+\fBint curs_set(int \fIvisibility\fP);
+\fBint mvcur(int \fIoldrow\fP, int \fIoldcol\fP, int \fInewrow\fP, int \fInewcol\fP);
+\fBint napms(int \fIms\fP);
+\fBint ripoffline(int \fIline\fP, int (*\fIinit\fP)(WINDOW *, int));
+.fi
+.SH DESCRIPTION
+The following routines give low-level access
+to various \fBcurses\fP capabilities.
+These routines typically are used inside library routines.
+.SS "def_prog_mode, def_shell_mode"
+The \fBdef_prog_mode\fP and \fBdef_shell_mode\fP routines save the
+current terminal modes as the \*(``program\*(''
+(in \fBcurses\fP) or \*(``shell\*(''
+(not in \fBcurses\fP) state for use by the \fBreset_prog_mode\fP and
+\fBreset_shell_mode\fP routines.
+This is done automatically by \fBinitscr\fP.
+There is one such save area for each screen context
+allocated by \fBnewterm\fP.
+.SS "reset_prog_mode, reset_shell_mode"
+The \fBreset_prog_mode\fP and \fBreset_shell_mode\fP routines restore
+the terminal to \*(``program\*('' (in \fBcurses\fP) or \*(``shell\*('' (out of
+\fBcurses\fP) state.
+These are done automatically by \fBendwin\fP(3X) and,
+after an \fBendwin\fP, by \fBdoupdate\fP,
+so they normally are not called.
+.SS "resetty, savetty"
+The \fBresetty\fP and \fBsavetty\fP routines save and restore the
+state of the terminal modes.
+\fBsavetty\fP saves the current state in
+a buffer and \fBresetty\fP restores the state to what it was at the
+last call to \fBsavetty\fP.
+.SS getsyx
+.B \%getsyx
+stores the coordinates of virtual screen
+.RB \%( newscr )
+cursor in
+.I y
+and
+.IR x "."
+If
+.BR \%newscr 's
+\fB\%leaveok\fP(3X) output option is
+.BR TRUE ","
+.B \%getsyx
+stores
+.B \-1
+in both
+.I y
+and
+.IR x "."
+If lines have been removed from the top of the screen using
+.BR \%ripoffline ","
+.I y
+includes these lines;
+therefore,
+.I y
+and
+.I x
+populated by
+.B \%getsyx
+should be used only as arguments for
+.BR \%setsyx "."
+.PP
+Few applications use this feature;
+most call \fB\%getyx\fP(3X) instead.
+.SS setsyx
+.B \%setsyx
+sets the virtual screen
+.RB \%( newscr )
+cursor location to
+.RI ( y ,
+.IR x ")."
+.B "\%setsyx(\-1, \-1)"
+is equivalent to
+.BR "\%leaveok(newscr, TRUE)" "."
+.PP
+.B \%getsyx
+and
+.B \%setsyx
+are designed to be used by a function that manipulates
+.I curses
+windows but seeks to avoid changing the cursor position.
+Such a function would first call
+.BR \%getsyx ","
+modify its windows' content,
+call \fB\%wnoutrefresh\fP(3X) on them,
+call
+.BR \%setsyx ","
+then call \fB\%doupdate\fP(3X).
+.PP
+Few applications use this feature;
+most call \fB\%wmove\fP(3X) instead.
+.SS curs_set
+.B \%curs_set
+adjusts the cursor visibility to
+\*(``invisible\*('',
+\*(``visible\*('',
+\*(``very visible\*('',
+as its argument is
+.BR 0 ,
+.BR 1 ,
+or
+.BR 2 ,
+respectively.
+It returns the previous
+.I visibility
+if the requested one is supported,
+and
+.B ERR
+otherwise.
+.SS mvcur
+.B \%mvcur
+provides low-level cursor motion.
+It takes effect immediately,
+rather than at the next refresh.
+Unlike the other low-level output functions,
+which either write to the standard output stream
+or are passed a function pointer to perform output,
+.B \%mvcur
+uses a file descriptor derived from the output stream parameter of
+\fB\%newterm\fP(3X).
+.PP
+One application of
+.B \%mvcur
+accompanies the temporary use of another program to write to the
+terminal screen.
+For example,
+first call \fB\%refresh\fP(3X) to ensure that the screen and the
+library's model of it are up to date;
+then call
+.BR \%reset_shell_mode ";"
+write to the screen with the external application;
+call
+.BR \%reset_prog_mode ";"
+and finally call
+.BR \%mvcur( ".\|.\|." ,
+.RB .\|.\|. ,
+.B \-1, \-1)
+to move the terminal cursor to where
+.I \%curses
+thinks it is,
+since the library has no knowledge of how the external application
+moved it.
+.\" https://lists.gnu.org/archive/html/bug-ncurses/2016-10/msg00002.html
+.SS napms
+.B \%napms
+sleeps for
+.I ms
+milliseconds.
+If
+.I ms
+exceeds 30,000
+(thirty seconds),
+.I \%ncurses
+caps it at that value.
+.SS ripoffline
+.B \%ripoffline
+provides access to the same facility that \fB\%slk_init\fP(3X) uses to
+reduce the size of the screen.
+The application must call
+.B \%ripoffline
+before \fB\%initscr\fP(3X) or \fB\%newterm\fP(3X)
+so that the latter functions prepare a
+.B \%stdscr
+of the correct size.
+.bP
+If
+.I line
+is positive,
+.B \%ripoffline
+removes a line from the top of what will become
+.BR \%stdscr "."
+.bP
+If
+.I line
+is negative,
+.B \%ripoffline
+removes a line from the bottom of what will become
+.BR \%stdscr "."
+.PP
+When
+.B \%initscr
+initializes
+.IR curses ","
+it calls the
+.I init
+function supplied to
+.B \%ripoffline
+by the application with two arguments:
+.bP
+a pointer to the one-line
+.I \%WINDOW
+that it allocates,
+and
+.bP
+an integer with the number of columns in the window.
+.PP
+Inside this
+.I init
+function,
+the values of the integer variables
+.B LINES
+and
+.B COLS
+(see \fB\%curs_variables\fP(3X))
+are not guaranteed to be reliable;
+it must not call \fB\%wrefresh\fP(3X) or \fB\%doupdate\fP(3X).
+A \fB\%wnoutrefresh\fP(3X) call is permissible.
+.PP
+.B \%ripoffline
+can be called up to five times before
+.B \%initscr
+or
+.BR \%newterm "."
+.SH RETURN VALUE
+Except for
+.BR \%curs_set ","
+these functions return
+.B OK
+on success and
+.B ERR
+on failure.
+.PP
+.B \%curs_set
+returns the previous cursor visibility,
+and returns
+.B ERR
+if the terminal type does not support the requested
+.IR visibility "."
+.PP
+.B \%napms
+always succeeds.
+.PP
+.B \%mvcur
+fails if the position
+.RI ( newrow ,
+.IR newcol )
+is outside the screen boundaries.
+.PP
+In
+.IR \%ncurses ","
+.bP
+.BR \%def_prog_mode ","
+.BR \%def_shell_mode ","
+.BR \%reset_prog_mode ","
+and
+.B \%reset_shell_mode
+return
+.B ERR
+if the terminal was not initialized,
+or if the operating system's function for obtaining terminal settings
+fails.
+.bP
+.B \%ripoffline
+returns
+.B ERR
+if the accumulated quantity of ripped-off lines
+would exceed the maximum (5).
+.SH NOTES
+.B \%getsyx
+is a macro;
+use of the
+.B &
+operator before its arguments is unnecessary.
+.PP
+The
+.B \%endwin
+function of both
+.I \%ncurses
+and SVr4
+.I curses
+calls
+.B \%curs_set
+if the latter has previously been called to set the cursor visibility
+to a value other than normal;
+that is,
+either
+invisible or very visible.
+There is no way for
+.I \%ncurses
+to determine the initial cursor visibility to restore it.
+.PP
+.I \%ncurses
+imposes a limit of 30 seconds on a delay requested of
+.BR \%napms .
+.PP
+While the
+.I init
+function called by
+.B \%ripoffline
+is specified to return an
+.IR int ","
+.I \%ncurses
+pays no attention to its return value.
+.PP
+If
+.B \%ripoffline
+cannot allocate memory for the required
+.I \%WINDOW
+structure backing the ripped-off line,
+it stores a null pointer to the
+.I \%WINDOW
+pointer argument supplied by the
+.I init
+function the application specifies.
+The application must check this argument for validity after calling
+.B \%initscr
+and prior to performing
+.I curses
+operations on that window.
+.SH EXTENSIONS
+In
+.IR \%ncurses ","
+.B \%mvcur
+accepts
+.B \-1
+for either or both old coordinates.
+This value tells
+.I \%ncurses
+that the old location is unknown,
+and that it must use only absolute motion,
+as with the
+.B \%cursor_address
+.RB ( cup )
+capability,
+rather than the least costly combination of absolute and relative
+motion.
+.SH PORTABILITY
+Applications employing
+.I \%ncurses
+extensions should condition their use on the visibility of the
+.B \%NCURSES_VERSION
+preprocessor macro.
+.PP
+The
+.I "virtual screen"
+functions
+.I \%setsyx
+and
+.I \%getsyx
+are not described in X/Open Curses Issue\ 4.
+SVr4 documents each of them
+as returning an
+.IR int "."
+This is misleading,
+as they are macros with no documented semantics for returning values.
+.PP
+All other functions are as described in X/Open Curses.
+It specifies no error conditions for them,
+except as described for
+.I \%curs_set
+in section \*(``RETURN VALUE\*('' above.
+.PP
+The System\ V Interface Definition,
+Version 4 (1995),
+specified all of these functions except
+.I \%curs_set
+as returning
+.IR OK "."
+.\" SVID 4, vol 3., p. 518
+.PP
+Older SVr4 man pages warn that the return value of
+.I \%curs_set
+\*(``is currently incorrect\*(''.
+This implementation gets it right,
+but counting on its correctness anywhere else may be unwise.
+.PP
+X/Open Curses specifies
+.I \%ripoffline
+as returning
+.I OK
+with no possibility of failure
+(\*(``[c]alls to
+.I \%ripoffline
+above this limit
+[five lines]
+have no effect but report success\*('').
+.PP
+X/Open Curses notes:
+.RS
+.PP
+After use of
+.IR \%mvcur "(),"
+the model Curses maintains of the state of the terminal might not
+match the actual state of the terminal.
+An application should touch and refresh the window before
+resuming conventional use of Curses.
+.RE
+.PP
+Both
+.I \%ncurses
+and SVr4
+.I curses
+implement
+.I \%mvcur
+using the
+.I SCREEN
+object allocated in either \fB\%initscr\fP(3X) or \fB\%newterm\fP(3X).
+X/Open Curses states that the old location must be given for
+.I \%mvcur
+to accommodate terminals that lack absolute cursor positioning.
+.\" X/Open Curses Issue 7, p. 161
+.PP
+If interrupted by a signal,
+.I \%ncurses
+restarts
+.IR \%napms "."
+That,
+and the limitation to 30 seconds,
+differ from other implementations.
+.SH SEE ALSO
+\fB\%curses\fP(3X),
+\fB\%curs_initscr\fP(3X),
+\fB\%curs_outopts\fP(3X),
+\fB\%curs_refresh\fP(3X),
+\fB\%curs_scr_dump\fP(3X),
+\fB\%curs_slk\fP(3X),
+\fB\%curs_variables\fP(3X)

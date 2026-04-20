@@ -1,0 +1,209 @@
+.\"***************************************************************************
+.\" Copyright 2019-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 1998-2010,2017 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" $Id: curs_insstr.3x,v 1.72 2025/10/21 00:11:17 tom Exp $
+.TH curs_insstr 3X 2025-10-20 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.ie \n(.g \{\
+.ds `` \(lq
+.ds '' \(rq
+.\}
+.el \{\
+.ie t .ds `` ``
+.el   .ds `` ""
+.ie t .ds '' ''
+.el   .ds '' ""
+.\}
+.
+.de bP
+.ie n  .IP \(bu 4
+.el    .IP \(bu 2
+..
+.SH NAME
+\fB\%insstr\fP,
+\fB\%winsstr\fP,
+\fB\%mvinsstr\fP,
+\fB\%mvinsnstr\fP,
+\fB\%insnstr\fP,
+\fB\%winsnstr\fP,
+\fB\%mvwinsstr\fP,
+\fB\%mvwinsnstr\fP \-
+insert a string in a \fIcurses\fR window
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>
+.PP
+\fBint insstr(const char * \fIstr\fP);
+\fBint winsstr(WINDOW * \fIwin\fP, const char * \fIstr\fP);
+\fBint mvinsstr(int \fIy\fP, int \fIx\fP, const char * \fIstr\fP);
+\fBint mvwinsstr(WINDOW * \fIwin\fP, int \fIy\fP, int \fIx\fP, const char * \fIstr\fP);
+.PP
+\fBint insnstr(const char * \fIstr\fP, int \fIn\fP);
+\fBint winsnstr(WINDOW * \fIwin\fP, const char * \fIstr\fP, int \fIn\fP);
+\fBint mvinsnstr(int \fIy\fP, int \fIx\fP, const char * \fIstr\fP, int \fIn\fP);
+\fBint mvwinsnstr(WINDOW * \fIwin\fP, int \fIy\fP, int \fIx\fP, const char * \fIstr\fP, int \fIn\fP);
+.fi
+.SH DESCRIPTION
+.B \%winsstr
+inserts a string
+.I str
+before the character at the cursor in window
+.I win
+as if by calling \fBwinsch\fP(3X) for each
+.I char
+in
+.IR str "."
+No line wrapping is performed.
+Characters to the right of the cursor are shifted right;
+those at the right edge of the window may be lost.
+.B \%winsstr
+stops inserting if it would have to wrap to the next line to write the
+next
+.I \%char
+in
+.IR str "."
+The cursor position does not change
+(after moving to
+.RI ( y ,
+.IR x "),"
+if specified).
+.B \%insnstr
+does the same,
+but inserts at most
+.I n
+characters,
+or as many as possible
+(up to the end of the line)
+if
+.I n
+is negative.
+\fB\%ncurses\fP(3X) describes the variants of these functions.
+.SH RETURN VALUE
+These functions return
+.B OK
+on success and
+.B ERR
+on failure.
+.PP
+In
+.IR \%ncurses ","
+they return
+.B ERR
+if
+.bP
+.I win
+is
+.IR NULL ","
+.bP
+.I str
+is
+.IR NULL ","
+or
+.bP
+an internal \fBwinsch\fP(3X) call returns
+.BR ERR "."
+.PP
+Functions prefixed with \*(``mv\*('' first perform cursor movement and
+fail if the position
+.RI ( y ,
+.IR x )
+is outside the window boundaries.
+.SH NOTES
+All of these functions except
+.B \%winsnstr
+may be implemented as macros.
+.SH EXTENSIONS
+.BR \%insnstr ","
+.BR \%winsnstr ","
+.BR \%mvinsnstr ","
+and
+.BR \%mvwinsnstr "'s"
+acceptance of negative
+.I n
+values is an
+.I \%ncurses
+extension.
+.SH PORTABILITY
+Applications employing
+.I \%ncurses
+extensions should condition their use on the visibility of the
+.B \%NCURSES_VERSION
+preprocessor macro.
+.PP
+X/Open Curses Issue\ 4 describes these functions.
+It specifies no error conditions for them.
+.PP
+SVr4 describes a successful return value only as
+\*(``an integer value other than
+.IR ERR \*(''. \" Courier roman in source; SVID 4, vol. 3, p. 510
+.PP
+Issue\ 4 distinguished
+.I \%insnstr
+and
+.I \%winsnstr
+from the other functions documented above
+by stating they \*(``do not perform wrapping\*(''.
+This was probably an error,
+since it makes this group of functions inconsistent.
+No implementation of
+.I curses
+manifests this inconsistency,
+and Issue\ 7 removed the claim.
+.PP
+Issue\ 4 states that the entire string is inserted if
+.I n
+is less than 1.
+This is probably an error,
+.\" ...copied from SVID 4, which made the same error; see p. 510.
+because it is inconsistent with other functions
+such as
+.IR \%waddstr ","
+and differs from the SVr4
+.I curses
+and Solaris
+.I xcurses
+implementations.
+Nevertheless,
+Issue\ 7 retains the language.
+.SH HISTORY
+SVr3.1 (1987)
+introduced
+.I \%winsstr
+and
+.I \%winsnstr
+and their variants.
+.SH SEE ALSO
+\fB\%curs_ins_wstr\fP(3X) describes comparable functions of the
+.I \%ncurses
+library in its wide-character configuration
+.RI \%( ncursesw ).
+.PP
+\fB\%curses\fP(3X),
+\fB\%curs_inch\fP(3X),
+\fB\%curs_ins_wstr\fP(3X),
+\fB\%curs_util\fP(3X)

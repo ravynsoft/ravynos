@@ -1,0 +1,352 @@
+.\"***************************************************************************
+.\" Copyright 2019-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 2001-2015,2017 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" $Id: curs_getcchar.3x,v 1.57 2025/02/23 13:48:31 tom Exp $
+.TH curs_getcchar 3X 2025-02-23 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.ie \n(.g \{\
+.ds ' \(aq
+.\}
+.el \{\
+.ie t .ds ' \(aq
+.el   .ds ' '
+.\}
+.
+.de bP
+.ie n  .IP \(bu 4
+.el    .IP \(bu 2
+..
+.SH NAME
+\fB\%getcchar\fP,
+\fB\%setcchar\fP \-
+convert between a wide-character string and a \fIcurses\fR complex character
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>
+.PP
+\fBint getcchar(const cchar_t * \fIwch\fP, wchar_t * \fIwc\fP,
+      attr_t * \fIattrs\fP, short * \fIpair\fP, void * \fIopts\fP);
+\fBint setcchar(cchar_t * \fIwch\fP, const wchar_t * \fIwc\fP,
+      const attr_t \fIattrs\fP, short \fIpair\fP, const void * \fIopts\fP);
+.fi
+.SH DESCRIPTION
+The
+.I curses
+complex character data type
+.I \%cchar_t
+is a structure type comprising
+a wide-character string,
+a set of attributes,
+and
+a color pair identifier.
+The
+.I \%cchar_t
+structure is opaque;
+do not attempt to access its members directly.
+The library provides functions to manipulate this type.
+.SS getcchar
+.B \%getcchar
+destructures a
+.I \%cchar_t
+into its components.
+.PP
+If
+.I wc
+is not a null pointer,
+.BR \%getcchar :
+.bP
+stores the wide-character string in the
+.I curses
+complex character
+.I wch
+into
+.IR wc ;
+.bP
+stores the attributes in
+.IR attrs ;
+and
+.bP
+stores the color pair identifier in
+.IR pair .
+.PP
+If
+.I wc
+is a null pointer,
+.B \%getcchar
+counts the
+.I \%wchar_t
+wide characters in
+.IR wch ,
+returns that value,
+and leaves
+.I attrs
+and
+.I pair
+unchanged.
+.SS setcchar
+.B \%setcchar
+constructs a
+.I curses
+complex character
+.I wch
+from the components
+.IR wc ,
+.IR attrs ,
+and
+.IR pair .
+The wide-character string
+.I wch
+must be terminated with a null wide character
+.B L\*'\e0\*'
+and must contain at most one spacing character,
+which,
+if present,
+must be the first wide character in the string.
+.PP
+Up to
+.BR \%CCHARW_MAX\  \-\ 1
+non-spacing characters may follow
+(see \fB\%curs_variables\fP(3X)).
+.I \%ncurses
+ignores any additional non-spacing characters.
+.PP
+The string may contain a single control character instead.
+In that case,
+no non-spacing characters are allowed.
+.SH RETURN VALUE
+If
+.B \%getcchar
+is passed a null pointer as its
+.I wc
+argument,
+it returns the number of wide characters for a given
+.I wch
+that it would store in
+.IR wc ","
+counting a trailing null wide character.
+If
+.B \%getcchar
+is not passed a null pointer as its
+.I wc
+argument,
+it returns
+.B OK
+on success and
+.B ERR
+on failure.
+.PP
+In
+.IR \%ncurses ,
+.B \%getcchar
+returns
+.B ERR
+if either
+.I attrs
+or
+.I pair
+is a null pointer and
+.I wc
+is not.
+.PP
+.B \%setcchar
+returns
+.B OK
+on success and
+.B ERR
+on failure.
+.PP
+In
+.IR \%ncurses ,
+.B \%setcchar
+returns
+.B ERR
+if
+.bP
+.I wch
+is a null pointer,
+.bP
+.I wc
+starts with a (wide) control character
+and contains any other wide characters,
+or
+.bP
+.I pair
+has a negative value.
+.SH NOTES
+.I wch
+may be a value stored by
+.B \%setcchar
+or another
+.I curses
+function with a writable
+.I \%cchar_t
+argument.
+If
+.I wch
+is constructed by any other means,
+the library's behavior is unspecified.
+.SH EXTENSIONS
+X/Open Curses documents the
+.I opts
+argument as reserved for future use,
+saying that it must be a null pointer.
+The
+.IR \%ncurses \ 6
+ABI uses it with functions that have a color pair parameter
+to support extended color pairs.
+.bP
+In functions that assign colors,
+such as
+.BR \%setcchar ","
+if
+.I opts
+is not a null pointer,
+.I \%ncurses
+treats it as a pointer to
+.IR int ","
+and interprets it instead of the
+.I short
+.I pair
+parameter as a color pair identifier.
+.bP
+In functions that retrieve colors,
+such as
+.BR \%getcchar ","
+if
+.I opts
+is not a null pointer,
+.I \%ncurses
+treats it as a pointer to
+.IR int ","
+and stores the retrieved color pair identifier there
+as well as in the
+.I short
+.I pair
+parameter
+(which may therefore undergo a narrowing conversion).
+.SH PORTABILITY
+Applications employing
+.I \%ncurses
+extensions should condition their use on the visibility of the
+.B \%NCURSES_VERSION
+preprocessor macro.
+.PP
+These functions are described in X/Open Curses Issue\ 4.
+It specifies no error conditions for them.
+.PP
+X/Open Curses does not detail the layout of the
+.I \%cchar_t
+structure,
+describing only its minimal required contents:
+.bP
+a spacing wide character
+.RI \%( wchar_t ),
+.bP
+at least five non-spacing wide characters
+.RI \%( wchar_t ;
+see below),
+.bP
+attributes
+(at least 15 bits' worth,
+inferred from the count of specified
+.I WA_
+constants),
+.\" See X/Open Curses Issue 7, p. 307.
+.bP
+a color pair identifier
+(at least 16 bits,
+inferred from the
+.I short
+type used to encode it).
+.PP
+Non-spacing characters are optional,
+in the sense that zero or more may be stored in a
+.IR \%cchar_t "."
+XOpen/Curses specifies a limit:
+.RS 4
+.PP
+Implementations may limit the number of non-spacing characters that can
+be associated with a spacing character,
+provided any limit is at least 5.
+.RE
+.PP
+Then-contemporary Unix implementations adhered to that limit.
+.bP
+AIX\ 4 and OSF/1\ 4 used the same declaration with
+a single spacing wide character
+.I c
+and an array of 5 non-spacing wide characters
+.IR z "."
+.bP
+HP-UX\ 10 used an opaque structure of 28 bytes,
+large enough for 6
+.I \%wchar_t
+values.
+.bP
+Solaris
+.I xcurses
+uses a single array of 6
+.I \%wchar_t
+values.
+.PP
+.I \%ncurses
+defined its
+.I \%cchar_t
+in 1995 using 5 as the
+.I total
+of spacing and non-spacing characters
+.RB \%( CCHARW_MAX ).
+That was probably due to a misreading of the AIX\ 4 header files,
+because the X/Open Curses document
+was not generally available at that time.
+Later (in 2002),
+this detail was overlooked when work began to implement the functions
+using the structure.
+.PP
+In practice,
+a mere four non-spacing characters may seem adequate.
+X/Open Curses documents possible applications of non-spacing characters,
+including their use as ligatures
+(a feature apparently not supported by any
+.I curses
+implementation).
+Unicode does not limit the (analogous) number of combining characters
+in a grapheme cluster;
+some applications may be affected.
+.I \%ncurses
+can be compiled with a different
+.B CCHARW_MAX
+value;
+doing so alters the library's ABI.
+.SH HISTORY
+X/Open Curses Issue\ 4 (1995) initially specified these functions.
+.SH SEE ALSO
+\fB\%curses\fP(3X),
+\fB\%curs_attr\fP(3X),
+\fB\%curs_color\fP(3X),
+\fB\%wcwidth\fP(3)

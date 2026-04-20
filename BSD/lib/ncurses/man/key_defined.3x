@@ -1,0 +1,85 @@
+.\"***************************************************************************
+.\" Copyright 2018-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 2003-2006,2010 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" Author: Thomas E. Dickey 2003
+.\"
+.\" $Id: key_defined.3x,v 1.44 2025/10/04 20:11:22 tom Exp $
+.TH key_defined 3X 2025-10-04 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.SH NAME
+\fB\%key_defined\fP \-
+obtain key code for an \fIncurses\fP function key definition
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>
+.PP
+\fBint key_defined(const char * \fIdefinition\fP);
+.fi
+.SH DESCRIPTION
+The
+.B \%key_defined
+.I \%ncurses
+extension permits a
+.I curses
+application to determine the function key code,
+if any,
+to which the string
+.I definition
+is bound.
+.SH RETURN VALUE
+.B \%key_defined
+returns the first key code to which
+.I definition
+is bound if any exists.
+If none does,
+it returns
+.BR 0 "."
+If
+.I definition
+is a prefix of another bound definition,
+.B \%key_defined
+returns
+.BR \-1 "."
+.SH EXTENSIONS
+.B \%key_defined
+is an
+.I \%ncurses
+extension.
+.SH PORTABILITY
+Applications employing
+.I \%ncurses
+extensions should condition their use on the visibility of the
+.B \%NCURSES_VERSION
+preprocessor macro.
+.SH AUTHORS
+Thomas Dickey
+.SH SEE ALSO
+\fB\%curses\fP(3X),
+\fB\%define_key\fP(3X),
+\fB\%keybound\fP(3X),
+\fB\%keyok\fP(3X)

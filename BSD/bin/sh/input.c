@@ -41,6 +41,7 @@
  * This file implements the input routines used by the parser.
  */
 
+#include "shims.h"
 #include "shell.h"
 #include "redir.h"
 #include "syntax.h"

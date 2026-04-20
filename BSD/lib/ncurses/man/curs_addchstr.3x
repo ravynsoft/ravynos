@@ -1,0 +1,163 @@
+.\"***************************************************************************
+.\" Copyright 2019-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 1998-2012,2017 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" $Id: curs_addchstr.3x,v 1.64 2025/08/16 19:56:13 tom Exp $
+.TH curs_addchstr 3X 2025-08-16 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.ie \n(.g \{\
+.ds `` \(lq
+.ds '' \(rq
+.\}
+.el \{\
+.ie t .ds `` ``
+.el   .ds `` ""
+.ie t .ds '' ''
+.el   .ds '' ""
+.\}
+.
+.de bP
+.ie n  .IP \(bu 4
+.el    .IP \(bu 2
+..
+.SH NAME
+\fB\%addchstr\fP,
+\fB\%waddchstr\fP,
+\fB\%mvaddchstr\fP,
+\fB\%mvwaddchstr\fP,
+\fB\%addchnstr\fP,
+\fB\%waddchnstr\fP,
+\fB\%mvaddchnstr\fP,
+\fB\%mvwaddchnstr\fP \-
+add a \fIcurses\fR character string to a window
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>
+.PP
+\fBint addchstr(const chtype * \fIchstr\fP);
+\fBint waddchstr(WINDOW * \fIwin\fP, const chtype * \fIchstr\fP);
+\fBint mvaddchstr(int \fIy\fP, int \fIx\fP, const chtype * \fIchstr\fP);
+\fBint mvwaddchstr(WINDOW * \fIwin\fP, int \fIy\fP, int \fIx\fP,
+      const chtype * \fIchstr\fP);
+.PP
+\fBint addchnstr(const chtype * \fIchstr\fP, int \fIn\fP);
+\fBint waddchnstr(WINDOW * \fIwin\fP, const chtype * \fIchstr\fP, int \fIn\fP);
+\fBint mvaddchnstr(int \fIy\fP, int \fIx\fP, const chtype * \fIchstr\fP, int \fIn\fP);
+\fBint mvwaddchnstr(WINDOW * \fIwin\fP, int \fIy\fP, int \fIx\fP,
+      const chtype * \fIchstr\fP, int \fIn\fP);
+.fi
+.SH DESCRIPTION
+.B \%waddchstr
+copies the string of
+.I curses
+characters
+.I \%chstr
+to the window
+.IR win "."
+A null
+.I curses
+character terminates the string.
+.B \%waddchnstr
+does the same,
+but copies at most
+.I n
+characters,
+or as many as possible if
+.I n
+is
+.BR \-1 "."
+\fB\%ncurses\fP(3X) describes the variants of these functions.
+.PP
+Because these functions do not call \fB\%waddch\fP(3X) internally,
+they are faster than \fB\%waddstr\fP(3X) and \fB\%waddnstr\fP(3X).
+On the other hand,
+they
+.bP
+do not treat the backspace,
+carriage return,
+or line feed characters specially;
+.bP
+do not represent unprintable characters with \fB\%unctrl\fP(3X);
+.bP
+do not update the cursor position to follow the last character written;
+and
+.bP
+truncate the string at the window's right margin,
+rather than wrapping it to the next line and potentially scrolling.
+.SH RETURN VALUE
+These functions return
+.B OK
+on success and
+.B ERR
+on failure.
+.PP
+In
+.IR \%ncurses ","
+these functions fail if
+.bP
+the
+.I curses
+screen has not been initialized,
+.bP
+.I chstr
+is a null pointer,
+or
+.bP
+(for functions taking a
+.I \%WINDOW
+pointer argument)
+.I win
+is a null pointer.
+.PP
+Functions prefixed with \*(``mv\*('' first perform cursor movement and
+fail if the position
+.RI ( y ,
+.IR x )
+is outside the window boundaries.
+.SH NOTES
+All of these functions except
+.B \%waddchnstr
+may be implemented as macros.
+.SH PORTABILITY
+X/Open Curses Issue\ 4 describes these functions.
+It specifies no error conditions for them.
+.PP
+SVr4 describes a successful return value only as
+\*(``an integer value other than
+.IR ERR \*(''. \" Courier roman in source; SVID 4, vol. 3, p. 473
+.SH HISTORY
+SVr3.1 (1987)
+introduced these functions.
+.SH SEE ALSO
+\fB\%curs_add_wchstr\fP(3X) describes comparable functions of the
+.I \%ncurses
+library in its wide-character configuration
+.RI \%( ncursesw ).
+.PP
+\fB\%curses\fP(3X),
+\fB\%curs_addch\fP(3X),
+\fB\%curs_addstr\fP(3X)

@@ -1,0 +1,517 @@
+<!--
+  * t
+  ****************************************************************************
+  * Copyright 2018-2024,2025 Thomas E. Dickey                                *
+  * Copyright 1998-2016,2017 Free Software Foundation, Inc.                  *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+  * "Software"), to deal in the Software without restriction, including      *
+  * without limitation the rights to use, copy, modify, merge, publish,      *
+  * distribute, distribute with modifications, sublicense, and/or sell       *
+  * copies of the Software, and to permit persons to whom the Software is    *
+  * furnished to do so, subject to the following conditions:                 *
+  *                                                                          *
+  * The above copyright notice and this permission notice shall be included  *
+  * in all copies or substantial portions of the Software.                   *
+  *                                                                          *
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+  * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+  * THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+  *                                                                          *
+  * Except as contained in this notice, the name(s) of the above copyright   *
+  * holders shall not be used in advertising or otherwise to promote the     *
+  * sale, use or other dealings in this Software without prior written       *
+  * authorization.                                                           *
+  ****************************************************************************
+  * @Id: curs_attr.3x,v 1.142 2025/11/12 01:05:49 tom Exp @
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta name="generator" content="Manpage converted by man2html - see https://invisible-island.net/scripts/readme.html#others_scripts">
+<TITLE>curs_attr 3x 2025-11-11 ncurses 6.6 Library calls</TITLE>
+<link rel="author" href="mailto:bug-ncurses@gnu.org">
+
+</HEAD>
+<BODY>
+<H1 class="no-header">curs_attr 3x 2025-11-11 ncurses 6.6 Library calls</H1>
+<PRE>
+<STRONG><A HREF="curs_attr.3x.html">curs_attr(3x)</A></STRONG>                    Library calls                   <STRONG><A HREF="curs_attr.3x.html">curs_attr(3x)</A></STRONG>
+
+
+</PRE><H2><a name="h2-NAME">NAME</a></H2><PRE>
+       <STRONG>attr_get</STRONG>, <STRONG>wattr_get</STRONG>, <STRONG>attr_set</STRONG>, <STRONG>wattr_set</STRONG>, <STRONG>attr_off</STRONG>, <STRONG>wattr_off</STRONG>, <STRONG>attr_on</STRONG>,
+       <STRONG>wattr_on</STRONG>, <STRONG>attroff</STRONG>, <STRONG>wattroff</STRONG>, <STRONG>attron</STRONG>, <STRONG>wattron</STRONG>, <STRONG>attrset</STRONG>, <STRONG>wattrset</STRONG>, <STRONG>chgat</STRONG>,
+       <STRONG>wchgat</STRONG>,  <STRONG>mvchgat</STRONG>, <STRONG>mvwchgat</STRONG>, <STRONG>color_set</STRONG>, <STRONG>wcolor_set</STRONG>, <STRONG>standend</STRONG>, <STRONG>wstandend</STRONG>,
+       <STRONG>standout</STRONG>, <STRONG>wstandout</STRONG> -  manipulate  attributes  of  character  cells  in
+       <EM>curses</EM> windows
+
+
+</PRE><H2><a name="h2-SYNOPSIS">SYNOPSIS</a></H2><PRE>
+       <STRONG>#include</STRONG> <STRONG>&lt;curses.h&gt;</STRONG>
+
+       <STRONG>int</STRONG> <STRONG>attr_get(attr_t</STRONG> <STRONG>*</STRONG><EM>attrs</EM><STRONG>,</STRONG> <STRONG>short</STRONG> <STRONG>*</STRONG><EM>pair</EM><STRONG>,</STRONG> <STRONG>void</STRONG> <STRONG>*</STRONG><EM>opts</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>wattr_get(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>attr_t</STRONG> <STRONG>*</STRONG><EM>attrs</EM><STRONG>,</STRONG> <STRONG>short</STRONG> <STRONG>*</STRONG><EM>pair</EM><STRONG>,</STRONG> <STRONG>void</STRONG> <STRONG>*</STRONG><EM>opts</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>attr_set(attr_t</STRONG> <EM>attrs</EM><STRONG>,</STRONG> <STRONG>short</STRONG> <EM>pair</EM><STRONG>,</STRONG> <STRONG>void</STRONG> <STRONG>*</STRONG><EM>opts</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>wattr_set(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>attr_t</STRONG> <EM>attrs</EM><STRONG>,</STRONG> <STRONG>short</STRONG> <EM>pair</EM><STRONG>,</STRONG> <STRONG>void</STRONG> <STRONG>*</STRONG><EM>opts</EM><STRONG>);</STRONG>
+
+       <STRONG>int</STRONG> <STRONG>attr_off(attr_t</STRONG> <EM>attrs</EM><STRONG>,</STRONG> <STRONG>void</STRONG> <STRONG>*</STRONG><EM>opts</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>wattr_off(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>attr_t</STRONG> <EM>attrs</EM><STRONG>,</STRONG> <STRONG>void</STRONG> <STRONG>*</STRONG><EM>opts</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>attr_on(attr_t</STRONG> <EM>attrs</EM><STRONG>,</STRONG> <STRONG>void</STRONG> <STRONG>*</STRONG><EM>opts</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>wattr_on(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>attr_t</STRONG> <EM>attrs</EM><STRONG>,</STRONG> <STRONG>void</STRONG> <STRONG>*</STRONG><EM>opts</EM><STRONG>);</STRONG>
+
+       <STRONG>int</STRONG> <STRONG>attroff(int</STRONG> <EM>attrs</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>wattroff(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>attrs</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>attron(int</STRONG> <EM>attrs</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>wattron(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>attrs</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>attrset(int</STRONG> <EM>attrs</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>wattrset(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>attrs</EM><STRONG>);</STRONG>
+
+       <STRONG>int</STRONG> <STRONG>chgat(int</STRONG> <EM>n</EM><STRONG>,</STRONG> <STRONG>attr_t</STRONG> <EM>attr</EM><STRONG>,</STRONG> <STRONG>short</STRONG> <EM>pair</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>void</STRONG> <STRONG>*</STRONG><EM>opts</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>wchgat(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG>
+             <STRONG>int</STRONG> <EM>n</EM><STRONG>,</STRONG> <STRONG>attr_t</STRONG> <EM>attr</EM><STRONG>,</STRONG> <STRONG>short</STRONG> <EM>pair</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>void</STRONG> <STRONG>*</STRONG><EM>opts</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>mvchgat(int</STRONG> <EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>x</EM><STRONG>,</STRONG>
+             <STRONG>int</STRONG> <EM>n</EM><STRONG>,</STRONG> <STRONG>attr_t</STRONG> <EM>attr</EM><STRONG>,</STRONG> <STRONG>short</STRONG> <EM>pair</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>void</STRONG> <STRONG>*</STRONG><EM>opts</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>mvwchgat(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>x</EM><STRONG>,</STRONG>
+             <STRONG>int</STRONG> <EM>n</EM><STRONG>,</STRONG> <STRONG>attr_t</STRONG> <EM>attr</EM><STRONG>,</STRONG> <STRONG>short</STRONG> <EM>pair</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>void</STRONG> <STRONG>*</STRONG><EM>opts</EM><STRONG>);</STRONG>
+
+       <STRONG>int</STRONG> <STRONG>color_set(short</STRONG> <EM>pair</EM><STRONG>,</STRONG> <STRONG>void*</STRONG> <EM>opts</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>wcolor_set(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>short</STRONG> <EM>pair</EM><STRONG>,</STRONG> <STRONG>void*</STRONG> <EM>opts</EM><STRONG>);</STRONG>
+
+       <STRONG>int</STRONG> <STRONG>standend(void);</STRONG>
+       <STRONG>int</STRONG> <STRONG>wstandend(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>standout(void);</STRONG>
+       <STRONG>int</STRONG> <STRONG>wstandout(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>);</STRONG>
+
+
+</PRE><H2><a name="h2-DESCRIPTION">DESCRIPTION</a></H2><PRE>
+       These  routines  manipulate the current attributes of the named window,
+       which then apply to all characters that are  written  into  the  window
+       with  <STRONG>waddch</STRONG>,  <STRONG>waddstr</STRONG>  and  <STRONG>wprintw</STRONG>.  Attributes are a property of the
+       character, and move  with  the  character  through  any  scrolling  and
+       insert/delete  line/character operations.  To the extent possible, they
+       are displayed as appropriate modifications to the graphic rendition  of
+       characters put on the screen.
+
+       These  routines do not affect the attributes used when erasing portions
+       of the window.   See  <STRONG><A HREF="curs_bkgd.3x.html">curs_bkgd(3x)</A></STRONG>  for  functions  which  modify  the
+       attributes used for erasing and clearing.
+
+
+</PRE><H3><a name="h3-Window-Attributes">Window Attributes</a></H3><PRE>
+       There are two sets of functions:
+
+       <STRONG>o</STRONG>   functions   for  manipulating  the  window  attributes  and  color:
+           <STRONG>wattr_set</STRONG> and <STRONG>wattr_get</STRONG>.
+
+       <STRONG>o</STRONG>   functions for manipulating only the window attributes (not  color):
+           <STRONG>wattr_on</STRONG> and <STRONG>wattr_off</STRONG>.
+
+       The  <STRONG>wattr_set</STRONG> function sets the current attributes of the given window
+       to <EM>attrs</EM>, with color specified by <EM>pair</EM>.
+
+       Use <STRONG>wattr_get</STRONG> to retrieve attributes for the given window.
+
+       Use <STRONG>attr_on</STRONG> and <STRONG>wattr_on</STRONG> to turn on  window  attributes,  i.e.,  values
+       logically "or"-ed together in <EM>attr</EM>, without affecting other attributes.
+       Use  <STRONG>attr_off</STRONG> and <STRONG>wattr_off</STRONG> to turn off window attributes, again values
+       logically "or"-ed together in <EM>attr</EM>, without affecting other attributes.
+
+
+</PRE><H3><a name="h3-Legacy-Window-Attributes">Legacy Window Attributes</a></H3><PRE>
+       The X/Open window attribute routines which <EM>set</EM> or <EM>get</EM>, turn <EM>on</EM>  or  <EM>off</EM>
+       are  extensions  of  older  routines  which assume that color pairs are
+       logically "or"-ed into the attribute parameter.  These  newer  routines
+       use  similar  names,  because X/Open simply added an underscore (<STRONG>_</STRONG>) for
+       the newer names.
+
+       The <EM>int</EM> datatype used in the legacy routines is treated as if it is the
+       same size as <EM>chtype</EM> (used by <STRONG><A HREF="curs_addch.3x.html">addch(3x)</A></STRONG>).  It  holds  the  common  video
+       attributes  (such  as  bold, reverse), as well as a few bits for color.
+       Those bits correspond to the  <STRONG>A_COLOR</STRONG>  symbol.   The  <STRONG>COLOR_PAIR</STRONG>  macro
+       provides  a  value  which  can  be logically "or"-ed into the attribute
+       parameter.  For example, as long as that value fits  into  the  <STRONG>A_COLOR</STRONG>
+       mask, then these calls produce similar results:
+
+           attrset(A_BOLD | COLOR_PAIR(<EM>pair</EM>));
+           attr_set(A_BOLD, <EM>pair</EM>, NULL);
+
+       However, if the value does not fit, then the <STRONG>COLOR_PAIR</STRONG> macro uses only
+       the  bits  that fit.  For example, because in <EM>ncurses</EM> <STRONG>A_COLOR</STRONG> has eight
+       (8) bits, then <STRONG>COLOR_PAIR(</STRONG><EM>259</EM><STRONG>)</STRONG> is 4 (i.e., 259 is 4 more than the limit
+       255).
+
+       The <STRONG>PAIR_NUMBER</STRONG> macro extracts a pair number from an <EM>int</EM>  (or  <EM>chtype</EM>).
+       For  example,  the <EM>input</EM> and <EM>output</EM> values in these statements would be
+       the same:
+
+           int value = A_BOLD | COLOR_PAIR(<EM>input</EM>);
+           int <EM>output</EM> = PAIR_NUMBER(value);
+
+       The <STRONG>attrset</STRONG> routine is a legacy feature predating SVr4 <EM>curses</EM> but  kept
+       in  X/Open  Curses  for  the  same  reason  that  SVr4  <EM>curses</EM> kept it:
+       compatibility.
+
+       The remaining <STRONG>attr</STRONG>* functions operate exactly  like  the  corresponding
+       <STRONG>attr_</STRONG>*  functions,  except  that they take arguments of type <EM>int</EM> rather
+       than <EM>attr</EM><STRONG>_</STRONG><EM>t</EM>.
+
+       There is no corresponding <STRONG>attrget</STRONG> function as such  in  X/Open  Curses,
+       although <EM>ncurses</EM> provides <STRONG>getattrs</STRONG> (see <STRONG><A HREF="curs_legacy.3x.html">curs_legacy(3x)</A></STRONG>).
+
+
+</PRE><H3><a name="h3-Change-Character-Rendition">Change Character Rendition</a></H3><PRE>
+       The  routine  <STRONG>chgat</STRONG>  changes  the  attributes  of  a  given  number  of
+       characters starting at the current cursor location of <STRONG>stdscr</STRONG>.  It  does
+       not update the cursor and does not perform wrapping.  A character count
+       of  -1  or  greater  than  the  remaining  window width means to change
+       attributes all the way to the end of  the  current  line.   The  <STRONG>wchgat</STRONG>
+       function  generalizes  this to any window; the <STRONG>mvwchgat</STRONG> function does a
+       cursor move before acting.
+
+       In these functions, the color <EM>pair</EM> argument is a color pair  index  (as
+       in the first argument of <STRONG>init_pair</STRONG>, see <STRONG><A HREF="curs_color.3x.html">curs_color(3x)</A></STRONG>).
+
+
+</PRE><H3><a name="h3-Change-Window-Color">Change Window Color</a></H3><PRE>
+       The routine <STRONG>color_set</STRONG> sets the current color of the given window to the
+       foreground/background   combination   described   by   the  color  <EM>pair</EM>
+       parameter.
+
+
+</PRE><H3><a name="h3-Standout">Standout</a></H3><PRE>
+       The routine <STRONG>standout</STRONG> is the same as  <STRONG>attron(A_STANDOUT)</STRONG>.   The  routine
+       <STRONG>standend</STRONG>  is  the  same as <STRONG>attrset(A_NORMAL)</STRONG> or <STRONG>attrset(0)</STRONG>, that is, it
+       turns off all attributes.
+
+       X/Open Curses does not mark these "restricted", because
+
+       <STRONG>o</STRONG>   they have well established legacy use, and
+
+       <STRONG>o</STRONG>   there is no  ambiguity  about  the  way  the  attributes  might  be
+           combined with a color pair.
+
+
+</PRE><H3><a name="h3-Video-Attributes">Video Attributes</a></H3><PRE>
+       The  following  video attributes, defined in <EM>curses.h</EM>, can be passed to
+       <STRONG>attron</STRONG>, <STRONG>attroff</STRONG>, <STRONG>attrset</STRONG>, and logically "or"-ed with characters  passed
+       to <STRONG><A HREF="curs_addch.3x.html">addch(3x)</A></STRONG>.
+
+              <STRONG>Name</STRONG>           <STRONG>Description</STRONG>
+              -----------------------------------------------------------------
+              <STRONG>A_NORMAL</STRONG>       Normal display (no highlight)
+              <STRONG>A_STANDOUT</STRONG>     Best highlighting mode available
+              <STRONG>A_UNDERLINE</STRONG>    Underlining
+              <STRONG>A_REVERSE</STRONG>      Reverse video
+              <STRONG>A_BLINK</STRONG>        Blinking
+              <STRONG>A_DIM</STRONG>          Half bright
+              <STRONG>A_BOLD</STRONG>         Extra bright or bold
+              <STRONG>A_PROTECT</STRONG>      Protected mode
+              <STRONG>A_INVIS</STRONG>        Invisible or blank mode
+              <STRONG>A_ALTCHARSET</STRONG>   Alternate character set
+              <STRONG>A_ITALIC</STRONG>       Italics (non-X/Open extension)
+              <STRONG>A_ATTRIBUTES</STRONG>   Mask to extract character code
+              <STRONG>A_CHARTEXT</STRONG>     Mask to extract attributes
+              <STRONG>A_COLOR</STRONG>        Mask to extract color pair identifier
+
+       <STRONG>attr_on</STRONG>,  <STRONG>attr_off</STRONG>,  and  <STRONG>attr_set</STRONG> support the foregoing as well as the
+       following additional attributes.
+
+              <STRONG>Name</STRONG>            <STRONG>Description</STRONG>
+              -----------------------------------------------------------------
+              <STRONG>WA_HORIZONTAL</STRONG>   Horizontal highlight
+              <STRONG>WA_LEFT</STRONG>         Left highlight
+              <STRONG>WA_LOW</STRONG>          Low highlight
+              <STRONG>WA_RIGHT</STRONG>        Right highlight
+              <STRONG>WA_TOP</STRONG>          Top highlight
+              <STRONG>WA_VERTICAL</STRONG>     Vertical highlight
+
+
+</PRE><H2><a name="h2-RETURN-VALUE">RETURN VALUE</a></H2><PRE>
+       These functions return <STRONG>OK</STRONG> on success and <STRONG>ERR</STRONG> on failure.
+
+       In <EM>ncurses</EM>, they return <STRONG>ERR</STRONG> if <EM>win</EM> is <EM>NULL</EM>.
+
+       <STRONG>wcolor_set</STRONG> returns <STRONG>ERR</STRONG> if <EM>pair</EM> is outside the range <STRONG>0</STRONG>..<STRONG>COLOR_PAIRS-1</STRONG>.
+
+       <STRONG>wattr_get</STRONG> does <EM>not</EM> fail if its <EM>attrs</EM> or <EM>pair</EM> parameter is <EM>NULL</EM>.
+
+       Functions prefixed with "mv" first perform cursor movement and fail  if
+       the position (<EM>y</EM>, <EM>x</EM>) is outside the window boundaries.
+
+
+</PRE><H2><a name="h2-NOTES">NOTES</a></H2><PRE>
+       <STRONG>attr_on</STRONG>,  <STRONG>attr_off</STRONG>,  <STRONG>attr_set</STRONG>,  <STRONG>wattr_set</STRONG>,  <STRONG>chgat</STRONG>,  <STRONG>mvchgat</STRONG>,  <STRONG>mvwchgat</STRONG>,
+       <STRONG>wchgat</STRONG>, and <STRONG>color_set</STRONG> are part of <EM>ncurses</EM>'s wide-character API, and are
+       not available in its non-wide-character configuration.
+
+       <STRONG>attron</STRONG>, <STRONG>wattron</STRONG>, <STRONG>attroff</STRONG>, <STRONG>wattroff</STRONG>, <STRONG>attrset</STRONG>,  <STRONG>wattrset</STRONG>,  <STRONG>standout</STRONG>,  and
+       <STRONG>standend</STRONG> may be implemented as macros.
+
+       Color  pair values may be logically "or"-ed with attributes if the pair
+       number is less than 256.  The alternate functions such as <STRONG>color_set</STRONG> can
+       pass a color pair value directly.  However, <EM>ncurses</EM> ABI 4 and 5  simply
+       logically "or" this value within the alternate functions.  You must use
+       <EM>ncurses</EM> ABI 6 to support more than 256 color pairs.
+
+
+</PRE><H2><a name="h2-EXTENSIONS">EXTENSIONS</a></H2><PRE>
+       This implementation provides the <STRONG>A_ITALIC</STRONG> attribute for terminals which
+       have   the   <STRONG>enter_italics_mode</STRONG>  (<STRONG>sitm</STRONG>)  and  <STRONG>exit_italics_mode</STRONG>  (<STRONG>ritm</STRONG>)
+       capabilities.  Italics are not mentioned in X/Open Curses.  Unlike  the
+       other  video  attributes,  <STRONG>A_ITALIC</STRONG>  is unrelated to the <STRONG>set_attributes</STRONG>
+       capabilities.   This   implementation   makes   the   assumption   that
+       <STRONG>exit_attribute_mode</STRONG> may also reset italics.
+
+       Each  of  the functions added by XSI Curses has a parameter <EM>opts</EM>, which
+       X/Open Curses  still  (after  more  than  twenty  years)  documents  as
+       reserved  for  future  use,  saying  that  it  should  be  <EM>NULL</EM>.   This
+       implementation uses that parameter in ABI 6  for  the  functions  which
+       have a color pair parameter to support <EM>extended</EM> <EM>color</EM> <EM>pairs</EM>:
+
+       <STRONG>o</STRONG>   For functions which modify the color, e.g., <STRONG>wattr_set</STRONG> and <STRONG>wattr_on</STRONG>,
+           if  <EM>opts</EM>  is set it is treated as a pointer to <EM>int</EM>, and used to set
+           the color pair instead of the <EM>short</EM> <EM>pair</EM> parameter.
+
+       <STRONG>o</STRONG>   For functions which retrieve the color, e.g., <STRONG>wattr_get</STRONG>, if <EM>opts</EM> is
+           set it is treated as a pointer to <EM>int</EM>, and  used  to  retrieve  the
+           color  pair  as  an <EM>int</EM> value, in addition to retrieving it via the
+           standard pointer to <EM>short</EM> parameter.
+
+       <STRONG>o</STRONG>   For functions which turn attributes off, e.g., <STRONG>wattr_off</STRONG>, the  <EM>opts</EM>
+           parameter is ignored except to check that it is <EM>NULL</EM>.
+
+
+</PRE><H2><a name="h2-PORTABILITY">PORTABILITY</a></H2><PRE>
+       These  functions  are described in X/Open Curses Issue 4.  It specifies
+       no error conditions for them.
+
+       The standard defined the dedicated type for highlights,  <EM>attr</EM><STRONG>_</STRONG><EM>t</EM>,  which
+       was  not defined in SVr4 <EM>curses</EM>.  The functions taking <EM>attr</EM><STRONG>_</STRONG><EM>t</EM> arguments
+       were not supported under SVr4.
+
+       SVr4 describes the functions not taking <EM>attr</EM><STRONG>_</STRONG><EM>t</EM>  or  <EM>pair</EM>  arguments  as
+       always returning <STRONG>1</STRONG>.
+
+       Very old versions of this library did not force an update of the screen
+       when  changing  the  attributes.   Use  <STRONG>touchwin</STRONG> to force the screen to
+       match the updated attributes.
+
+       X/Open  Curses  states   that   whether   the   traditional   functions
+       <STRONG>attron</STRONG>/<STRONG>attroff</STRONG>/<STRONG>attrset</STRONG>  can  manipulate  attributes other than <STRONG>A_BLINK</STRONG>,
+       <STRONG>A_BOLD</STRONG>, <STRONG>A_DIM</STRONG>, <STRONG>A_REVERSE</STRONG>, <STRONG>A_STANDOUT</STRONG>, or <STRONG>A_UNDERLINE</STRONG> is  "unspecified".
+       Under  this  implementation  as  well  as  SVr4 <EM>curses</EM>, these functions
+       correctly manipulate all other highlights (specifically,  <STRONG>A_ALTCHARSET</STRONG>,
+       <STRONG>A_PROTECT</STRONG>, and <STRONG>A_INVIS</STRONG>).
+
+       X/Open Curses added these entry points:
+
+              <STRONG>attr_get</STRONG>,  <STRONG>attr_on</STRONG>,  <STRONG>attr_off</STRONG>,  <STRONG>attr_set</STRONG>,  <STRONG>wattr_on</STRONG>,  <STRONG>wattr_off</STRONG>,
+              <STRONG>wattr_get</STRONG>, <STRONG>wattr_set</STRONG>
+
+       The new functions are intended to work with a new series  of  highlight
+       macros prefixed with <STRONG>WA_</STRONG>.  The older macros have direct counterparts in
+       the newer set of names:
+
+              <STRONG>Name</STRONG>            <STRONG>Description</STRONG>
+              -------------------------------------------------
+              <STRONG>WA_NORMAL</STRONG>       Normal display (no highlight)
+              <STRONG>WA_STANDOUT</STRONG>     Best highlighting mode available
+              <STRONG>WA_UNDERLINE</STRONG>    Underlining
+              <STRONG>WA_REVERSE</STRONG>      Reverse video
+              <STRONG>WA_BLINK</STRONG>        Blinking
+              <STRONG>WA_DIM</STRONG>          Half bright
+              <STRONG>WA_BOLD</STRONG>         Extra bright or bold
+              <STRONG>WA_ALTCHARSET</STRONG>   Alternate character set
+
+       X/Open  Curses  does  not  assign  values to these symbols, nor does it
+       state whether or not they are related to the similarly-named  A_NORMAL,
+       etc.:
+
+       <STRONG>o</STRONG>   X/Open  Curses  specifies  that  each  pair of corresponding <STRONG>A_</STRONG> and
+           <STRONG>WA_</STRONG>-using  functions  operates  on   the   same   current-highlight
+           information.
+
+       <STRONG>o</STRONG>   However,  in  some  implementations,  those  symbols have unrelated
+           values.
+
+           For example, the Solaris <EM>xpg4</EM> (X/Open) <EM>curses</EM> declares <EM>attr</EM><STRONG>_</STRONG><EM>t</EM> to be
+           an unsigned short integer (16-bits), while  <EM>chtype</EM>  is  a  unsigned
+           integer (32-bits).  The <STRONG>WA_</STRONG> symbols in this case are different from
+           the  <STRONG>A_</STRONG>  symbols because they are used for a smaller datatype which
+           does not represent <STRONG>A_CHARTEXT</STRONG> or <STRONG>A_COLOR</STRONG>.
+
+           In this implementation (as in many others), the values happen to be
+           the same because it simplifies copying information  between  <EM>chtype</EM>
+           and <EM>cchar</EM><STRONG>_</STRONG><EM>t</EM> variables.
+
+       <STRONG>o</STRONG>   Because  <EM>ncurses</EM>'s  <EM>attr</EM><STRONG>_</STRONG><EM>t</EM>  can  hold  a color pair (in the <STRONG>A_COLOR</STRONG>
+           field), a call to <STRONG>wattr_on</STRONG>, <STRONG>wattr_off</STRONG>, or <STRONG>wattr_set</STRONG> may  alter  the
+           window's  color.   If  the  color pair information in the attribute
+           parameter is zero, no change is made to the window's color.
+
+           This is consistent with SVr4 <EM>curses</EM>; X/Open Curses does not specify
+           this.
+
+       The X/Open  Curses  extended  conformance  level  adds  new  highlights
+       <STRONG>A_HORIZONTAL</STRONG>,   <STRONG>A_LEFT</STRONG>,   <STRONG>A_LOW</STRONG>,   <STRONG>A_RIGHT</STRONG>,   <STRONG>A_TOP</STRONG>,   <STRONG>A_VERTICAL</STRONG>  (and
+       corresponding <STRONG>WA_</STRONG> macros for  each).   As  of  August  2013,  no  known
+       terminal provides these highlights (i.e., via the <STRONG>sgr1</STRONG> capability).
+
+
+</PRE><H2><a name="h2-HISTORY">HISTORY</a></H2><PRE>
+       4BSD  (1980) used a <EM>char</EM> to represent each cell of the terminal screen.
+       It assumed 7-bit character codes, employing the eighth bit of a byte to
+       represent a  <EM>standout</EM>  attribute  (often  implemented  as  bold  and/or
+       reverse  video).   It  introduced  <EM>standout</EM>,  <EM>standend</EM>,  <EM>wstandout</EM>, and
+       <EM>wstandend</EM>  functions   to   manipulate   this   bit.    Despite   their
+       inflexibility,  they  carried  over into System V <EM>curses</EM> and ultimately
+       X/Open Curses due to their pervasive use in legacy applications.  While
+       some 1980s terminals supported  a  variety  of  video  attributes,  BSD
+       <EM>curses</EM> could do nothing with them.
+
+       SVr2  (1984) provided an improved <EM>curses</EM> library, introducing <EM>chtype</EM> to
+       create the abstract notion of a <EM>curses</EM> character; this was  by  default
+       an  <EM>unsigned</EM>  <EM>short</EM>,  with a provision for compile-time redefinition to
+       other integral types (a freedom not necessarily available to  users  of
+       shared  libraries,  and  in any event a source license was necessary to
+       exercise  it).   It  added  the  functions  <EM>attron</EM>,  <EM>attroff</EM>,  <EM>attrset</EM>,
+       <EM>wattron</EM>, <EM>wattroff</EM>, and <EM>wattrset</EM>, and defined the <EM>A</EM><STRONG>_</STRONG> macros listed above
+       (except for <EM>A</EM><STRONG>_</STRONG><EM>ITALIC</EM> and <EM>A</EM><STRONG>_</STRONG><EM>COLOR</EM>) for use by applications to manipulate
+       other  attributes.  The values of these macros were not necessarily the
+       same in different systems, even among those certified as System V.
+
+       SVr3.2 (1988) added the <EM>A</EM><STRONG>_</STRONG><EM>COLOR</EM> macro along with a  color  system;  see
+       <STRONG><A HREF="curs_color.3x.html">curs_color(3x)</A></STRONG>.
+
+       X/Open  Curses  Issue 4  (1995)  is  largely  based on SVr4 <EM>curses</EM>, but
+       recognized that the <EM>wchar</EM><STRONG>_</STRONG><EM>t</EM> type of ISO C95 was intended to house  only
+       a  single character code, not a sequence of codes combining with a base
+       character, let alone could it reliably offer  room  for  a  color  pair
+       identifier  and  a  set  of attribute bits with a potential for further
+       growth -- thus the standard invented the <EM>curses</EM> complex character  type
+       <EM>cchar</EM><STRONG>_</STRONG><EM>t</EM>  and a separate type <EM>attr</EM><STRONG>_</STRONG><EM>t</EM> for storage of attribute bits.  The
+       new types brought along several new functions to manipulate them,  some
+       corresponding  to  existing  <EM>chtype</EM>-based functions (<EM>attr</EM><STRONG>_</STRONG><EM>on</EM>, <EM>attr</EM><STRONG>_</STRONG><EM>off</EM>,
+       <EM>attr</EM><STRONG>_</STRONG><EM>set</EM>, <EM>wattr</EM><STRONG>_</STRONG><EM>on</EM>, <EM>wattr</EM><STRONG>_</STRONG><EM>off</EM>, and <EM>wattr</EM><STRONG>_</STRONG><EM>set</EM>), and some new (<EM>chgat</EM>  and
+       its variants, <EM>color</EM><STRONG>_</STRONG><EM>set</EM>, and <EM>wcolor</EM><STRONG>_</STRONG><EM>set</EM>).
+
+       Different  Unix systems used differently sized bit fields in <EM>chtype</EM> for
+       the character code and the color pair identifier, and took into account
+       platforms' different integer sizes (32- versus 64-bit).
+
+       The following  table  showing  the  number  of  bits  for  <EM>A</EM><STRONG>_</STRONG><EM>COLOR</EM>  and
+       <EM>A</EM><STRONG>_</STRONG><EM>CHARTEXT</EM>  was  gleaned  from  the  <EM>curses</EM>  header  files  for various
+       operating systems and architectures.   The  inferred  architecture  and
+       notes  reflect  the format and size of the defined constants as well as
+       clues such as the alternate character  set  implementation.   A  32-bit
+       library  can  be  used  on  a  64-bit  system,  but not necessarily the
+       converse.
+
+                                     <STRONG>Bits</STRONG>
+       <STRONG>Year</STRONG>  <STRONG>System</STRONG>        <STRONG>Arch</STRONG>   <STRONG>Color</STRONG>  <STRONG>Char</STRONG>  <STRONG>Notes</STRONG>
+       ------------------------------------------------------------------------
+       1992  Solaris 5.2   32     6      17    SVr4 <EM>curses</EM>
+       1992  HP-UX 9       32     no     8     SVr2 <EM>curses</EM>
+       1992  AIX 3.2       32     no     23    SVr2 <EM>curses</EM>
+       1994  OSF/1 r3      32     no     23    SVr2 <EM>curses</EM>
+       1995  HP-UX 10.00   32     6      16    SVr3 <EM>curses</EM><STRONG>_</STRONG><EM>colr</EM>
+       1995  HP-UX 10.00   32     6      8     SVr4, X/Open <EM>curses</EM>
+       1995  Solaris 5.4   32/64  7      16    X/Open <EM>curses</EM>
+       1996  AIX 4.2       32     7      16    X/Open <EM>curses</EM>
+       1996  OSF/1 r4      32     6      16    X/Open <EM>curses</EM>
+       1997  HP-UX 11.00   32     6      8     X/Open <EM>curses</EM>
+       2000  UWIN          32/64  7/31   16    uses <EM>chtype</EM>
+
+       Notes:
+
+          Regarding HP-UX,
+
+          <STRONG>o</STRONG>   HP-UX 10.20 (1996) added support for 64-bit  PA-RISC  processors
+              in 1996.
+
+          <STRONG>o</STRONG>   HP-UX  10.30 (1997) marked "curses_colr" obsolete.  That version
+              of <EM>curses</EM> was dropped with HP-UX 11.30 in 2006.
+
+          Regarding OSF/1 (and Tru64),
+
+          <STRONG>o</STRONG>   These used 64-bit hardware.   Like  <EM>ncurses</EM>,  the  OSF/1  <EM>curses</EM>
+              interface is not customized for 32-bit and 64-bit versions.
+
+          <STRONG>o</STRONG>   Unlike  other  systems  which  evolved  from  AT&amp;T  code,  OSF/1
+              provided a new implementation for X/Open Curses.
+
+          Regarding Solaris,
+
+          <STRONG>o</STRONG>   The initial release of Solaris was in 1992.
+
+          <STRONG>o</STRONG>   Its  XPG4  (X/Open  Curses-conforming)   <EM>xcurses</EM>   library   was
+              developed  by  Mortice  Kern  Systems  from 1990 to 1995.  Sun's
+              copyright began in 1996.
+
+          <STRONG>o</STRONG>   Sun updated the X/Open Curses interface after 64-bit support was
+              introduced  in  1997,  but  did  not  modify  the  SVr4   <EM>curses</EM>
+              interface.
+
+          Regarding UWIN,
+
+          <STRONG>o</STRONG>   Development  of  the  <EM>curses</EM>  library  began in 1991, stopped in
+              2000.
+
+          <STRONG>o</STRONG>   Color support was added in 1998.
+
+          <STRONG>o</STRONG>   The library uses only <EM>chtype</EM> (not <EM>cchar</EM><STRONG>_</STRONG><EM>t</EM>).
+
+       Once X/Open Curses was adopted in the mid-1990s, the  constraint  of  a
+       32-bit interface with many colors and wide-characters for <EM>chtype</EM> became
+       a  moot  point.   The <EM>cchar</EM><STRONG>_</STRONG><EM>t</EM> structure (whose size and members are not
+       specified in X/Open Curses) could be extended as needed.
+
+       Other interfaces are rarely used now.
+
+       <STRONG>o</STRONG>   BSD <EM>curses</EM> was improved slightly in 1993/1994 using Keith  Bostic's
+           modification  to make the library 8-bit clean for <STRONG>nvi(1)</STRONG>.  He moved
+           the <EM>standout</EM> attribute to a structure member.  The resulting 4.4BSD
+           <EM>curses</EM> was replaced by <EM>ncurses</EM> over the next ten years.
+
+       <STRONG>o</STRONG>   UWIN has been defunct since 2012.
+
+       <EM>ncurses</EM> 6.0 (2015) added the <EM>A</EM><STRONG>_</STRONG><EM>ITALIC</EM> macro.
+
+
+</PRE><H2><a name="h2-SEE-ALSO">SEE ALSO</a></H2><PRE>
+       <STRONG><A HREF="ncurses.3x.html">curses(3x)</A></STRONG>,     <STRONG><A HREF="curs_addch.3x.html">curs_addch(3x)</A></STRONG>,     <STRONG><A HREF="curs_addstr.3x.html">curs_addstr(3x)</A></STRONG>,     <STRONG><A HREF="curs_bkgd.3x.html">curs_bkgd(3x)</A></STRONG>,
+       <STRONG><A HREF="curs_printw.3x.html">curs_printw(3x)</A></STRONG>, <STRONG><A HREF="curs_variables.3x.html">curs_variables(3x)</A></STRONG>
+
+ncurses 6.6                       2025-11-11                     <STRONG><A HREF="curs_attr.3x.html">curs_attr(3x)</A></STRONG>
+</PRE>
+<div class="nav">
+<ul>
+<li><a href="#h2-NAME">NAME</a></li>
+<li><a href="#h2-SYNOPSIS">SYNOPSIS</a></li>
+<li><a href="#h2-DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#h3-Window-Attributes">Window Attributes</a></li>
+<li><a href="#h3-Legacy-Window-Attributes">Legacy Window Attributes</a></li>
+<li><a href="#h3-Change-Character-Rendition">Change Character Rendition</a></li>
+<li><a href="#h3-Change-Window-Color">Change Window Color</a></li>
+<li><a href="#h3-Standout">Standout</a></li>
+<li><a href="#h3-Video-Attributes">Video Attributes</a></li>
+</ul>
+</li>
+<li><a href="#h2-RETURN-VALUE">RETURN VALUE</a></li>
+<li><a href="#h2-NOTES">NOTES</a></li>
+<li><a href="#h2-EXTENSIONS">EXTENSIONS</a></li>
+<li><a href="#h2-PORTABILITY">PORTABILITY</a></li>
+<li><a href="#h2-HISTORY">HISTORY</a></li>
+<li><a href="#h2-SEE-ALSO">SEE ALSO</a></li>
+</ul>
+</div>
+</BODY>
+</HTML>

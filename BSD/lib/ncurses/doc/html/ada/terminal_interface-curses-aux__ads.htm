@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+<title>terminal_interface-curses-aux.ads</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style type="text/css">
+*.comment {
+	color: green;
+}
+*.symbol {
+	color: red;
+}
+</style>
+</head>
+<body>
+<hr><div style="text-align:center"><h1> File : terminal_interface-curses-aux.ads </h1></div><hr>
+<pre>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                           <strong>GNAT</strong> ncurses Binding                           --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                       Terminal_Interface.Curses.Aux                      --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                                 S P E C                                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>-- Copyright 2018,2020 Thomas E. Dickey                                     --</em></span>
+<span class="comment"><em>-- Copyright 1998-2011,2014 Free Software Foundation, Inc.                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Permission is hereby granted, free of charge, to any person obtaining a  --</em></span>
+<span class="comment"><em>-- copy of this software and associated documentation files (the            --</em></span>
+<span class="comment"><em>-- "Software"), to deal in the Software without restriction, including      --</em></span>
+<span class="comment"><em>-- without limitation the rights to use, copy, modify, merge, publish,      --</em></span>
+<span class="comment"><em>-- distribute, distribute with modifications, sublicense, and/or sell       --</em></span>
+<span class="comment"><em>-- copies of the Software, and to permit persons to whom the Software is    --</em></span>
+<span class="comment"><em>-- furnished to do so, subject to the following conditions:                 --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- The above copyright notice and this permission notice shall be included  --</em></span>
+<span class="comment"><em>-- in all copies or substantial portions of the Software.                   --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  --</em></span>
+<span class="comment"><em>-- OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               --</em></span>
+<span class="comment"><em>-- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   --</em></span>
+<span class="comment"><em>-- IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   --</em></span>
+<span class="comment"><em>-- DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    --</em></span>
+<span class="comment"><em>-- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    --</em></span>
+<span class="comment"><em>-- THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Except as contained in this notice, the name(s) of the above copyright   --</em></span>
+<span class="comment"><em>-- holders shall not be used in advertising or otherwise to promote the     --</em></span>
+<span class="comment"><em>-- sale, use or other dealings in this Software without prior written       --</em></span>
+<span class="comment"><em>-- authorization.                                                           --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--  Author:  Juergen Pfeifer, 1996</em></span>
+<span class="comment"><em>--  Version Control:</em></span>
+<span class="comment"><em>--  @Revision: 1.25 @</em></span>
+<span class="comment"><em>--  Binding Version 01.00</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<b>with</b> System;
+<b>with</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C;
+<b>with</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C.Strings; <b>use</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C.Strings;
+
+<b>package</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<span class="symbol"><a name="ref_46_35" href="terminal_interface-curses-aux__adb.htm#ref_42_40">Aux</a></span> <b>is</b>
+   <b>pragma</b> Preelaborate (<a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-aux__ads.htm#ref_46_35">Aux</a>);
+
+   <b>subtype</b> <span class="symbol"><a name="ref_49_12">C_Int</a></span>      <b>is</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C.int;
+   <b>subtype</b> <span class="symbol"><a name="ref_50_12">C_Short</a></span>    <b>is</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C.short;
+   <b>subtype</b> <span class="symbol"><a name="ref_51_12">C_Long_Int</a></span> <b>is</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C.long;
+   <b>subtype</b> <span class="symbol"><a name="ref_52_12">C_Size_T</a></span>   <b>is</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C.size_t;
+   <b>subtype</b> <span class="symbol"><a name="ref_53_12">C_UInt</a></span>     <b>is</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C.unsigned;
+   <b>subtype</b> <span class="symbol"><a name="ref_54_12">C_ULong</a></span>    <b>is</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C.unsigned_long;
+   <b>subtype</b> <span class="symbol"><a name="ref_55_12">C_Char_Ptr</a></span> <b>is</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C.Strings.chars_ptr;
+   <b>type</b>    <span class="symbol"><a name="ref_56_12">C_Void_Ptr</a></span> <b>is</b> <b>new</b> System.Address;
+
+   <span class="comment"><em>--  This is how those constants are defined in ncurses. I see them also</em></span>
+   <span class="comment"><em>--  exactly like this in all ETI implementations I ever tested. So it</em></span>
+   <span class="comment"><em>--  could be that this is quite general, but please check with your curses.</em></span>
+   <span class="comment"><em>--  This is critical, because curses sometime mixes Boolean returns with</em></span>
+   <span class="comment"><em>--  returning an error status.</em></span>
+   <span class="symbol"><a name="ref_63_4">Curses_Ok</a></span>    : <b>constant</b> <a href="terminal_interface-curses-aux__ads.htm#ref_49_12">C_Int</a> := <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_12_4">OK</a>;
+   <span class="symbol"><a name="ref_64_4">Curses_Err</a></span>   : <b>constant</b> <a href="terminal_interface-curses-aux__ads.htm#ref_49_12">C_Int</a> := <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_13_4">ERR</a>;
+
+   <span class="symbol"><a name="ref_66_4">Curses_True</a></span>  : <b>constant</b> <a href="terminal_interface-curses-aux__ads.htm#ref_49_12">C_Int</a> := <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_15_4">TRUE</a>;
+   <span class="symbol"><a name="ref_67_4">Curses_False</a></span> : <b>constant</b> <a href="terminal_interface-curses-aux__ads.htm#ref_49_12">C_Int</a> := <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_16_4">FALSE</a>;
+
+   <span class="comment"><em>--  Eti_Error: type for error codes returned by the menu and form subsystem</em></span>
+   <b>type</b> <span class="symbol"><a name="ref_70_9" href="terminal_interface-curses-aux__ads.htm#ref_46_35">Eti_Error</a></span> <b>is</b>
+     (<span class="symbol"><a name="ref_71_7">E_Current</a></span>,
+      <span class="symbol"><a name="ref_72_7">E_Invalid_Field</a></span>,
+      <span class="symbol"><a name="ref_73_7">E_Request_Denied</a></span>,
+      <span class="symbol"><a name="ref_74_7">E_Not_Connected</a></span>,
+      <span class="symbol"><a name="ref_75_7">E_Not_Selectable</a></span>,
+      <span class="symbol"><a name="ref_76_7">E_No_Match</a></span>,
+      <span class="symbol"><a name="ref_77_7">E_Unknown_Command</a></span>,
+      <span class="symbol"><a name="ref_78_7">E_Not_Posted</a></span>,
+      <span class="symbol"><a name="ref_79_7">E_No_Room</a></span>,
+      <span class="symbol"><a name="ref_80_7">E_Bad_State</a></span>,
+      <span class="symbol"><a name="ref_81_7">E_Connected</a></span>,
+      <span class="symbol"><a name="ref_82_7">E_Posted</a></span>,
+      <span class="symbol"><a name="ref_83_7">E_Bad_Argument</a></span>,
+      <span class="symbol"><a name="ref_84_7">E_System_Error</a></span>,
+      <span class="symbol"><a name="ref_85_7">E_Ok</a></span>);
+
+   <b>procedure</b> <span class="symbol"><a name="ref_87_14" href="terminal_interface-curses-aux__adb.htm#ref_95_14">Eti_Exception</a></span> (<span class="symbol"><a name="ref_87_29" href="terminal_interface-curses-aux__adb.htm#ref_95_29">Code</a></span> : <a href="terminal_interface-curses-aux__ads.htm#ref_70_9">Eti_Error</a>);
+   <span class="comment"><em>--  Do nothing if Code = E_Ok.</em></span>
+   <span class="comment"><em>--  Else dispatch the error code and raise the appropriate exception.</em></span>
+
+   <b>procedure</b> <span class="symbol"><a name="ref_91_14" href="terminal_interface-curses-aux__adb.htm#ref_45_14">Fill_String</a></span> (<span class="symbol"><a name="ref_91_27" href="terminal_interface-curses-aux__adb.htm#ref_45_27">Cp</a></span>  : chars_ptr;
+                          <span class="symbol"><a name="ref_92_27" href="terminal_interface-curses-aux__adb.htm#ref_46_27">Str</a></span> : <b>out</b> String);
+   <span class="comment"><em>--  Fill the Str parameter with the string denoted by the chars_ptr</em></span>
+   <span class="comment"><em>--  C-Style string.</em></span>
+
+   <b>function</b> <span class="symbol"><a name="ref_96_13" href="terminal_interface-curses-aux__adb.htm#ref_74_13">Fill_String</a></span> (<span class="symbol"><a name="ref_96_26" href="terminal_interface-curses-aux__adb.htm#ref_74_26">Cp</a></span> : chars_ptr) <b>return</b> String;
+   <span class="comment"><em>--  Same but as function.</em></span>
+
+<b>private</b>
+   <b>for</b> <a href="terminal_interface-curses-aux__ads.htm#ref_70_9">Eti_Error</a>'Size <b>use</b> <a href="terminal_interface-curses-aux__ads.htm#ref_49_12">C_Int</a>'Size;
+   <b>pragma</b> Convention (C, <a href="terminal_interface-curses-aux__ads.htm#ref_70_9">Eti_Error</a>);
+   <b>for</b> <a href="terminal_interface-curses-aux__ads.htm#ref_70_9">Eti_Error</a> <b>use</b>
+     (<a href="terminal_interface-curses-aux__ads.htm#ref_71_7">E_Current</a>         =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_94_4">E_CURRENT</a>,
+      <a href="terminal_interface-curses-aux__ads.htm#ref_72_7">E_Invalid_Field</a>   =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_93_4">E_INVALID_FIELD</a>,
+      <a href="terminal_interface-curses-aux__ads.htm#ref_73_7">E_Request_Denied</a>  =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_92_4">E_REQUEST_DENIED</a>,
+      <a href="terminal_interface-curses-aux__ads.htm#ref_74_7">E_Not_Connected</a>   =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_91_4">E_NOT_CONNECTED</a>,
+      <a href="terminal_interface-curses-aux__ads.htm#ref_75_7">E_Not_Selectable</a>  =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_90_4">E_NOT_SELECTABLE</a>,
+      <a href="terminal_interface-curses-aux__ads.htm#ref_76_7">E_No_Match</a>        =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_89_4">E_NO_MATCH</a>,
+      <a href="terminal_interface-curses-aux__ads.htm#ref_77_7">E_Unknown_Command</a> =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_88_4">E_UNKNOWN_COMMAND</a>,
+      <a href="terminal_interface-curses-aux__ads.htm#ref_78_7">E_Not_Posted</a>      =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_87_4">E_NOT_POSTED</a>,
+      <a href="terminal_interface-curses-aux__ads.htm#ref_79_7">E_No_Room</a>         =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_86_4">E_NO_ROOM</a>,
+      <a href="terminal_interface-curses-aux__ads.htm#ref_80_7">E_Bad_State</a>       =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_85_4">E_BAD_STATE</a>,
+      <a href="terminal_interface-curses-aux__ads.htm#ref_81_7">E_Connected</a>       =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_84_4">E_CONNECTED</a>,
+      <a href="terminal_interface-curses-aux__ads.htm#ref_82_7">E_Posted</a>          =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_83_4">E_POSTED</a>,
+      <a href="terminal_interface-curses-aux__ads.htm#ref_83_7">E_Bad_Argument</a>    =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_82_4">E_BAD_ARGUMENT</a>,
+      <a href="terminal_interface-curses-aux__ads.htm#ref_84_7">E_System_Error</a>    =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_81_4">E_SYSTEM_ERROR</a>,
+      <a href="terminal_interface-curses-aux__ads.htm#ref_85_7">E_Ok</a>              =&gt; <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_80_4">E_OK</a>);
+<b>end</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-aux__ads.htm#ref_46_35">Aux</a>;
+</pre></body></html>

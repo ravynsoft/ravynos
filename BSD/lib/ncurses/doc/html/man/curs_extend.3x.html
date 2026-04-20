@@ -1,0 +1,139 @@
+<!--
+  ****************************************************************************
+  * Copyright 2018-2024,2025 Thomas E. Dickey                                *
+  * Copyright 1999-2010,2016 Free Software Foundation, Inc.                  *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+  * "Software"), to deal in the Software without restriction, including      *
+  * without limitation the rights to use, copy, modify, merge, publish,      *
+  * distribute, distribute with modifications, sublicense, and/or sell       *
+  * copies of the Software, and to permit persons to whom the Software is    *
+  * furnished to do so, subject to the following conditions:                 *
+  *                                                                          *
+  * The above copyright notice and this permission notice shall be included  *
+  * in all copies or substantial portions of the Software.                   *
+  *                                                                          *
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+  * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+  * THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+  *                                                                          *
+  * Except as contained in this notice, the name(s) of the above copyright   *
+  * holders shall not be used in advertising or otherwise to promote the     *
+  * sale, use or other dealings in this Software without prior written       *
+  * authorization.                                                           *
+  ****************************************************************************
+  * Author: Thomas E. Dickey 1999-on
+  * @Id: curs_extend.3x,v 1.67 2025/11/12 00:46:51 tom Exp @
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta name="generator" content="Manpage converted by man2html - see https://invisible-island.net/scripts/readme.html#others_scripts">
+<TITLE>curs_extend 3x 2025-11-11 ncurses 6.6 Library calls</TITLE>
+<link rel="author" href="mailto:bug-ncurses@gnu.org">
+
+</HEAD>
+<BODY>
+<H1 class="no-header">curs_extend 3x 2025-11-11 ncurses 6.6 Library calls</H1>
+<PRE>
+<STRONG><A HREF="curs_extend.3x.html">curs_extend(3x)</A></STRONG>                  Library calls                 <STRONG><A HREF="curs_extend.3x.html">curs_extend(3x)</A></STRONG>
+
+
+</PRE><H2><a name="h2-NAME">NAME</a></H2><PRE>
+       <STRONG>curses_version</STRONG>, <STRONG>use_extended_names</STRONG> - miscellaneous <EM>ncurses</EM> extensions
+
+
+</PRE><H2><a name="h2-SYNOPSIS">SYNOPSIS</a></H2><PRE>
+       <STRONG>#include</STRONG> <STRONG>&lt;curses.h&gt;</STRONG>
+
+       <STRONG>const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG> <STRONG>curses_version(void);</STRONG>
+       <STRONG>int</STRONG> <STRONG>use_extended_names(bool</STRONG> <EM>bf</EM><STRONG>);</STRONG>
+
+
+</PRE><H2><a name="h2-DESCRIPTION">DESCRIPTION</a></H2><PRE>
+       These  <EM>ncurses</EM>  extensions to the <EM>curses</EM> library do not fit easily into
+       other functional categories.
+
+
+</PRE><H3><a name="h3-curses_version">curses_version</a></H3><PRE>
+       <STRONG>curses_version</STRONG> returns a pointer to a string containing  the  library's
+       name  and  version  number,  including  its  patch  level,  for example
+       "ncurses 6.5.20240720".
+
+
+</PRE><H3><a name="h3-use_extended_names">use_extended_names</a></H3><PRE>
+       <STRONG>use_extended_names</STRONG> configures  whether  the  library  recognizes  user-
+       defined  or  nonstandard <EM>terminfo</EM> capability names that may be compiled
+       into  terminal  type  descriptions   via   the   <STRONG><A HREF="curs_terminfo.3x.html">curs_terminfo(3x)</A></STRONG>   or
+       <STRONG><A HREF="curs_termcap.3x.html">curs_termcap(3x)</A></STRONG>  interfaces.   Normally  these names are available for
+       use, since the essential decision is made through use  of  <STRONG><A HREF="tic.1m.html">tic(1)</A></STRONG>'s  <STRONG>-x</STRONG>
+       option  to  include  such  extensions  in  terminal  type descriptions.
+       <STRONG>use_extended_names(FALSE)</STRONG>  prevents  <EM>ncurses</EM>  from  recognizing   these
+       capabilities  to  ensure  compatibility  with  other implementations of
+       <EM>curses</EM>.
+
+
+</PRE><H2><a name="h2-RETURN-VALUE">RETURN VALUE</a></H2><PRE>
+       <STRONG>curses_version</STRONG> returns a constant string.
+
+       <STRONG>use_extended_names</STRONG> returns the previous state  of  extended  capability
+       name recognition, allowing you to save this property and restore it.
+
+
+</PRE><H2><a name="h2-NOTES">NOTES</a></H2><PRE>
+       The  pointer  returned  by  <STRONG>curses_version</STRONG>  corresponds  to  statically
+       allocated memory; do not attempt to <STRONG>free(3)</STRONG> it.
+
+
+</PRE><H2><a name="h2-EXTENSIONS">EXTENSIONS</a></H2><PRE>
+       These functions are <EM>ncurses</EM> extensions,  and  are  not  found  in  SVr4
+       <EM>curses</EM>, 4.4BSD <EM>curses</EM>, or any other previous <EM>curses</EM> implementation.
+
+
+</PRE><H2><a name="h2-PORTABILITY">PORTABILITY</a></H2><PRE>
+       Applications employing <EM>ncurses</EM> extensions should condition their use on
+       the visibility of the <STRONG>NCURSES_VERSION</STRONG> preprocessor macro.
+
+       NetBSD  9  added a <EM>curses</EM><STRONG>_</STRONG><EM>version</EM> function that intentionally returns a
+       string devoid of version information.
+
+
+</PRE><H2><a name="h2-AUTHORS">AUTHORS</a></H2><PRE>
+       Thomas Dickey
+
+
+</PRE><H2><a name="h2-SEE-ALSO">SEE ALSO</a></H2><PRE>
+       <EM>ncurses</EM> offers several other extensions to the X/Open Curses API.
+
+       <STRONG><A HREF="curs_getch.3x.html">curs_getch(3x)</A></STRONG>,   <STRONG><A HREF="curs_inopts.3x.html">curs_inopts(3x)</A></STRONG>,   <STRONG><A HREF="curs_mouse.3x.html">curs_mouse(3x)</A></STRONG>,    <STRONG><A HREF="curs_print.3x.html">curs_print(3x)</A></STRONG>,
+       <STRONG><A HREF="curs_util.3x.html">curs_util(3x)</A></STRONG>,    <STRONG><A HREF="default_colors.3x.html">default_colors(3x)</A></STRONG>,   <STRONG><A HREF="define_key.3x.html">define_key(3x)</A></STRONG>,   <STRONG><A HREF="keybound.3x.html">keybound(3x)</A></STRONG>,
+       <STRONG><A HREF="keyok.3x.html">keyok(3x)</A></STRONG>, <STRONG><A HREF="new_pair.3x.html">new_pair(3x)</A></STRONG>, <STRONG><A HREF="resizeterm.3x.html">resizeterm(3x)</A></STRONG>, <STRONG><A HREF="wresize.3x.html">wresize(3x)</A></STRONG>
+
+ncurses 6.6                       2025-11-11                   <STRONG><A HREF="curs_extend.3x.html">curs_extend(3x)</A></STRONG>
+</PRE>
+<div class="nav">
+<ul>
+<li><a href="#h2-NAME">NAME</a></li>
+<li><a href="#h2-SYNOPSIS">SYNOPSIS</a></li>
+<li><a href="#h2-DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#h3-curses_version">curses_version</a></li>
+<li><a href="#h3-use_extended_names">use_extended_names</a></li>
+</ul>
+</li>
+<li><a href="#h2-RETURN-VALUE">RETURN VALUE</a></li>
+<li><a href="#h2-NOTES">NOTES</a></li>
+<li><a href="#h2-EXTENSIONS">EXTENSIONS</a></li>
+<li><a href="#h2-PORTABILITY">PORTABILITY</a></li>
+<li><a href="#h2-AUTHORS">AUTHORS</a></li>
+<li><a href="#h2-SEE-ALSO">SEE ALSO</a></li>
+</ul>
+</div>
+</BODY>
+</HTML>

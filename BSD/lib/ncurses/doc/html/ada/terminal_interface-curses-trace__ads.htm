@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+<title>terminal_interface-curses-trace.ads</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style type="text/css">
+*.comment {
+	color: green;
+}
+*.symbol {
+	color: red;
+}
+</style>
+</head>
+<body>
+<hr><div style="text-align:center"><h1> File : terminal_interface-curses-trace.ads </h1></div><hr>
+<pre>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                           <strong>GNAT</strong> ncurses Binding                           --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                      Terminal_Interface.Curses.Trace                     --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                                 S P E C                                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>-- Copyright 2020 Thomas E. Dickey                                          --</em></span>
+<span class="comment"><em>-- Copyright 2000,2014 Free Software Foundation, Inc.                       --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Permission is hereby granted, free of charge, to any person obtaining a  --</em></span>
+<span class="comment"><em>-- copy of this software and associated documentation files (the            --</em></span>
+<span class="comment"><em>-- "Software"), to deal in the Software without restriction, including      --</em></span>
+<span class="comment"><em>-- without limitation the rights to use, copy, modify, merge, publish,      --</em></span>
+<span class="comment"><em>-- distribute, distribute with modifications, sublicense, and/or sell       --</em></span>
+<span class="comment"><em>-- copies of the Software, and to permit persons to whom the Software is    --</em></span>
+<span class="comment"><em>-- furnished to do so, subject to the following conditions:                 --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- The above copyright notice and this permission notice shall be included  --</em></span>
+<span class="comment"><em>-- in all copies or substantial portions of the Software.                   --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  --</em></span>
+<span class="comment"><em>-- OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               --</em></span>
+<span class="comment"><em>-- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   --</em></span>
+<span class="comment"><em>-- IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   --</em></span>
+<span class="comment"><em>-- DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    --</em></span>
+<span class="comment"><em>-- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    --</em></span>
+<span class="comment"><em>-- THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Except as contained in this notice, the name(s) of the above copyright   --</em></span>
+<span class="comment"><em>-- holders shall not be used in advertising or otherwise to promote the     --</em></span>
+<span class="comment"><em>-- sale, use or other dealings in this Software without prior written       --</em></span>
+<span class="comment"><em>-- authorization.                                                           --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--  Author: Eugene V. Melaragno &lt;aldomel@ix.netcom.com&gt; 2000</em></span>
+<span class="comment"><em>--  Version Control:</em></span>
+<span class="comment"><em>--  @Revision: 1.5 @</em></span>
+<span class="comment"><em>--  Binding Version 01.00</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+
+<b>package</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<span class="symbol"><a name="ref_43_35" href="terminal_interface-curses-trace__adb.htm#ref_44_40">Trace</a></span> <b>is</b>
+   <b>pragma</b> Preelaborate (<a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-trace__ads.htm#ref_43_35">Trace</a>);
+
+   <b>type</b> <span class="symbol"><a name="ref_46_9">Trace_Attribute_Set</a></span> <b>is</b>
+      <b>record</b>
+         <span class="symbol"><a name="ref_48_10">Times</a></span>            : Boolean;
+         <span class="symbol"><a name="ref_49_10">Tputs</a></span>            : Boolean;
+         <span class="symbol"><a name="ref_50_10">Update</a></span>           : Boolean;
+         <span class="symbol"><a name="ref_51_10">Cursor_Move</a></span>      : Boolean;
+         <span class="symbol"><a name="ref_52_10">Character_Output</a></span> : Boolean;
+         <span class="symbol"><a name="ref_53_10">Calls</a></span>            : Boolean;
+         <span class="symbol"><a name="ref_54_10">Virtual_Puts</a></span>     : Boolean;
+         <span class="symbol"><a name="ref_55_10">Input_Events</a></span>     : Boolean;
+         <span class="symbol"><a name="ref_56_10">TTY_State</a></span>        : Boolean;
+         <span class="symbol"><a name="ref_57_10">Internal_Calls</a></span>   : Boolean;
+         <span class="symbol"><a name="ref_58_10">Character_Calls</a></span>  : Boolean;
+         <span class="symbol"><a name="ref_59_10">Termcap_TermInfo</a></span> : Boolean;
+         <span class="symbol"><a name="ref_60_10">Attribute_Color</a></span>  : Boolean;
+      <b>end</b> <b>record</b>;
+   <b>pragma</b> Convention (C_Pass_By_Copy, <a href="terminal_interface-curses-trace__ads.htm#ref_46_9">Trace_Attribute_Set</a>);
+
+   <b>for</b> <a href="terminal_interface-curses-trace__ads.htm#ref_46_9">Trace_Attribute_Set</a> <b>use</b>
+      <b>record</b>
+         <a href="terminal_interface-curses-trace__ads.htm#ref_48_10">Times</a>            <b>at</b> 0 <b>range</b> <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_356_4">TRACE_TIMES_First</a>
+           .. <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_357_4">TRACE_TIMES_Last</a>;
+         <a href="terminal_interface-curses-trace__ads.htm#ref_49_10">Tputs</a>            <b>at</b> 0 <b>range</b> <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_358_4">TRACE_TPUTS_First</a>
+           .. <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_359_4">TRACE_TPUTS_Last</a>;
+         <a href="terminal_interface-curses-trace__ads.htm#ref_50_10">Update</a>           <b>at</b> 0 <b>range</b> <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_360_4">TRACE_UPDATE_First</a>
+           .. <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_361_4">TRACE_UPDATE_Last</a>;
+         <a href="terminal_interface-curses-trace__ads.htm#ref_51_10">Cursor_Move</a>      <b>at</b> 0 <b>range</b> <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_362_4">TRACE_MOVE_First</a>
+           .. <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_363_4">TRACE_MOVE_Last</a>;
+         <a href="terminal_interface-curses-trace__ads.htm#ref_52_10">Character_Output</a> <b>at</b> 0 <b>range</b> <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_364_4">TRACE_CHARPUT_First</a>
+           .. <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_365_4">TRACE_CHARPUT_Last</a>;
+         <a href="terminal_interface-curses-trace__ads.htm#ref_53_10">Calls</a>            <b>at</b> 0 <b>range</b> <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_366_4">TRACE_CALLS_First</a>
+           .. <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_367_4">TRACE_CALLS_Last</a>;
+         <a href="terminal_interface-curses-trace__ads.htm#ref_54_10">Virtual_Puts</a>     <b>at</b> 0 <b>range</b> <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_368_4">TRACE_VIRTPUT_First</a>
+           .. <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_369_4">TRACE_VIRTPUT_Last</a>;
+         <a href="terminal_interface-curses-trace__ads.htm#ref_55_10">Input_Events</a>     <b>at</b> 0 <b>range</b> <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_370_4">TRACE_IEVENT_First</a>
+           .. <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_371_4">TRACE_IEVENT_Last</a>;
+         <a href="terminal_interface-curses-trace__ads.htm#ref_56_10">TTY_State</a>        <b>at</b> 0 <b>range</b> <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_372_4">TRACE_BITS_First</a>
+           .. <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_373_4">TRACE_BITS_Last</a>;
+         <a href="terminal_interface-curses-trace__ads.htm#ref_57_10">Internal_Calls</a>   <b>at</b> 0 <b>range</b> <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_374_4">TRACE_ICALLS_First</a>
+           .. <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_375_4">TRACE_ICALLS_Last</a>;
+         <a href="terminal_interface-curses-trace__ads.htm#ref_58_10">Character_Calls</a>  <b>at</b> 0 <b>range</b> <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_376_4">TRACE_CCALLS_First</a>
+           .. <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_377_4">TRACE_CCALLS_Last</a>;
+         <a href="terminal_interface-curses-trace__ads.htm#ref_59_10">Termcap_TermInfo</a> <b>at</b> 0 <b>range</b> <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_378_4">TRACE_DATABASE_First</a>
+           .. <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_379_4">TRACE_DATABASE_Last</a>;
+         <a href="terminal_interface-curses-trace__ads.htm#ref_60_10">Attribute_Color</a>  <b>at</b> 0 <b>range</b> <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_380_4">TRACE_ATTRS_First</a>
+           .. <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_381_4">TRACE_ATTRS_Last</a>;
+      <b>end</b> <b>record</b>;
+   <b>pragma</b> Warnings (Off);
+   <b>for</b> <a href="terminal_interface-curses-trace__ads.htm#ref_46_9">Trace_Attribute_Set</a>'Size <b>use</b> <a href="terminal_interface-curses_constants__ads.htm#ref_6_28">Curses_Constants</a>.<a href="terminal_interface-curses_constants__ads.htm#ref_382_4">Trace_Size</a>;
+   <b>pragma</b> Warnings (On);
+
+   <span class="symbol"><a name="ref_97_4">Trace_Disable</a></span>  : <b>constant</b> <a href="terminal_interface-curses-trace__ads.htm#ref_46_9">Trace_Attribute_Set</a> := (<b>others</b> =&gt; False);
+
+   <span class="symbol"><a name="ref_99_4">Trace_Ordinary</a></span> : <b>constant</b> <a href="terminal_interface-curses-trace__ads.htm#ref_46_9">Trace_Attribute_Set</a> :=
+     (<a href="terminal_interface-curses-trace__ads.htm#ref_48_10">Times</a>            =&gt; True,
+      <a href="terminal_interface-curses-trace__ads.htm#ref_49_10">Tputs</a>            =&gt; True,
+      <a href="terminal_interface-curses-trace__ads.htm#ref_50_10">Update</a>           =&gt; True,
+      <a href="terminal_interface-curses-trace__ads.htm#ref_51_10">Cursor_Move</a>      =&gt; True,
+      <a href="terminal_interface-curses-trace__ads.htm#ref_52_10">Character_Output</a> =&gt; True,
+      <b>others</b>           =&gt; False);
+   <span class="symbol"><a name="ref_106_4">Trace_Maximum</a></span> : <b>constant</b> <a href="terminal_interface-curses-trace__ads.htm#ref_46_9">Trace_Attribute_Set</a> := (<b>others</b> =&gt; True);
+
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+
+   <span class="comment"><em>--  |=====================================================================</em></span>
+   <span class="comment"><em>--  | Man page <A HREF="../man/curs_trace.3x.html">curs_trace.3x</A></em></span>
+   <span class="comment"><em>--  |=====================================================================</em></span>
+
+   <span class="comment"><em>--  <A NAME="AFU_1">|</A></em></span>
+   <b>procedure</b> <span class="symbol"><a name="ref_115_14" href="terminal_interface-curses-trace__adb.htm#ref_46_14">Trace_On</a></span> (<span class="symbol"><a name="ref_115_24" href="terminal_interface-curses-trace__adb.htm#ref_46_24">x</a></span> : <a href="terminal_interface-curses-trace__ads.htm#ref_46_9">Trace_Attribute_Set</a>);
+   <span class="comment"><em>--  The debugging library has trace.</em></span>
+
+   <span class="comment"><em>--  <A NAME="AFU_2">|</A></em></span>
+   <b>procedure</b> <span class="symbol"><a name="ref_119_14" href="terminal_interface-curses-trace__adb.htm#ref_53_14">Trace_Put</a></span> (<span class="symbol"><a name="ref_119_25" href="terminal_interface-curses-trace__adb.htm#ref_53_25">str</a></span> : String);
+   <span class="comment"><em>--  AKA: <A HREF="../man/curs_trace.3x.html">_tracef()</A></em></span>
+
+   <span class="symbol"><a name="ref_122_4">Current_Trace_Setting</a></span> : <a href="terminal_interface-curses-trace__ads.htm#ref_46_9">Trace_Attribute_Set</a>;
+   <b>pragma</b> Import (C, <a href="terminal_interface-curses-trace__ads.htm#ref_122_4">Current_Trace_Setting</a>, "_nc_tracing");
+
+<b>end</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-trace__ads.htm#ref_43_35">Trace</a>;
+</pre></body></html>

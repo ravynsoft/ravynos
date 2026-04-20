@@ -1,0 +1,137 @@
+<!--
+  ****************************************************************************
+  * Copyright 2018-2024,2025 Thomas E. Dickey                                *
+  * Copyright 2002-2012,2017 Free Software Foundation, Inc.                  *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+  * "Software"), to deal in the Software without restriction, including      *
+  * without limitation the rights to use, copy, modify, merge, publish,      *
+  * distribute, distribute with modifications, sublicense, and/or sell       *
+  * copies of the Software, and to permit persons to whom the Software is    *
+  * furnished to do so, subject to the following conditions:                 *
+  *                                                                          *
+  * The above copyright notice and this permission notice shall be included  *
+  * in all copies or substantial portions of the Software.                   *
+  *                                                                          *
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+  * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+  * THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+  *                                                                          *
+  * Except as contained in this notice, the name(s) of the above copyright   *
+  * holders shall not be used in advertising or otherwise to promote the     *
+  * sale, use or other dealings in this Software without prior written       *
+  * authorization.                                                           *
+  ****************************************************************************
+  * @Id: curs_in_wchstr.3x,v 1.56 2025/10/21 00:03:06 tom Exp @
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta name="generator" content="Manpage converted by man2html - see https://invisible-island.net/scripts/readme.html#others_scripts">
+<TITLE>curs_in_wchstr 3x 2025-10-20 ncurses 6.6 Library calls</TITLE>
+<link rel="author" href="mailto:bug-ncurses@gnu.org">
+
+</HEAD>
+<BODY>
+<H1 class="no-header">curs_in_wchstr 3x 2025-10-20 ncurses 6.6 Library calls</H1>
+<PRE>
+<STRONG><A HREF="curs_in_wchstr.3x.html">curs_in_wchstr(3x)</A></STRONG>               Library calls              <STRONG><A HREF="curs_in_wchstr.3x.html">curs_in_wchstr(3x)</A></STRONG>
+
+
+</PRE><H2><a name="h2-NAME">NAME</a></H2><PRE>
+       <STRONG>in_wchstr</STRONG>,    <STRONG>in_wchnstr</STRONG>,    <STRONG>win_wchstr</STRONG>,    <STRONG>win_wchnstr</STRONG>,   <STRONG>mvin_wchstr</STRONG>,
+       <STRONG>mvin_wchnstr</STRONG>,  <STRONG>mvwin_wchstr</STRONG>,  <STRONG>mvwin_wchnstr</STRONG>  -  get  a  <EM>curses</EM>  complex
+       character string from a window
+
+
+</PRE><H2><a name="h2-SYNOPSIS">SYNOPSIS</a></H2><PRE>
+       <STRONG>#include</STRONG> <STRONG>&lt;curses.h&gt;</STRONG>
+
+       <STRONG>int</STRONG> <STRONG>in_wchstr(cchar_t</STRONG> <STRONG>*</STRONG> <EM>wchstr</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>win_wchstr(WINDOW</STRONG> <STRONG>*</STRONG> <EM>win</EM><STRONG>,</STRONG> <STRONG>cchar_t</STRONG> <STRONG>*</STRONG> <EM>wchstr</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>mvin_wchstr(int</STRONG> <EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>x</EM><STRONG>,</STRONG> <STRONG>cchar_t</STRONG> <STRONG>*</STRONG> <EM>wchstr</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>mvwin_wchstr(WINDOW</STRONG> <STRONG>*</STRONG> <EM>win</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>x</EM><STRONG>,</STRONG> <STRONG>cchar_t</STRONG> <STRONG>*</STRONG> <EM>wchstr</EM><STRONG>);</STRONG>
+
+       <STRONG>int</STRONG> <STRONG>in_wchnstr(cchar_t</STRONG> <STRONG>*</STRONG> <EM>wchstr</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>n</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>win_wchnstr(WINDOW</STRONG> <STRONG>*</STRONG> <EM>win</EM><STRONG>,</STRONG> <STRONG>cchar_t</STRONG> <STRONG>*</STRONG> <EM>wchstr</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>n</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>mvin_wchnstr(int</STRONG> <EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>x</EM><STRONG>,</STRONG> <STRONG>cchar_t</STRONG> <STRONG>*</STRONG> <EM>wchstr</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>n</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>mvwin_wchnstr(WINDOW</STRONG> <STRONG>*</STRONG> <EM>win</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>x</EM><STRONG>,</STRONG> <STRONG>cchar_t</STRONG> <STRONG>*</STRONG> <EM>wchstr</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>n</EM><STRONG>)</STRONG>
+
+
+</PRE><H2><a name="h2-DESCRIPTION">DESCRIPTION</a></H2><PRE>
+       <STRONG>win_wchstr</STRONG>  extracts  a  <EM>curses</EM>  complex character string from a <EM>curses</EM>
+       window <EM>win</EM>, starting at the cursor and stopping at the end of the line,
+       and stores it in  <EM>wchstr</EM>,  terminating  it  with  a  wide  null  <EM>curses</EM>
+       character.   <STRONG>win_wchnstr</STRONG>  does  the  same,  but copies at most <EM>n</EM> <EM>curses</EM>
+       complex  characters  from  <EM>win</EM>.   A  negative  <EM>n</EM>  implies   no   limit;
+       <STRONG>win_wchnstr</STRONG>  then  works  like  <STRONG>win_wchstr</STRONG>.   <STRONG><A HREF="ncurses.3x.html">ncurses(3x)</A></STRONG> describes the
+       variants of these functions.
+
+
+</PRE><H2><a name="h2-RETURN-VALUE">RETURN VALUE</a></H2><PRE>
+       These functions return <STRONG>OK</STRONG> on success and <STRONG>ERR</STRONG> on failure.
+
+       In <EM>ncurses</EM>, these functions fail if
+
+       <STRONG>o</STRONG>   the <EM>curses</EM> screen has not been initialized,
+
+       <STRONG>o</STRONG>   (for functions taking a <EM>WINDOW</EM> pointer  argument)  <EM>win</EM>  is  a  null
+           pointer, or
+
+       <STRONG>o</STRONG>   <EM>wchstr</EM> is a null pointer.
+
+       Functions  prefixed with "mv" first perform cursor movement and fail if
+       the position (<EM>y</EM>, <EM>x</EM>) is outside the window boundaries.
+
+
+</PRE><H2><a name="h2-NOTES">NOTES</a></H2><PRE>
+       All of these functions except <STRONG>win_wchnstr</STRONG> may be implemented as macros.
+
+       Reading a line that overflows the array pointed to by  <EM>wchstr</EM>  and  its
+       variants   causes   undefined  results.   Instead,  use  the  <EM>n</EM>-infixed
+       functions with a positive <EM>n</EM> argument no larger than  the  size  of  the
+       buffer backing <EM>wchstr</EM>.
+
+
+</PRE><H2><a name="h2-PORTABILITY">PORTABILITY</a></H2><PRE>
+       X/Open Curses Issue 4 describes these functions.  It specifies no error
+       conditions for them.
+
+
+</PRE><H2><a name="h2-HISTORY">HISTORY</a></H2><PRE>
+       X/Open  Curses Issue 4 (1995) initially specified these functions.  The
+       System V Interface Definition Version 4 of the same  year  specified  a
+       function  named  <EM>winwchstr</EM>  (and the usual variants).  This was a later
+       addition to SVr4.<EM>x</EM>,  not  appearing  in  the  first  SVr4  (1989).   It
+       differed  from X/Open's later <EM>win</EM><STRONG>_</STRONG><EM>wchstr</EM> in that it took an argument of
+       type pointer-to-<EM>chtype</EM> instead of pointer-to-<EM>cchar</EM><STRONG>_</STRONG><EM>t</EM>.
+
+
+</PRE><H2><a name="h2-SEE-ALSO">SEE ALSO</a></H2><PRE>
+       <STRONG><A HREF="curs_inchstr.3x.html">curs_inchstr(3x)</A></STRONG> describes comparable functions of the <EM>ncurses</EM>  library
+       in its non-wide-character configuration.
+
+       <STRONG><A HREF="ncurses.3x.html">curses(3x)</A></STRONG>, <STRONG><A HREF="curs_inwstr.3x.html">curs_inwstr(3x)</A></STRONG>, <STRONG><A HREF="curs_in_wch.3x.html">curs_in_wch(3x)</A></STRONG>
+
+ncurses 6.6                       2025-10-20                <STRONG><A HREF="curs_in_wchstr.3x.html">curs_in_wchstr(3x)</A></STRONG>
+</PRE>
+<div class="nav">
+<ul>
+<li><a href="#h2-NAME">NAME</a></li>
+<li><a href="#h2-SYNOPSIS">SYNOPSIS</a></li>
+<li><a href="#h2-DESCRIPTION">DESCRIPTION</a></li>
+<li><a href="#h2-RETURN-VALUE">RETURN VALUE</a></li>
+<li><a href="#h2-NOTES">NOTES</a></li>
+<li><a href="#h2-PORTABILITY">PORTABILITY</a></li>
+<li><a href="#h2-HISTORY">HISTORY</a></li>
+<li><a href="#h2-SEE-ALSO">SEE ALSO</a></li>
+</ul>
+</div>
+</BODY>
+</HTML>
