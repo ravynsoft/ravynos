@@ -1,5 +1,5 @@
 add_library(libSystem SHARED)
-target_sources(libSystem PRIVATE init.c CompatibilityHacks.c)
+target_sources(libSystem PRIVATE init.c CompatibilityHacks.c stubs.c)
 set_target_properties(libSystem PROPERTIES
     OUTPUT_NAME "System.B" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
 
@@ -126,7 +126,7 @@ target_sources(libSystem PRIVATE config libunwind.dylib)
 
 target_link_options(libSystem PRIVATE
     -mmacos-version-min=${MACOS_VERSION_MIN} -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
-    -Wl,-flat_namespace -Wl,-undefined,warning -Wl,-no_warn_inits
+    -Wl,-no_warn_inits
     -L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/local/lib/system
     -L${RAVYN_SDKROOT}/usr/lib
     -Wl,-install_name,/usr/lib/libSystem.dylib -Wl,-current_version,1254
@@ -140,9 +140,11 @@ target_link_options(libSystem PRIVATE
     -Wl,-reexport-llaunch -Wl,-reexport-ldispatch -Wl,-reexport-lsystem_m
     -Wl,-reexport-lsystem_notify -Wl,-reexport-lsystem_info -Wl,-reexport-lcopyfile
     -Wl,-reexport-lremovefile -Wl,-reexport-lsystem_trace -Wl,-reexport-lsystem_dnssd
-    #-lsystem_c -lsystem_malloc -lsystem_platform -lsystem_pthread -lsystem_darwin
-    #-lsystem_kernel -lcompiler_rt -ldyld -lc++ -lCrashReporterClient
-)
+    -Wl,-force_load,${RAVYN_SDKROOT}/usr/lib/system/libCrashReporterClient.a
+    -Wl,-force_load,${ROOT_BINARY_DIR}/Libraries/Libsystem/libsystem_kernel/libmach.a
+    -Wl,-force_load,${ROOT_BINARY_DIR}/Libraries/Libsystem/libsystem_kernel/libsyscalls.a
+    -Wl,-force_load,${RAVYN_SDKROOT}/usr/local/lib/system/libsystem_platform.a
+    -Wl,-force_load,${RAVYN_SDKROOT}/usr/local/lib/system/libc.a)
 
 add_custom_command(TARGET libSystem POST_BUILD
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/create_dylib_symlinks.sh

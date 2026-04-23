@@ -63,6 +63,29 @@ os_log_debug_enabled(os_log_t log)
     return true; /* FIXME: Implement this */
 }
 
+__OSX_AVAILABLE_STARTING(__MAC_10_12, __IPHONE_10_0)
+OS_EXPORT OS_NOTHROW
+bool
+os_log_shim_enabled(void *ret_addr)
+{
+    (void)ret_addr;
+    return true;
+}
+
+__OSX_AVAILABLE_STARTING(__MAC_10_12, __IPHONE_10_0)
+OS_EXPORT OS_NOTHROW
+void
+os_log_with_args(os_log_t oslog, os_log_type_t type, const char *format, va_list args, void *ret_addr)
+{
+    (void)oslog;
+    (void)ret_addr;
+    if (format == NULL)
+        return;
+    fprintf(stderr, "[OS LOG %d] ", type);
+    vfprintf(stderr, format, args);
+    fputc('\n', stderr);
+}
+
 __WATCHOS_AVAILABLE(3.0) __OSX_AVAILABLE(10.12) __IOS_AVAILABLE(10.0) __TVOS_AVAILABLE(10.0)
 OS_EXPORT OS_NOTHROW
 void

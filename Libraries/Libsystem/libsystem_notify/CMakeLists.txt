@@ -38,6 +38,7 @@ add_custom_command(
     OUTPUT
         ${CMAKE_CURRENT_BINARY_DIR}/notify_ipc.h
         ${CMAKE_CURRENT_BINARY_DIR}/notify_ipcUser.c
+	${CMAKE_CURRENT_BINARY_DIR}/notify_ipcServer.c
     COMMAND
         ${MIG} ${MIG_FLAGS} -novouchers -header notify_ipc.h ${CMAKE_CURRENT_SOURCE_DIR}/notify_ipc.defs
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/notify_ipc.defs
