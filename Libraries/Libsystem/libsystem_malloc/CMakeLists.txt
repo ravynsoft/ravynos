@@ -19,7 +19,8 @@ set(libmalloc_incs
 )
 set(libmalloc_defs
     DISPATCH_USE_DTRACE=0 OSATOMIC_DEPRECATED=0 OSATOMIC_USE_INLINED=0
-    OS_UNFAIR_LOCK_INLINE=0 _FORTIFY_SOURCE=0 NDEBUG
+    OS_UNFAIR_LOCK_INLINE=0 _FORTIFY_SOURCE=0 NDEBUG DARWINTEST MALLOC_DTRACE
+    OS_VARIANT_NOTRESOLVED OS_VARIANT_RESOLVED
 )
 set(libmalloc_opts
     --sysroot=${RAVYN_SDKROOT} -isysroot${RAVYN_SDKROOT} -w
@@ -35,10 +36,10 @@ target_compile_options(libsystem_malloc PRIVATE ${libmalloc_opts})
 
 target_link_options(libsystem_malloc PRIVATE
     --sysroot=${RAVYN_SDKROOT}
-    -mmacos-version-min=10.15 -flat_namespace -undefined warning
+    -mmacos-version-min=${MACOS_VERSION_MIN} -Wl,-dylib
     -Wl,-install_name,/usr/lib/system/libsystem_malloc.dylib
     -Wl,-current_version,283 -Wl,-compatibility_version,1.0.0
-    -rdynamic -Wl,-search_paths_first -all_load
+    -Wl,-search_paths_first -all_load
     -L${RAVYN_SDKROOT}/usr/lib/system -umbrella System
     -lCrashReporterClient -lsystem_platform -Wl,-upward-lsystem_c
     -Wl,-interposable_list,${CMAKE_CURRENT_SOURCE_DIR}/xcodeconfig/interposable.list
