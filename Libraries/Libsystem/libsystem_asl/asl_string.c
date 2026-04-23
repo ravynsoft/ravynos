@@ -31,6 +31,7 @@
 #include <mach/mach_vm.h>
 #include <mach/vm_map.h>
 #include <mach/vm_param.h>
+#include <machine/atomic.h>
 #include <stdatomic.h>
 #include <asl_string.h>
 #include <asl_private.h>

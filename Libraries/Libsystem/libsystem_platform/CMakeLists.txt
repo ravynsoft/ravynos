@@ -94,14 +94,13 @@ target_compile_options(libplatform PRIVATE ${libplatform_opts})
 
 target_link_options(libsystem_platform PRIVATE
     --sysroot=${RAVYN_SDKROOT} -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
-    -mmacos-version-min=10.15 -flat_namespace -undefined warning
+    -mmacos-version-min=${MACOS_VERSION_MIN}
     -Wl,-install_name,/usr/lib/system/libsystem_platform.dylib
     -Wl,-current_version,220 -Wl,-compatibility_version,1.0.0
-    -Wl,-search_paths_first -umbrella System -Wl,-all_load
+    -Wl,-search_paths_first -umbrella System
     -L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/lib
     -L${ROOT_BINARY_DIR}/Libraries/llvm_target/compiler-rt/lib/ravynos
-    -lsystem_c -lsystem_pthread -lsystem_malloc -ldyld
-    -lsystem_kernel -lcompiler_rt
+    -lsystem_kernel
     -Wl,-alias_list,${CMAKE_CURRENT_SOURCE_DIR}/xcodeconfig/libplatform.aliases
 )
 
