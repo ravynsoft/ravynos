@@ -31,7 +31,7 @@
 typedef struct _asl_object_s
 {
 	uint32_t asl_type;	//ASL OBJECT HEADER
-	int32_t refcount;	//ASL OBJECT HEADER
+	_Atomic(int32_t) refcount;	//ASL OBJECT HEADER
 	char asl_data[];
 } asl_object_private_t;
 

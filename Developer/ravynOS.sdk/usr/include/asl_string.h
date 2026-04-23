@@ -24,6 +24,8 @@
  * @APPLE_LICENSE_HEADER_END@
  */
 
+#include <stdatomic.h>
+
 #define ASL_ENCODE_MASK		0x0000000f
 #define ASL_STRING_VM		0x80000000
 #define ASL_STRING_LEN		0x40000000
@@ -32,7 +34,7 @@
 typedef struct
 {
 	uint32_t asl_type;	//ASL OBJECT HEADER
-	int32_t refcount;	//ASL OBJECT HEADER
+	_Atomic(int32_t) refcount;	//ASL OBJECT HEADER
 	uint32_t encoding;
 	size_t delta;
 	size_t bufsize;
