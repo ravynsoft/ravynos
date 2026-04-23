@@ -28,6 +28,7 @@
 #define __XPC_PRIVATE_H__
 
 #include <xpc/launchd.h>
+#include <Private/xpc_internal.h>
 
 /**
  * @function _xpc_runtime_is_app_sandboxed

@@ -8,6 +8,7 @@ target_sources(libxpc PRIVATE
     xpc_connection.c
     xpc_dictionary.c
     xpc_misc.c
+    xpc_pipe.c
     xpc_type.c
     xpc_runtime.c
     transports/mach.c
