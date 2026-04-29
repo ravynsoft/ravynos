@@ -2584,7 +2584,7 @@ vm_fault_enter(vm_page_t m,
 		/* kernel fault: cs_process_enforcement() does not apply */
 		cs_enforcement_enabled = 0;
 	} else {
-		cs_enforcement_enabled = cs_process_enforcement(NULL);
+		cs_enforcement_enabled = 0; //cs_process_enforcement(NULL);
 	}
 
 	if (cs_enforcement_enabled && map_is_switched &&
@@ -2650,7 +2650,7 @@ vm_fault_enter(vm_page_t m,
 	    && !(pmap_cs_enforced(pmap))
 #endif /* PMAP_CS */
 	    ) {
-		cs_violation = TRUE;
+		cs_violation = FALSE; //TRUE;
 	} else {
 		cs_violation = FALSE;
 	}
