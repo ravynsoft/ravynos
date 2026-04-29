@@ -158,7 +158,7 @@ DoIOSInit::~DoIOSInit()
 
 ios_base::Init::Init()
 {
-    static DoIOSInit init_the_streams; // gets initialized once
+//    static DoIOSInit init_the_streams; // gets initialized once
 }
 
 ios_base::Init::~Init()
