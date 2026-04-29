@@ -56,7 +56,7 @@ target_link_options(libsystem_asl PRIVATE
     -L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/lib
     -lCrashReporterClient -ldyld -lsystem_kernel -lsystem_platform
     -lsystem_pthread -lsystem_malloc -lsystem_c -lsystem_trace -lsystem_notify
-    -ldispatch -lxpc
+    -ldispatch -lxpc -llaunch
     -Wl,-upward-lsystem_info
     -Wl,-install_name,/usr/lib/system/libsystem_asl.dylib -Wl,-current_version,377.0.1
     -Wl,-compatibility_version,1.0.0 -mmacos-version-min=${MACOS_VERSION_MIN}

@@ -109,3 +109,33 @@ _os_log_internal_driverKit(void *dso, os_log_t log, os_log_type_t type, const ch
     fprintf(stderr, "[OS LOG 0x%p %d] ", dso, type);
     vfprintf(stderr, message, args);
 }
+
+size_t os_log_pack_size(const char* format, ...)
+{
+    /* FIXME: this is just a placeholder for now */
+    static char buf[4096];
+    va_list args;
+    va_start(args, format);
+    int n = vsnprintf(buf, sizeof(buf), format, args);
+    va_end(args);
+    if (n < 0 || n >= (int)sizeof(buf))
+        return (size_t)-1;
+    return (size_t)n;
+}
+
+void os_log_pack_fill(void* pack,
+    size_t pack_size,
+    int saved_errno,
+    const char* format,
+    ...)
+{
+    /* FIXME: this is just a placeholder for now */
+    (void)saved_errno;
+    if ( pack == NULL || pack_size == 0 )
+        return;
+    va_list args;
+    va_start(args, format);
+    vsnprintf((char*)pack, pack_size, format, args);
+    va_end(args);
+}
+

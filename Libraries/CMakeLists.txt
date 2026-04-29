@@ -59,7 +59,7 @@ ExternalProject_Add(runtime DEPENDS xnu_headers
         -DCMAKE_ASM_COMPILER_TARGET=${CpuArch}-apple-darwin
         -DCMAKE_C_COMPILER_TARGET=${CpuArch}-apple-darwin
         -DCMAKE_CXX_COMPILER_TARGET=${CpuArch}-apple-darwin
-        "-DCMAKE_SHARED_LINKER_FLAGS=-L${RAVYN_SDKROOT}/usr/lib/system"
+	"-DCMAKE_SHARED_LINKER_FLAGS=-L${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib/system"
         -DCMAKE_INSTALL_PREFIX=${RAVYN_SDKROOT}/usr
         -DCMAKE_OSX_SYSROOT=${RAVYN_SDKROOT_MACOSX}
         -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=${BuildArch}
@@ -134,12 +134,12 @@ ExternalProject_Add(libcxx DEPENDS xnu_headers libunwind
         -DCMAKE_LINKER=${LD} -DCMAKE_ASM_COMPILER=${CC}
         -DCMAKE_LINK_DEPENDS_USE_LINKER=OFF
         -DCMAKE_INSTALL_PREFIX=${RAVYN_SDKROOT}/usr -DCMAKE_BUILD_TYPE=Release
-        "-DCMAKE_SHARED_LINKER_FLAGS=-v -nodefaultlibs -Wl,-flat_namespace \
-        -Wl,-undefined,warning -Wl,-umbrella,System \
-        -Wl,-install_name,/usr/lib/system/libc++.dylib \
-        -L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/lib \
+        "-DCMAKE_SHARED_LINKER_FLAGS=-nodefaultlibs \
+        -Wl,-install_name,/usr/lib/libc++.dylib \
+        -L${RAVYN_SDKROOT}/usr/lib \
         -L${ROOT_BINARY_DIR}/Libraries/llvm_target/libunwind/lib \
-        -lunwind -lcompiler_rt"
+	-lunwind -lSystem \
+	-L${RAVYN_SDKROOT}/usr/lib/ravynos -lclang_rt.builtins-${CpuArch}"
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
         -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF
 
@@ -151,13 +151,13 @@ ExternalProject_Add(libcxx DEPENDS xnu_headers libunwind
 
         -DLIBCXX_ENABLE_EXCEPTIONS=ON -DLIBCXX_INCLUDE_TESTS=OFF
         -DLIBCXX_ENABLE_TIME_ZONE_DATABASE=OFF -DLIBCXX_INCLUDE_BENCHMARKS=OFF
-        -DLIBCXX_USE_COMPILER_RT=OFF -DLIBCXX_ENABLE_SHARED=ON
+	-DLIBCXX_USE_COMPILER_RT=ON -DLIBCXX_ENABLE_SHARED=OFF
         -DLIBCXX_INCLUDE_DOCS=OFF -DLIBCXX_HAS_PTHREAD_API=ON
         -DLIBCXX_HAS_ATOMIC_LIB=OFF
 
-        -DLIBCXXABI_USE_LLVM_UNWINDER=OFF
-        -DLIBCXXABI_HAS_PTHREAD_API=ON -DLIBCXXABI_USE_COMPILER_RT=OFF
-        -DLIBCXXABI_INCLUDE_TESTS=OFF -DLIBCXXABI_ENABLE_SHARED=ON
+	-DLIBCXXABI_USE_LLVM_UNWINDER=OFF
+	-DLIBCXXABI_HAS_PTHREAD_API=ON -DLIBCXXABI_USE_COMPILER_RT=OFF
+	-DLIBCXXABI_INCLUDE_TESTS=OFF -DLIBCXXABI_ENABLE_SHARED=OFF
         -DLIBCXXABI_SILENT_TERMINATE=ON
 )
 
@@ -165,16 +165,24 @@ add_custom_target(compiler_rt DEPENDS libcxx
     COMMAND
         ${CMAKE_COMMAND} -E make_directory ${RAVYN_SDKROOT}/usr/lib/system &&
         ${CC} -o ${RAVYN_SDKROOT}/usr/lib/system/libcompiler_rt.dylib
-        -mmacosx-version-min=10.15 -shared -nostdlib -Wl,-all_load
+	-mmacosx-version-min=${MACOS_VERSION_MIN} -shared
         -Wl,-install_name,/usr/lib/system/libcompiler_rt.dylib
-        -Wl,-flat_namespace -Wl,-undefined,warning
-        -Wl,-current_version,${LLVM_VERSION} -nostdlib -umbrella System
-        ${CMAKE_CURRENT_BINARY_DIR}/llvm_target/compiler-rt/lib/ravynos/libclang_rt.builtins-${CpuArch}.a
-        ${CMAKE_CURRENT_BINARY_DIR}/llvm_target/compiler-rt/lib/ravynos/libclang_rt.profile-${CpuArch}.a
-    COMMAND
-        test -f ${RAVYN_SDKROOT}/usr/lib/libc++.dylib &&
-          mv -f ${RAVYN_SDKROOT}/usr/lib/libc++*.dylib ${RAVYN_SDKROOT}/usr/lib/system/
-          || exit 0
+	-Wl,-current_version,${LLVM_VERSION} -umbrella System
+	-Wl,-force_load,${CMAKE_CURRENT_BINARY_DIR}/llvm_target/compiler-rt/lib/ravynos/libclang_rt.builtins-${CpuArch}.a
+	-L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/lib -lsystem_platform
+	-lsystem_c -lsystem_malloc -lsystem_m -ldispatch -ldyld -lsystem_kernel 
+	-lsystem_pthread -lunwind)
+
+add_custom_target(libcxx_dylib DEPENDS libcxx compiler_rt
+    # Evil Hack(tm) to create a combined libc++ and libc++abi as our dylib
+    COMMAND ${CC} -o ${RAVYN_SDKROOT}/usr/lib/libc++.dylib
+        -mmacos-version-min=${MACOS_VERSION_MIN} -shared 
+	-Wl,-install_name,/usr/lib/libc++.dylib
+	-Wl,-current_version,${LLVM_VERSION}
+	-Wl,-force_load,${CMAKE_CURRENT_BINARY_DIR}/llvm_target/libcxx/lib/libc++.a
+	-Wl,-force_load,${CMAKE_CURRENT_BINARY_DIR}/llvm_target/libcxx/lib/libc++abi.a
+	${CMAKE_CURRENT_BINARY_DIR}/llvm_target/compiler-rt/lib/ravynos/libclang_rt.builtins-${CpuArch}.a
+	-L${RAVYN_SDKROOT}/usr/lib -lSystem
 )
 add_dependencies(compiler_rt libcxx libunwind runtime)
 add_dependencies(xnu compiler_rt)

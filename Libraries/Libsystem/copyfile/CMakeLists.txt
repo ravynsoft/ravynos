@@ -21,7 +21,8 @@ target_link_options(copyfile PRIVATE
     -umbrella System -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib
     -L${RAVYN_SDKROOT}/usr/lib/system -Wl,-current_version,48 # same version as removefile
     -Wl,-install_name,/usr/lib/system/libcopyfile.dylib -Wl,-compatibility_version,1
-    -mmacos-version-min=${MACOS_VERSION_MIN} -lsystem_info -lsystem_asl -lsystem_kernel)
+    -mmacos-version-min=${MACOS_VERSION_MIN} -lsystem_info -lsystem_asl -lsystem_kernel
+    -lsystem_c -lsystem_malloc -ldispatch -lsystem_blocks -lxpc -ldyld)
 
 add_custom_command(TARGET copyfile POST_BUILD
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/

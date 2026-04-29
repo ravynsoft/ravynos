@@ -39,9 +39,10 @@ target_link_options(libsystem_malloc PRIVATE
     -mmacos-version-min=${MACOS_VERSION_MIN} -Wl,-dylib
     -Wl,-install_name,/usr/lib/system/libsystem_malloc.dylib
     -Wl,-current_version,283 -Wl,-compatibility_version,1.0.0
-    -Wl,-search_paths_first -all_load
+    -Wl,-search_paths_first
     -L${RAVYN_SDKROOT}/usr/lib/system -umbrella System
     -lCrashReporterClient -lsystem_platform -Wl,-upward-lsystem_c
+    -ldyld -lsystem_kernel
     -Wl,-interposable_list,${CMAKE_CURRENT_SOURCE_DIR}/xcodeconfig/interposable.list
 )
 

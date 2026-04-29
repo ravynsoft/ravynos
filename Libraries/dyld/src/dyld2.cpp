@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <pthread.h>
+#include <System/sys/event.h>
 #include <libproc.h>
 #include <sys/param.h>
 #include <mach/mach_time.h> // mach_absolute_time()
@@ -64,12 +65,11 @@
 #include <sys/fsgetpath.h>
 #include <System/sys/content_protection.h>
 
+extern "C" int inDenyList(const char * path);
 
-#if TARGET_OS_SIMULATOR || !__has_include(<libamfi.h>)
+#if TARGET_OS_SIMULATOR || defined(__RAVYNOS__)
 	enum {
 		AMFI_DYLD_INPUT_PROC_IN_SIMULATOR = (1 << 0),
-		AMFI_DYLD_INPUT_PROC_HAS_RESTRICT_SEG = (1 << 1),
-		AMFI_DYLD_INPUT_PROC_IS_ENCRYPTED = (1 << 2),
 	};
 	enum amfi_dyld_policy_output_flag_set {
 		AMFI_DYLD_OUTPUT_ALLOW_AT_PATH = (1 << 0),
@@ -81,16 +81,13 @@
 		AMFI_DYLD_OUTPUT_ALLOW_LIBRARY_INTERPOSING = (1 << 6),
 	};
 	extern "C" int amfi_check_dyld_policy_self(uint64_t input_flags, uint64_t* output_flags);
-
-int amfi_check_dyld_policy_self(uint64_t, uint64_t *) { return -1; }
-
 #else
 	#include <libamfi.h>
 #endif
 
-#if !TARGET_OS_SIMULATOR && !TARGET_OS_DRIVERKIT && !defined(WITHOUT_SANDBOX)
-	#include <sandbox.h>
-	#include <sandbox/private.h>
+#if !defined(WITHOUT_SANDBOX)
+#include <sandbox.h>
+#include <sandbox/private.h>
 #endif
 #if __has_feature(ptrauth_calls)
 	#include <ptrauth.h>
@@ -140,6 +137,8 @@ extern "C" int __fork();
 // not libc header for send() syscall interface
 extern "C" ssize_t __sendto(int, const void *, size_t, int, const struct sockaddr *, socklen_t);
 
+
+// ARM and x86_64 are the only architecture that use cpu-sub-types
 #define CPU_SUBTYPES_SUPPORTED  ((__arm__ || __arm64__ || __x86_64__) && !TARGET_OS_SIMULATOR)
 
 #if __LP64__
@@ -351,7 +350,7 @@ enum class ClosureMode {
 	PreBuiltOnly
 };
 
-static ClosureMode					sClosureMode = ClosureMode::Unset;
+static ClosureMode					sClosureMode = ClosureMode::Off /*Unset*/;
 static bool							sForceInvalidSharedCacheClosureFormat = false;
 static uint64_t						launchTraceID = 0;
 
@@ -1300,7 +1299,7 @@ static void setRunInitialzersOldWay()
 
 static bool sandboxBlocked(const char* path, const char* kind)
 {
-#if TARGET_OS_SIMULATOR || TARGET_OS_DRIVERKIT || defined(WITHOUT_SANDBOX)
+#if TARGET_OS_SIMULATOR || WITHOUT_SANDBOX
 	// sandbox calls not yet supported in simulator runtime
 	return false;
 #else
@@ -2417,11 +2416,11 @@ static void getHostInfo(const macho_header* mainExecutableMH, uintptr_t mainExec
 	struct host_basic_info info;
 	mach_msg_type_number_t count = HOST_BASIC_INFO_COUNT;
 	mach_port_t hostPort = mach_host_self();
-	kern_return_t result = host_info(hostPort, HOST_BASIC_INFO, (host_info_t)&info, &count);
+	kern_return_t result = KERN_SUCCESS; //host_info(hostPort, HOST_BASIC_INFO, (host_info_t)&info, &count);
 	if ( result != KERN_SUCCESS )
 		throw "host_info() failed";
 	sHostCPU		= info.cpu_type;
-	sHostCPUsubtype = info.cpu_subtype;
+	sHostCPUsubtype = CPU_SUBTYPE_X86_64_ALL; //info.cpu_subtype;
 	mach_port_deallocate(mach_task_self(), hostPort);
   #if __x86_64__
 	  // host_info returns CPU_TYPE_I386 even for x86_64.  Override that here so that
@@ -3046,7 +3045,11 @@ static bool findInSharedCacheImage(const char* path, bool searchByPath, const st
 
 bool inSharedCache(const char* path)
 {
+#ifdef __RAVYNOS__
+	return false;
+#else
 	return dyld3::pathIsInSharedCacheImage(sSharedCacheLoadInfo, path);
+#endif
 }
 
 
@@ -3368,11 +3371,13 @@ static ImageLoader* loadPhase5load(const char* path, const char* orgPath, const 
 {
 	//dyld::log("%s(%s, %p)\n", __func__ , path, exceptions);
 
+#ifndef __RAVYNOS__
 	// <rdar://problem/47682983> don't allow file system relative paths in hardened programs
 	if ( (exceptions != NULL) &&  !gLinkContext.allowEnvVarsPath && isFileRelativePath(path) ) {
 		exceptions->push_back("file system relative paths not allowed in hardened programs");
 		return NULL;
 	}
+#endif
 
 #if SUPPORT_ACCELERATE_TABLES
 	if ( sAllCacheImagesProxy != NULL ) {
@@ -3555,7 +3560,7 @@ static ImageLoader* loadPhase5check(const char* path, const char* orgPath, const
 // open or check existing
 static ImageLoader* loadPhase5(const char* path, const char* orgPath, const LoadContext& context, unsigned& cacheIndex, std::vector<const char*>* exceptions)
 {
-	//dyld::log("%s(%s, %p)\n", __func__ , path, exceptions);
+	// dyld::log("%s(%s, %p)\n", __func__ , path, exceptions);
 	
 	// check for specific dylib overrides
 	for (std::vector<DylibOverride>::iterator it = sDylibOverrides.begin(); it != sDylibOverrides.end(); ++it) {
@@ -3961,8 +3966,10 @@ ImageLoader* load(const char* path, const LoadContext& context, unsigned& cacheI
 		if ( context.dontLoad ) {
 			return NULL;
 		}
-		else
+		else {
+		        dyld::log("dyld: could not find image %s\n", path);
 			throw "image not found";
+                }
 	}
 	else {
 		const char* msgStart = "no suitable image found.  Did find:";
@@ -4727,7 +4734,7 @@ static void setContext(const macho_header* mainExecutableMH, int argc, const cha
 	gLinkContext.dynamicInterposeArray	= NULL;
 	gLinkContext.dynamicInterposeCount	= 0;
 	gLinkContext.prebindUsage			= ImageLoader::kUseAllPrebinding;
-	gLinkContext.sharedRegionMode		= ImageLoader::kUseSharedRegion;
+	gLinkContext.sharedRegionMode		= ImageLoader::kDontUseSharedRegion;
 }
 
 
@@ -5097,7 +5104,7 @@ static void configureProcessRestrictions(const macho_header* mainExecutableMH, c
 	uint64_t amfiInputFlags = 0;
 #if TARGET_OS_SIMULATOR
 	amfiInputFlags |= AMFI_DYLD_INPUT_PROC_IN_SIMULATOR;
-#elif __MAC_OS_X_VERSION_MIN_REQUIRED
+#elif __MAC_OS_X_VERSION_MIN_REQUIRED && !defined(__RAVYNOS__)
 	if ( hasRestrictedSegment(mainExecutableMH) )
 		amfiInputFlags |= AMFI_DYLD_INPUT_PROC_HAS_RESTRICT_SEG;
 #elif __IPHONE_OS_VERSION_MIN_REQUIRED
@@ -6176,7 +6183,7 @@ static ClosureMode getPlatformDefaultClosureMode() {
 	return ClosureMode::Off;
 #else
 	// x86_64 defaults to using the shared cache closures
-	return ClosureMode::PreBuiltOnly;
+	return ClosureMode::Off; //ClosureMode::PreBuiltOnly;
 #endif // __i386__
 	
 #else
@@ -6186,11 +6193,6 @@ static ClosureMode getPlatformDefaultClosureMode() {
 	else
 		return ClosureMode::Off;
 #endif // __MAC_OS_X_VERSION_MIN_REQUIRED
-}
-
-static bool inDenyList(const char*)
-{
-	return false;
 }
 
 //
@@ -6204,36 +6206,31 @@ _main(const macho_header* mainExecutableMH, uintptr_t mainExecutableSlide,
 		int argc, const char* argv[], const char* envp[], const char* apple[], 
 		uintptr_t* startGlue)
 {
-	printf("[dyld] _main: entry, mainExecutableMH=%p, slide=0x%lx\n", mainExecutableMH, mainExecutableSlide);
-
+#if KDEBUG
 	if (dyld3::kdebug_trace_dyld_enabled(DBG_DYLD_TIMING_LAUNCH_EXECUTABLE)) {
 		launchTraceID = dyld3::kdebug_trace_dyld_duration_start(DBG_DYLD_TIMING_LAUNCH_EXECUTABLE, (uint64_t)mainExecutableMH, 0, 0);
 	}
-	printf("[dyld] kdebug_trace_dyld_enabled\n");
+#endif // KDEBUG
 
 	//Check and see if there are any kernel flags
 	dyld3::BootArgs::setFlags(hexToUInt64(_simple_getenv(apple, "dyld_flags"), nullptr));
-	printf("[dyld] BootArgs::setFlags done\n");
 
     // Grab the cdHash of the main executable from the environment
-	uint8_t mainExecutableCDHashBuffer[20];
+    	uint8_t mainExecutableCDHashBuffer[20];
 	const uint8_t* mainExecutableCDHash = nullptr;
 	if ( hexToBytes(_simple_getenv(apple, "executable_cdhash"), 40, mainExecutableCDHashBuffer) )
 		mainExecutableCDHash = mainExecutableCDHashBuffer;
-	printf("[dyld] executable_cdhash parsed\n");
 
 #if !TARGET_OS_SIMULATOR
 	// Trace dyld's load
 	notifyKernelAboutImage((macho_header*)&__dso_handle, _simple_getenv(apple, "dyld_file"));
 	// Trace the main executable's load
 	notifyKernelAboutImage(mainExecutableMH, _simple_getenv(apple, "executable_file"));
-	printf("[dyld] notifyKernelAboutImage done\n");
 #endif
 
 	uintptr_t result = 0;
 	sMainExecutableMachHeader = mainExecutableMH;
 	sMainExecutableSlide = mainExecutableSlide;
-	printf("[dyld] main executable saved\n");
 
 
 	// Set the platform ID in the all image infos so debuggers can tell the process type
@@ -6297,7 +6294,6 @@ _main(const macho_header* mainExecutableMH, uintptr_t mainExecutableSlide,
 	CRSetCrashLogMessage("dyld: launch started");
 
 	setContext(mainExecutableMH, argc, argv, envp, apple);
-	printf("[dyld] setContext done\n");
 
 	// Pickup the pointer to the exec path.
 	sExecPath = _simple_getenv(apple, "executable_path");
@@ -6503,30 +6499,24 @@ _main(const macho_header* mainExecutableMH, uintptr_t mainExecutableSlide,
 		// try using launch closure
 		if ( mainClosure != nullptr ) {
 			CRSetCrashLogMessage("dyld3: launch started");
-			printf("[dyld] launchWithClosure starting\n");
 			bool launched = launchWithClosure(mainClosure, sSharedCacheLoadInfo.loadAddress, (dyld3::MachOLoaded*)mainExecutableMH,
 											  mainExecutableSlide, argc, argv, envp, apple, &result, startGlue);
-			printf("[dyld] launchWithClosure returned, launched=%d, result=%p\n", launched, (void*)result);
 			if ( !launched && allowClosureRebuilds ) {
 				// closure is out of date, build new one
 				mainClosure = buildLaunchClosure(mainExecutableCDHash, mainFileInfo, envp);
 				if ( mainClosure != nullptr ) {
 					launched = launchWithClosure(mainClosure, sSharedCacheLoadInfo.loadAddress, (dyld3::MachOLoaded*)mainExecutableMH,
 												 mainExecutableSlide, argc, argv, envp, apple, &result, startGlue);
-					printf("[dyld] launchWithClosure retry returned, launched=%d, result=%p\n", launched, (void*)result);
 				}
 			}
 			if ( launched ) {
 				gLinkContext.startedInitializingMainExecutable = true;
-				printf("[dyld] About to return result=%p to kernel/init\n", (void*)result);
 #if __has_feature(ptrauth_calls)
 				// start() calls the result pointer as a function pointer so we need to sign it.
 				result = (uintptr_t)__builtin_ptrauth_sign_unauthenticated((void*)result, 0, 0);
-				printf("[dyld] After ptrauth_sign, result=%p\n", (void*)result);
 #endif
 				if (sSkipMain)
 					result = (uintptr_t)&fake_main;
-				printf("[dyld] Returning control to _main. Entry point is at %p\n", (void*)result);
 				return result;
 			}
 			else {

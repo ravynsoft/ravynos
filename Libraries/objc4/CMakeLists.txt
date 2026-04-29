@@ -43,6 +43,7 @@ add_library(objc SHARED
 	./runtime/objc-zalloc.mm
 	./runtime/objc-cache-old.mm
 	./runtime/objc-sel-old.mm
+	./macho.c
 
 	./runtime/objc-probes.d # FIXME: need to generate .h from this
 )
@@ -62,14 +63,16 @@ target_compile_options(objc PRIVATE --sysroot=${RAVYN_SDKROOT}
 
 target_link_options(objc PRIVATE
     -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
-    -L${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib/system
+    -L${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib/system -umbrella System
     -Wl,-install_name,/usr/lib/libobjc.dylib -Wl,-current_version,228
     -Wl,-compatibility_version,1 -Wl,-order_file,${CMAKE_CURRENT_SOURCE_DIR}/libobjc.order
     -Wl,-interposable_list,${CMAKE_CURRENT_SOURCE_DIR}/interposable.txt
-    -Wl,-sectalign,__DATA,__data,0x1000 -lc++abi -lCrashReporterClient
+    -Wl,-sectalign,__DATA,__data,0x1000 -lc++ -lCrashReporterClient
     -Wl,-unexported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/unexported_symbols
-    -mmacos-version-min=10.15 -Wl,-flat_namespace -Wl,-undefined,warning
-    -lobjc-trampolines -lCrashReporterClient
+    -mmacos-version-min=${MACOS_VERSION_MIN}
+    -lobjc-trampolines -lCrashReporterClient -lsystem_c -lsystem_platform 
+    -lsystem_pthread -lsystem_malloc -lunwind -lsystem_blocks -lsystem_kernel
+    -ldispatch -ldyld
 )
 target_include_directories(objc PRIVATE runtime
     ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
@@ -92,8 +95,9 @@ add_custom_command(
 	    --sysroot=${RAVYN_SDKROOT} -fpic -shared -Wl,-dylib
 	    -o ${CMAKE_CURRENT_BINARY_DIR}/libobjc-trampolines.dylib
         -Wl,-install_name,/usr/lib/libobjc-trampolines.dylib
-        -Wl,-current_version,228
-        -mmacos-version-min=10.15
+	-Wl,-current_version,228 -umbrella System
+	-L${RAVYN_SDKROOT}/usr/lib/system -ldyld
+	-mmacos-version-min=${MACOS_VERSION_MIN}
 	    ${CMAKE_CURRENT_SOURCE_DIR}/runtime/objc-blocktramps-x86_64.s
 	    && ${CMAKE_COMMAND} -E make_directory ${SYSROOT_DIR}/usr/lib ${RAVYN_SDKROOT}/usr/lib
 	    && ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/libobjc-trampolines.dylib

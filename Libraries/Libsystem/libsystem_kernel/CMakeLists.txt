@@ -72,6 +72,7 @@ set(libmach_inc
     -I${CMAKE_CURRENT_BINARY_DIR}/mig_hdr/include/mach
     -I${CMAKE_CURRENT_BINARY_DIR}/mig_hdr/include
     -I${CMAKE_CURRENT_BINARY_DIR}/mig_hdr/include/servers
+    -I${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk
 )
 set(defs -Wno-incompatible-sysroot -DLIBSYSCALL_INTERFACE -DPRIVATE)
 add_custom_command(
@@ -88,7 +89,7 @@ add_custom_command(
         set -e $<SEMICOLON>
         for f in ${CMAKE_CURRENT_BINARY_DIR}/obj/*User.c$<SEMICOLON>
         do
-           ${CC} ${common_defs} ${common_opts}
+	    ${CC} ${common_defs} ${common_opts}
                 ${libmach_inc} -o $$f.o -c $$f $<SEMICOLON>
         done &&
         ${TOOLS}/llvm-ar rcs ${CMAKE_CURRENT_BINARY_DIR}/libmach.a
@@ -170,7 +171,6 @@ add_library(libkernel STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/mach/mig_deallocate.c
     ${CMAKE_CURRENT_SOURCE_DIR}/mach/mig_reply_setup.c
     ${CMAKE_CURRENT_SOURCE_DIR}/mach/mig_reply_port.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/mach/restartable.defs
     ${CMAKE_CURRENT_SOURCE_DIR}/mach/mig_strncpy.c
     ${CMAKE_CURRENT_SOURCE_DIR}/mach/ms_thread_switch.c
     ${CMAKE_CURRENT_SOURCE_DIR}/mach/panic.c
@@ -238,7 +238,6 @@ add_library(libkernel STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/__commpage_gettimeofday.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/__get_cpu_capabilities.s
 
-    # 249C61281194815000ED73F3 - sources of D2AAC0630554660B00DB518D Libsyscall_static -> libsystem_kernel.a
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/_libc_funcptr.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/_libkernel_init.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/string/strlen.c

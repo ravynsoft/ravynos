@@ -30,7 +30,6 @@ set(libplatform_sources
     string/generic/strncmp.c
     force_libplatform_to_build.c
     os/alloc_once.c
-    #os/atomic.c  # only for iphone
     os/semaphore.c
     ucontext/x86_64/_ctx_start.s
     ucontext/x86_64/_setcontext.s
@@ -53,7 +52,6 @@ set(libplatform_sources
     atomics/x86_64/pfz.s
     atomics/init.c
     introspection/introspection.c
-    ../../dyld/src/dyld_stub_binder.s
 )
 
 set(libplatform_incs
@@ -86,7 +84,11 @@ set_source_files_properties(_setcontext.s os/lock.c
     TARGET_DIRECTORY libsystem_platform PROPERTIES
     COMPILE_OPTIONS "-include${RAVYN_SDKROOT}/usr/include/stdatomic.h")
 
-target_sources(libplatform PRIVATE ${libplatform_sources})
+set_source_files_properties(_setcontext.s os/lock.c
+    TARGET_DIRECTORY libplatform PROPERTIES
+    COMPILE_OPTIONS "-include${RAVYN_SDKROOT}/usr/include/stdatomic.h")
+
+target_sources(libplatform PRIVATE ${libplatform_sources} os/lock.c)
 target_include_directories(libplatform PRIVATE ${libplatform_incs})
 target_compile_definitions(libplatform PRIVATE ${libplatform_defs}
     VARIANT_STATIC VARIANT_NO_RESOLVERS)
@@ -100,7 +102,7 @@ target_link_options(libsystem_platform PRIVATE
     -Wl,-search_paths_first -umbrella System
     -L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/lib
     -L${ROOT_BINARY_DIR}/Libraries/llvm_target/compiler-rt/lib/ravynos
-    -lsystem_kernel
+    -lsystem_kernel -ldyld
     -Wl,-alias_list,${CMAKE_CURRENT_SOURCE_DIR}/xcodeconfig/libplatform.aliases
 )
 

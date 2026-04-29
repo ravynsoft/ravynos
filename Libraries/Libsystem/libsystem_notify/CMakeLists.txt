@@ -30,9 +30,11 @@ target_compile_options(libsystem_notify PRIVATE
 target_link_options(libsystem_notify PRIVATE
     -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib -umbrella System
     -L${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib/system
-    -Wl,-all_load -Wl,-current_version,241 -Wl,-compatibility_version,1
+    -Wl,-current_version,241 -Wl,-compatibility_version,1
     -Wl,-install_name,/usr/lib/system/libsystem_notify.dylib
-    -mmacos-version-min=${MACOS_VERSION_MIN} -lxpc)
+    -mmacos-version-min=${MACOS_VERSION_MIN} -lxpc -lsystem_blocks
+    -lsystem_c -lsystem_kernel -lsystem_platform -lsystem_asl -lsystem_malloc
+    -ldispatch -llaunch -ldyld)
 
 add_custom_command(
     OUTPUT

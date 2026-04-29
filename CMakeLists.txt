@@ -32,6 +32,7 @@ add_subdirectory(Kernel)
 add_subdirectory(Libraries)
 add_subdirectory(Frameworks)
 add_subdirectory(PrivateFrameworks)
+add_subdirectory(BSD)
 
 add_dependencies(Darwin Bootstrap libSystem xnu_headers)
 add_dependencies(Bootstrap BootstrapTools ravynOS_sdk)

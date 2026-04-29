@@ -18,7 +18,7 @@ include_directories(
     ${ROOT_SOURCE_DIR}/Libraries/Libsystem/liblaunch)
 
 add_link_options(-mmacos-version-min=${MACOS_VERSION_MIN}
-    -Wl,-all_load -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib)
+    -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib)
 
 # ----------------------------------------------------------------------------
 #                           libsystem_dnssd.dylib
@@ -45,7 +45,8 @@ target_link_options(libsystem_dnssd PRIVATE
     -L${RAVYN_SDKROOT}/usr/lib
     -Wl,-install_name,/usr/lib/system/libsystem_dnssd.dylib
     -Wl,-current_version,1096.100.3 -Wl,-compatibility_version,1
-    -lsystem_platform -lsystem_asl)
+    -ldispatch -lsystem_malloc -lsystem_platform -lsystem_asl
+    -lsystem_c -lsystem_kernel -ldyld)
 
 add_custom_command(TARGET libsystem_dnssd POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libsystem_dnssd>

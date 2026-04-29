@@ -1365,14 +1365,14 @@ void* ImageLoaderMachO::getEntryFromLC_UNIXTHREAD() const
 	for (uint32_t i = 0; i < cmd_count; ++i) {
 		if ( cmd->cmd == LC_UNIXTHREAD ) {
 	#if __i386__
-			const uint32_t* regs32 = (uint32_t*)(((char*)cmd) + 16);
-			void* entry = (void*)(regs32[10] + fSlide); // i386_thread_state_t.eip
+			const i386_thread_state_t* registers = (i386_thread_state_t*)(((char*)cmd) + 16);
+			void* entry = (void*)(registers->eip + fSlide);
 			// <rdar://problem/8543820&9228031> verify entry point is in image
 			if ( this->containsAddress(entry) )
 				return entry;
 	#elif __x86_64__
-			const uint64_t* regs64 = (uint64_t*)(((char*)cmd) + 16);
-			void* entry = (void*)(regs64[16] + fSlide); // x86_thread_state64_t.rip
+			const x86_thread_state64_t* registers = (x86_thread_state64_t*)(((char*)cmd) + 16);
+			void* entry = (void*)(registers->rip + fSlide);
 			// <rdar://problem/8543820&9228031> verify entry point is in image
 			if ( this->containsAddress(entry) )
 				return entry;
@@ -2320,14 +2320,17 @@ void ImageLoaderMachO::doModInitFunctions(const LinkContext& context)
 							if ( ! dyld::gProcessInfo->libSystemInitialized ) {
 								// <rdar://problem/17973316> libSystem initializer must run first
 								const char* installPath = getInstallPath();
-								if ( (installPath == NULL) || (strcmp(installPath, libSystemPath(context)) != 0) )
+								if ( (installPath == NULL) || (strcmp(installPath, libSystemPath(context)) != 0) ) {
+									//dyld::log("initializer in image %s does not link with libSystem\n", this->getPath());
 									dyld::throwf("initializer in image (%s) that does not link with libSystem.dylib\n", this->getPath());
+								}
 							}
 							if ( context.verboseInit )
 								dyld::log("dyld: calling initializer function %p in %s\n", func, this->getPath());
 							bool haveLibSystemHelpersBefore = (dyld::gLibSystemHelpers != NULL);
 							{
 								dyld3::ScopedTimer(DBG_DYLD_TIMING_STATIC_INITIALIZER, (uint64_t)fMachOData, (uint64_t)func, 0);
+								//dyld::log("calling init func (%p, %s)\n", func, this->getPath());
 								func(context.argc, context.argv, context.envp, context.apple, &context.programVars);
 							}
 							bool haveLibSystemHelpersAfter = (dyld::gLibSystemHelpers != NULL);
@@ -2518,7 +2521,7 @@ intptr_t ImageLoaderMachO::assignSegmentAddresses(const LinkContext& context)
 				lowAddr = segLow;
 			if ( segHigh > highAddr )
 				highAddr = segHigh;
-
+				
 			if ( needsToSlide || !imageHasPreferredLoadAddress || inPIE || !reserveAddressRange(segPreferredLoadAddress(i), segSize(i)) )
 				needsToSlide = true;
 		}
@@ -2594,7 +2597,9 @@ void ImageLoaderMachO::mapSegments(int fd, uint64_t offsetInFat, uint64_t lenInF
 	specread.fsr_offset = offsetInFat;
 	specread.fsr_length = lenInFat;
 	specread.fsr_flags  = 0;
+#ifndef __RAVYNOS__
 	fcntl(fd, F_SPECULATIVE_READ, &specread);
+#endif
 	if ( context.verboseMapping )
 		dyld::log("dyld: Speculatively read offset=0x%08llX, len=0x%08llX, path=%s\n", offsetInFat, lenInFat, this->getPath());
 
@@ -2674,7 +2679,7 @@ void ImageLoaderMachO::mapSegments(const void* memoryImage, uint64_t imageLen, c
 	this->setSlide(slide);
 	// set R/W permissions on all segments at slide location
 	for(unsigned int i=0, e=segmentCount(); i < e; ++i) {
-		segProtect(i, context);
+		segProtect(i, context);		
 	}
 }
 
