@@ -77,7 +77,8 @@ target_link_options(libdyld PRIVATE
     --sysroot=${RAVYN_SDKROOT} -isysroot${RAVYN_SDKROOT}
     -Wl,-no_inits -Wl,-no_warn_unused_dylibs
     "-Wl,-unexported_symbol,__ZNSt3*"
-    -mmacos-version-min=10.15 -Wl,-install_name,/usr/lib/system/libdyld.dylib
+    -mmacos-version-min=${MACOS_VERSION_MIN}
+    -Wl,-install_name,/usr/lib/system/libdyld.dylib
     -Wl,-flat_namespace -Wl,-undefined,suppress
     -Wl,-current_version,732.2
     -L${RAVYN_SDKROOT}/usr/lib/system -umbrella System
@@ -204,7 +205,7 @@ add_custom_command(OUTPUT libdyld.a
     COMMAND ${CMAKE_AR} rcs libdyld.a ${libdyld_files}
     DEPENDS ${libdyld_files})
 add_custom_target(libdyld_static DEPENDS libdyld.a)
-add_dependencies(dyld libdyld_static)
+add_dependencies(dyld libdyld_static libpthread_dyld)
 
 target_link_options(dyld PRIVATE
     --target=${CpuArch}-apple-darwin
@@ -218,15 +219,12 @@ target_link_options(dyld PRIVATE
     -Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/src/dyld.exp
     -Wl,-section_order,__DATA,__all_image_info:__nl_symbol_ptr:__got:__auth_ptr:__const:__crash_info:__data:__bss:__common
     ${CMAKE_CURRENT_BINARY_DIR}/libdyld.a
-    -L${RAVYN_SDKROOT}/usr/local/lib/dyld -lc
+    -L${RAVYN_SDKROOT}/usr/local/lib/dyld -lc -lpthread -lplatform
     -L${ROOT_BINARY_DIR}/Libraries/Libsystem/libsystem_c -lFortifySource -lNetBSD -lBase -lPlatform
-    ${ROOT_BINARY_DIR}/Libraries/Libsystem/libsystem_pthread/CMakeFiles/libsystem_pthread.dir/pthread_mutex.c.o
-    ${ROOT_BINARY_DIR}/Libraries/Libsystem/libsystem_pthread/CMakeFiles/libsystem_pthread.dir/pthread_rwlock.c.o
     -L${RAVYN_SDKROOT}/usr/lib/system -lCrashReporterClient
     -L${CMAKE_CURRENT_BINARY_DIR}/../llvm_target/libcxx/lib
     -L${RAVYN_SDKROOT}/usr/lib -lunwind -lc++ -lc++abi
-    -L${RAVYN_SDKROOT}/usr/local/lib/system -lsystem_platform
-    -L${ROOT_BINARY_DIR}/Libraries/Libsystem/libsystem_kernel -lsyscalls -lmach -lsystem_kernel
+    -L${RAVYN_SDKROOT}/usr/local/lib/kernel -lkernel 
 )
 
 set_target_properties(dyld PROPERTIES

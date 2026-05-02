@@ -1318,7 +1318,7 @@ int _dyld_func_lookup(const char* name, void** address)
 
 static void registerThreadHelpers(const dyld::LibSystemHelpers* helpers)
 {
-	dyld::log("registerThreadHelpers(%p)\n", helpers);
+	//dyld::log("registerThreadHelpers(%p)\n", helpers);
 	dyld::gLibSystemHelpers = helpers;
 	
 #if !SUPPORT_ZERO_COST_EXCEPTIONS
