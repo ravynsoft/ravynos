@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+<title>terminal_interface-curses-menus-item_user_data.adb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style type="text/css">
+*.comment {
+	color: green;
+}
+*.symbol {
+	color: red;
+}
+</style>
+</head>
+<body>
+<hr><div style="text-align:center"><h1> File : terminal_interface-curses-menus-item_user_data.adb </h1></div><hr>
+<pre>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                           <strong>GNAT</strong> ncurses Binding                           --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--               Terminal_Interface.Curses.Menus.Item_User_Data             --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                                 B O D Y                                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>-- Copyright 2018,2020 Thomas E. Dickey                                     --</em></span>
+<span class="comment"><em>-- Copyright 1999-2009,2014 Free Software Foundation, Inc.                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Permission is hereby granted, free of charge, to any person obtaining a  --</em></span>
+<span class="comment"><em>-- copy of this software and associated documentation files (the            --</em></span>
+<span class="comment"><em>-- "Software"), to deal in the Software without restriction, including      --</em></span>
+<span class="comment"><em>-- without limitation the rights to use, copy, modify, merge, publish,      --</em></span>
+<span class="comment"><em>-- distribute, distribute with modifications, sublicense, and/or sell       --</em></span>
+<span class="comment"><em>-- copies of the Software, and to permit persons to whom the Software is    --</em></span>
+<span class="comment"><em>-- furnished to do so, subject to the following conditions:                 --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- The above copyright notice and this permission notice shall be included  --</em></span>
+<span class="comment"><em>-- in all copies or substantial portions of the Software.                   --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  --</em></span>
+<span class="comment"><em>-- OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               --</em></span>
+<span class="comment"><em>-- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   --</em></span>
+<span class="comment"><em>-- IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   --</em></span>
+<span class="comment"><em>-- DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    --</em></span>
+<span class="comment"><em>-- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    --</em></span>
+<span class="comment"><em>-- THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Except as contained in this notice, the name(s) of the above copyright   --</em></span>
+<span class="comment"><em>-- holders shall not be used in advertising or otherwise to promote the     --</em></span>
+<span class="comment"><em>-- sale, use or other dealings in this Software without prior written       --</em></span>
+<span class="comment"><em>-- authorization.                                                           --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--  Author:  Juergen Pfeifer, 1996</em></span>
+<span class="comment"><em>--  Version Control:</em></span>
+<span class="comment"><em>--  @Revision: 1.16 @</em></span>
+<span class="comment"><em>--  Binding Version 01.00</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<b>with</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-aux__ads.htm#ref_46_35">Aux</a>; <b>use</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-aux__ads.htm#ref_46_35">Aux</a>;
+
+<b>package</b> <b>body</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-menus__ads.htm#ref_46_35">Menus</a>.<span class="symbol"><a name="ref_44_46" href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_47_41">Item_User_Data</a></span> <b>is</b>
+
+   <b>procedure</b> <span class="symbol"><a name="ref_46_14" href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_59_14">Set_User_Data</a></span> (<span class="symbol"><a name="ref_46_29" href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_59_29">Itm</a></span>  : <a href="terminal_interface-curses-menus__ads.htm#ref_52_9">Item</a>;
+                            <span class="symbol"><a name="ref_47_29" href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_60_29">Data</a></span> : <a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_46_9">User_Access</a>)
+   <b>is</b>
+      <b>function</b> <span class="symbol"><a name="ref_49_16">Set_Item_Userptr</a></span> (<span class="symbol"><a name="ref_49_34">Itm</a></span>  : <a href="terminal_interface-curses-menus__ads.htm#ref_52_9">Item</a>;
+                                 <span class="symbol"><a name="ref_50_34">Addr</a></span> : <a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_46_9">User_Access</a>)  <b>return</b> <a href="terminal_interface-curses-aux__ads.htm#ref_70_9">Eti_Error</a>;
+      <b>pragma</b> Import (C, Set_Item_Userptr, "set_item_userptr");
+
+   <b>begin</b>
+      <a href="terminal_interface-curses-aux__ads.htm#ref_87_14">Eti_Exception</a> (<a href="terminal_interface-curses-menus-item_user_data__adb.htm#ref_49_16">Set_Item_Userptr</a> (<a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_59_29">Itm</a>, <a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_60_29">Data</a>));
+   <b>end</b> <a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_59_14">Set_User_Data</a>;
+
+   <b>function</b> <span class="symbol"><a name="ref_57_13" href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_70_13">Get_User_Data</a></span> (<span class="symbol"><a name="ref_57_28" href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_70_28">Itm</a></span>  : <a href="terminal_interface-curses-menus__ads.htm#ref_52_9">Item</a>) <b>return</b> <a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_46_9">User_Access</a>
+   <b>is</b>
+      <b>function</b> <span class="symbol"><a name="ref_59_16">Item_Userptr</a></span> (<span class="symbol"><a name="ref_59_30">Itm</a></span> : <a href="terminal_interface-curses-menus__ads.htm#ref_52_9">Item</a>) <b>return</b> <a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_46_9">User_Access</a>;
+      <b>pragma</b> Import (C, Item_Userptr, "item_userptr");
+   <b>begin</b>
+      <b>return</b> <a href="terminal_interface-curses-menus-item_user_data__adb.htm#ref_59_16">Item_Userptr</a> (<a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_70_28">Itm</a>);
+   <b>end</b> <a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_70_13">Get_User_Data</a>;
+
+   <b>procedure</b> <span class="symbol"><a name="ref_65_14" href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_65_14">Get_User_Data</a></span> (<span class="symbol"><a name="ref_65_29" href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_65_29">Itm</a></span>  : <a href="terminal_interface-curses-menus__ads.htm#ref_52_9">Item</a>;
+                            <span class="symbol"><a name="ref_66_29" href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_66_29">Data</a></span> : <b>out</b> <a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_46_9">User_Access</a>)
+   <b>is</b>
+   <b>begin</b>
+      <a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_66_29">Data</a> := <a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_70_13">Get_User_Data</a> (<a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_65_29">Itm</a>);
+   <b>end</b> <a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_65_14">Get_User_Data</a>;
+
+<b>end</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-menus__ads.htm#ref_46_35">Menus</a>.<a href="terminal_interface-curses-menus-item_user_data__ads.htm#ref_47_41">Item_User_Data</a>;
+</pre></body></html>

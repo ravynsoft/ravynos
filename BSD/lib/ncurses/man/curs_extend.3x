@@ -1,0 +1,139 @@
+.\"***************************************************************************
+.\" Copyright 2018-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 1999-2010,2016 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" Author: Thomas E. Dickey 1999-on
+.\"
+.\" $Id: curs_extend.3x,v 1.67 2025/11/12 00:46:51 tom Exp $
+.TH curs_extend 3X 2025-11-11 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.ie \n(.g \{\
+.ds `` \(lq
+.ds '' \(rq
+.\}
+.el \{\
+.ie t .ds `` ``
+.el   .ds `` ""
+.ie t .ds '' ''
+.el   .ds '' ""
+.\}
+.SH NAME
+\fB\%curses_version\fP,
+\fB\%use_extended_names\fP \-
+miscellaneous \fIncurses\fR extensions
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>
+.PP
+\fBconst char * curses_version(void);
+\fBint use_extended_names(bool \fIbf\fP);
+.fi
+.SH DESCRIPTION
+These
+.I \%ncurses
+extensions to the
+.I curses
+library do not fit easily into other functional categories.
+.SS curses_version
+.B \%curses_version
+returns a pointer to a string containing the library's name
+and version number,
+including its patch level,
+for example
+\*(``ncurses 6.5.20240720\*(''.
+.SS use_extended_names
+.B \%use_extended_names
+configures whether the library recognizes
+user-defined or nonstandard
+.I \%term\%info
+capability names that may be compiled into terminal type descriptions
+via the \fB\%curs_terminfo\fP(3X) or \fB\%curs_termcap\fP(3X) interfaces.
+Normally these names are available for use,
+since the essential decision
+is made through use of \fB\%@TIC@\fP(1)'s
+.B \-x
+option to include such extensions in terminal type descriptions.
+.B \%use_extended_names(FALSE)
+prevents
+.I \%ncurses
+from recognizing these capabilities
+to ensure compatibility with other implementations of
+.IR curses .
+.SH RETURN VALUE
+.B \%curses_version
+returns a constant string.
+.PP
+.B \%use_extended_names
+returns the previous state of extended capability name recognition,
+allowing you to save this property and restore it.
+.SH NOTES
+The pointer returned by
+.B \%curses_version
+corresponds to statically allocated memory;
+do not attempt to \fIfree\fP(3) it.
+.SH EXTENSIONS
+These functions are
+.I \%ncurses
+extensions,
+and are not found in SVr4
+.IR curses ,
+4.4BSD
+.IR curses ,
+or any other previous
+.I curses
+implementation.
+.SH PORTABILITY
+Applications employing
+.I \%ncurses
+extensions should condition their use on the visibility of the
+.B \%NCURSES_VERSION
+preprocessor macro.
+.PP
+NetBSD 9 added a
+.I \%curses_version
+function
+that intentionally returns a string devoid of version information.
+.\" See https://mail-index.netbsd.org/tech-userlevel/2019/08/27/\
+.\" msg012068.html and follow-up messages.
+.SH AUTHORS
+Thomas Dickey
+.SH SEE ALSO
+.I \%ncurses
+offers several other extensions to the X/Open Curses API.
+.PP
+\fB\%curs_getch\fP(3X),
+\fB\%curs_inopts\fP(3X),
+\fB\%curs_mouse\fP(3X),
+\fB\%curs_print\fP(3X),
+\fB\%curs_util\fP(3X),
+\fB\%default_colors\fP(3X),
+\fB\%define_key\fP(3X),
+\fB\%keybound\fP(3X),
+\fB\%keyok\fP(3X),
+\fB\%new_pair\fP(3X),
+\fB\%resizeterm\fP(3X),
+\fB\%wresize\fP(3X)

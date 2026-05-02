@@ -44,6 +44,7 @@
 /*
  * Editline and history functions (and glue).
  */
+#include "shims.h"
 #include "alias.h"
 #include "exec.h"
 #include "shell.h"

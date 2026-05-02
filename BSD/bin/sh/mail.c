@@ -34,6 +34,7 @@
  * Routines to check for mail.  (Perhaps make part of main.c?)
  */
 
+#include "shims.h"
 #include "shell.h"
 #include "mail.h"
 #include "var.h"

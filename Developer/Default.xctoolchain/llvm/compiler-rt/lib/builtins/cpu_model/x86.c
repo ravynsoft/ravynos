@@ -754,7 +754,12 @@ static void getAvailableFeatures(unsigned ECX, unsigned EDX, unsigned MaxLeaf,
 #ifndef _WIN32
 __attribute__((visibility("hidden")))
 #endif
-int __cpu_indicator_init(void) CONSTRUCTOR_ATTRIBUTE;
+int __cpu_indicator_init(void);
+
+// Lazy one-time init state for __cpu_indicator_init:
+// 0 = uninitialized, 1 = initializing, 2 = initialized.
+static volatile int __cpu_model_init_state = 0;
+static volatile int __cpu_model_init_result = 0;
 
 #ifndef _WIN32
 __attribute__((visibility("hidden")))
@@ -771,26 +776,37 @@ __attribute__((visibility("hidden")))
 #endif
 unsigned int __cpu_features2 = 0;
 
-// A constructor function that is sets __cpu_model and __cpu_features2 with
-// the right values.  This needs to run only once.  This constructor is
-// given the highest priority and it should run before constructors without
-// the priority set.  However, it still runs after ifunc initializers and
-// needs to be called explicitly there.
+// A lazy initializer that sets __cpu_model and __cpu_features2 the first time
+// it is called, preserving idempotent behavior for repeated calls.
+int __cpu_indicator_init(void) {
+  if (__cpu_model_init_state == 2)
+    return __cpu_model_init_result;
 
-int CONSTRUCTOR_ATTRIBUTE __cpu_indicator_init(void) {
+  if (!__sync_bool_compare_and_swap(&__cpu_model_init_state, 0, 1)) {
+    while (__cpu_model_init_state == 1)
+      ;
+    return __cpu_model_init_result;
+  }
+
   unsigned EAX, EBX, ECX, EDX;
   unsigned MaxLeaf = 5;
   unsigned Vendor;
   unsigned Model, Family;
   unsigned Features[(CPU_FEATURE_MAX + 31) / 32] = {0};
 
-  // This function needs to run just once.
-  if (__cpu_model.__cpu_vendor)
+  if (__cpu_model.__cpu_vendor) {
+    __cpu_model_init_result = 0;
+    __sync_synchronize();
+    __cpu_model_init_state = 2;
     return 0;
+  }
 
   if (!isCpuIdSupported() ||
       getX86CpuIDAndInfo(0, &MaxLeaf, &Vendor, &ECX, &EDX) || MaxLeaf < 1) {
     __cpu_model.__cpu_vendor = VENDOR_OTHER;
+    __cpu_model_init_result = -1;
+    __sync_synchronize();
+    __cpu_model_init_state = 2;
     return -1;
   }
 
@@ -823,6 +839,9 @@ int CONSTRUCTOR_ATTRIBUTE __cpu_indicator_init(void) {
   assert(__cpu_model.__cpu_type < CPU_TYPE_MAX);
   assert(__cpu_model.__cpu_subtype < CPU_SUBTYPE_MAX);
 
+  __cpu_model_init_result = 0;
+  __sync_synchronize();
+  __cpu_model_init_state = 2;
   return 0;
 }
 #endif // defined(__GNUC__) || defined(__clang__) || defined(_MSC_VER)

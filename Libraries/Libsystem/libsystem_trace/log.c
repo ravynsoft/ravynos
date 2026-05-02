@@ -63,6 +63,29 @@ os_log_debug_enabled(os_log_t log)
     return true; /* FIXME: Implement this */
 }
 
+__OSX_AVAILABLE_STARTING(__MAC_10_12, __IPHONE_10_0)
+OS_EXPORT OS_NOTHROW
+bool
+os_log_shim_enabled(void *ret_addr)
+{
+    (void)ret_addr;
+    return true;
+}
+
+__OSX_AVAILABLE_STARTING(__MAC_10_12, __IPHONE_10_0)
+OS_EXPORT OS_NOTHROW
+void
+os_log_with_args(os_log_t oslog, os_log_type_t type, const char *format, va_list args, void *ret_addr)
+{
+    (void)oslog;
+    (void)ret_addr;
+    if (format == NULL)
+        return;
+    fprintf(stderr, "[OS LOG %d] ", type);
+    vfprintf(stderr, format, args);
+    fputc('\n', stderr);
+}
+
 __WATCHOS_AVAILABLE(3.0) __OSX_AVAILABLE(10.12) __IOS_AVAILABLE(10.0) __TVOS_AVAILABLE(10.0)
 OS_EXPORT OS_NOTHROW
 void
@@ -86,3 +109,33 @@ _os_log_internal_driverKit(void *dso, os_log_t log, os_log_type_t type, const ch
     fprintf(stderr, "[OS LOG 0x%p %d] ", dso, type);
     vfprintf(stderr, message, args);
 }
+
+size_t os_log_pack_size(const char* format, ...)
+{
+    /* FIXME: this is just a placeholder for now */
+    static char buf[4096];
+    va_list args;
+    va_start(args, format);
+    int n = vsnprintf(buf, sizeof(buf), format, args);
+    va_end(args);
+    if (n < 0 || n >= (int)sizeof(buf))
+        return (size_t)-1;
+    return (size_t)n;
+}
+
+void os_log_pack_fill(void* pack,
+    size_t pack_size,
+    int saved_errno,
+    const char* format,
+    ...)
+{
+    /* FIXME: this is just a placeholder for now */
+    (void)saved_errno;
+    if ( pack == NULL || pack_size == 0 )
+        return;
+    va_list args;
+    va_start(args, format);
+    vsnprintf((char*)pack, pack_size, format, args);
+    va_end(args);
+}
+

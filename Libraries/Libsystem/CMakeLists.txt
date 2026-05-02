@@ -1,5 +1,5 @@
 add_library(libSystem SHARED)
-target_sources(libSystem PRIVATE init.c CompatibilityHacks.c)
+target_sources(libSystem PRIVATE init.c CompatibilityHacks.c stubs.c)
 set_target_properties(libSystem PROPERTIES
     OUTPUT_NAME "System.B" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
 
@@ -79,6 +79,7 @@ target_compile_options(libSystem PRIVATE
 
 add_dependencies(libdyld libsystem_pthread libsystem_c)
 add_dependencies(libsystem_c libsystem_malloc libsystem_platform)
+add_dependencies(libpthread_dyld libsystem_platform)
 add_dependencies(libsystem_pthread libsystem_platform)
 add_dependencies(libsystem_malloc libsystem_platform CrashReporterClient)
 add_dependencies(libsystem_platform compiler_rt libkernel)
@@ -126,23 +127,28 @@ target_sources(libSystem PRIVATE config libunwind.dylib)
 
 target_link_options(libSystem PRIVATE
     -mmacos-version-min=${MACOS_VERSION_MIN} -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
-    -Wl,-flat_namespace -Wl,-undefined,warning -Wl,-no_warn_inits
     -L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/local/lib/system
-    -L${RAVYN_SDKROOT}/usr/lib
-    -Wl,-install_name,/usr/lib/libSystem.dylib -Wl,-current_version,1254
+    -L${RAVYN_SDKROOT}/usr/lib -Wl,-no_warn_inits
+    -Wl,-install_name,/usr/lib/libSystem.B.dylib -Wl,-current_version,1254
     -Wl,-compatibility_version,1.0.0
-    -rdynamic -nodefaultlibs -Wl,-search_paths_first
-    -Wl,-reexport-lsystem_c -Wl,-reexport-lsystem_blocks
+    -nodefaultlibs -Wl,-dylib -Wl,-search_paths_first
+    -Wl,-reexport-lsystem_c -Wl,-reexport-lsystem_blocks -Wl,-reexport-lsystem_asl
     -Wl,-reexport-lsystem_malloc -Wl,-reexport-lsystem_platform
     -Wl,-reexport-lsystem_darwin -Wl,-reexport-lsystem_pthread
     -Wl,-reexport-lsystem_kernel -Wl,-reexport-lcompiler_rt
-    -Wl,-reexport-lunwind -Wl,-reexport-ldyld -Wl,-reexport-lxpc
+    -Wl,-reexport-lunwind -Wl,-reexport-lxpc -Wl,-reexport-ldyld
     -Wl,-reexport-llaunch -Wl,-reexport-ldispatch -Wl,-reexport-lsystem_m
     -Wl,-reexport-lsystem_notify -Wl,-reexport-lsystem_info -Wl,-reexport-lcopyfile
     -Wl,-reexport-lremovefile -Wl,-reexport-lsystem_trace -Wl,-reexport-lsystem_dnssd
-    #-lsystem_c -lsystem_malloc -lsystem_platform -lsystem_pthread -lsystem_darwin
-    #-lsystem_kernel -lcompiler_rt -ldyld -lc++ -lCrashReporterClient
-)
+    -Wl,-force_load,${RAVYN_SDKROOT}/usr/lib/system/libCrashReporterClient.a
+    #-Wl,-force_load,${ROOT_BINARY_DIR}/Libraries/Libsystem/libsystem_kernel/libmach.a
+    #-Wl,-force_load,${ROOT_BINARY_DIR}/Libraries/Libsystem/libsystem_kernel/libsyscalls.a
+    #-Wl,-force_load,${RAVYN_SDKROOT}/usr/local/lib/system/libc.a
+    -L${CMAKE_CURRENT_BINARY_DIR}/../llvm_target/compiler-rt/lib/ravynos
+    -lclang_rt.builtins-${CpuArch} -ldyld -lsystem_c -lc++
+    -lsystem_platform -lsystem_kernel -lsystem_blocks -lsystem_malloc 
+    -lsystem_info -lsystem_notify -lsystem_trace -lsystem_asl -lsystem_blocks
+    -lsystem_pthread -ldispatch -lxpc -llaunch -lsystem_m)
 
 add_custom_command(TARGET libSystem POST_BUILD
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/create_dylib_symlinks.sh

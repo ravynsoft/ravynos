@@ -4,7 +4,7 @@ set_target_properties(libsystem_platform PROPERTIES
 
 add_library(libplatform STATIC)
 set_target_properties(libplatform PROPERTIES
-    OUTPUT_NAME "platform" PREFIX "libsystem_" SUFFIX ".a")
+    OUTPUT_NAME "platform" PREFIX "lib" SUFFIX ".a")
 
 set(libplatform_sources
     simple/asl.c
@@ -30,7 +30,6 @@ set(libplatform_sources
     string/generic/strncmp.c
     force_libplatform_to_build.c
     os/alloc_once.c
-    #os/atomic.c  # only for iphone
     os/semaphore.c
     ucontext/x86_64/_ctx_start.s
     ucontext/x86_64/_setcontext.s
@@ -53,7 +52,6 @@ set(libplatform_sources
     atomics/x86_64/pfz.s
     atomics/init.c
     introspection/introspection.c
-    ../../dyld/src/dyld_stub_binder.s
 )
 
 set(libplatform_incs
@@ -86,33 +84,37 @@ set_source_files_properties(_setcontext.s os/lock.c
     TARGET_DIRECTORY libsystem_platform PROPERTIES
     COMPILE_OPTIONS "-include${RAVYN_SDKROOT}/usr/include/stdatomic.h")
 
-target_sources(libplatform PRIVATE ${libplatform_sources})
+set_source_files_properties(_setcontext.s os/lock.c
+    TARGET_DIRECTORY libplatform PROPERTIES
+    COMPILE_OPTIONS "-include${RAVYN_SDKROOT}/usr/include/stdatomic.h")
+
+target_sources(libplatform PRIVATE ${libplatform_sources} os/lock.c)
 target_include_directories(libplatform PRIVATE ${libplatform_incs})
 target_compile_definitions(libplatform PRIVATE ${libplatform_defs}
-    VARIANT_STATIC VARIANT_NO_RESOLVERS)
+    VARIANT_STATIC VARIANT_NO_RESOLVERS VARIANT_DYLD)
 target_compile_options(libplatform PRIVATE ${libplatform_opts})
 
 target_link_options(libsystem_platform PRIVATE
     --sysroot=${RAVYN_SDKROOT} -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
-    -mmacos-version-min=10.15 -flat_namespace -undefined warning
+    -mmacos-version-min=${MACOS_VERSION_MIN}
     -Wl,-install_name,/usr/lib/system/libsystem_platform.dylib
     -Wl,-current_version,220 -Wl,-compatibility_version,1.0.0
-    -Wl,-search_paths_first -umbrella System -Wl,-all_load
+    -Wl,-search_paths_first -umbrella System
     -L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/lib
     -L${ROOT_BINARY_DIR}/Libraries/llvm_target/compiler-rt/lib/ravynos
-    -lsystem_c -lsystem_pthread -lsystem_malloc -ldyld
-    -lsystem_kernel -lcompiler_rt
+    -lsystem_kernel -ldyld
     -Wl,-alias_list,${CMAKE_CURRENT_SOURCE_DIR}/xcodeconfig/libplatform.aliases
 )
 
 add_custom_command(TARGET libplatform POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E make_directory
-                ${RAVYN_SDKROOT}/usr/local/lib/system &&
+                ${RAVYN_SDKROOT}/usr/local/lib/dyld &&
                 ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libplatform>
-		${RAVYN_SDKROOT}/usr/local/lib/system/
+		${RAVYN_SDKROOT}/usr/local/lib/dyld/
 )
 
 add_custom_command(TARGET libsystem_platform POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libsystem_platform>
 		${RAVYN_SDKROOT}/usr/lib/system/
 )
+

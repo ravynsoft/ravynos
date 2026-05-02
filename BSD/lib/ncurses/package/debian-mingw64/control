@@ -1,0 +1,22 @@
+Source: ncurses6td
+Section: libdevel
+Priority: optional
+Maintainer: Thomas E. Dickey <dickey@invisible-island.net>
+Homepage: https://invisible-island.net/ncurses/
+Build-Depends: debhelper (>= 7),
+  gcc-mingw-w64-x86-64,
+  g++-mingw-w64-x86-64,
+  binutils-mingw-w64-x86-64
+Standards-Version: 4.6.1.0
+
+Package: mingw64-ncurses6td
+Architecture: any
+Conflicts: mingw64-ncurses6
+Provides: mingw64-ncurses6
+Replaces: mingw64-ncurses6
+Depends: ${misc:Depends}
+Description: shared libraries for terminal handling
+ The ncurses library routines are a terminal-independent method of
+ updating character screens with reasonable optimization.
+ .
+ This package is used for testing ABI 6 with the MinGW 64-bit port.

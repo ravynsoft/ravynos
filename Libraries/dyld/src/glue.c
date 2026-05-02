@@ -99,6 +99,37 @@ extern char *			_simple_string(_SIMPLE_STRING __b);
 // dyld::log(const char* format, ...)
 extern void _ZN4dyld3logEPKcz(const char*, ...);
 
+#if !TARGET_OS_SIMULATOR && defined(__x86_64__)
+extern void _thread_set_tsd_base(void* tsd_base);
+
+enum {
+  DYLD_TSD_SLOT_THREAD_SELF = 0,
+  DYLD_TSD_SLOT_ERRNO       = 1,
+  DYLD_TSD_SLOT_COUNT       = 10
+};
+
+static void* sMinimalTSD[DYLD_TSD_SLOT_COUNT];
+static int   sMinimalTSDErrno;
+static int   sMinimalTSDInstalled;
+
+void _dyld_setup_minimal_tsd(void)
+{
+  if ( sMinimalTSDInstalled )
+    return;
+
+  // Install a tiny direct-TSD block early so libsyscall's cerror path can
+  // safely access %gs-relative errno storage before pthreads is initialized.
+  _thread_set_tsd_base(sMinimalTSD);
+  sMinimalTSD[DYLD_TSD_SLOT_THREAD_SELF] = NULL;
+  sMinimalTSD[DYLD_TSD_SLOT_ERRNO] = &sMinimalTSDErrno;
+  sMinimalTSDInstalled = 1;
+}
+#else
+void _dyld_setup_minimal_tsd(void)
+{
+}
+#endif
+
 // dyld::halt(const char* msg);
 extern void _ZN4dyld4haltEPKc(const char* msg) __attribute__((noreturn));
 
@@ -166,13 +197,11 @@ void* _ZSt15get_new_handlerv()
 }
 
 
-
 // __cxxabiv1::__terminate_handler
 void* _ZN10__cxxabiv119__terminate_handlerE  = &_ZSt9terminatev;
 
 // __cxxabiv1::__unexpected_handler
 void* _ZN10__cxxabiv120__unexpected_handlerE = &_ZSt10unexpectedv;
-
 
 int	myfprintf(FILE* file, const char* format, ...) __asm("_fprintf");
 
@@ -312,7 +341,6 @@ void __stack_chk_fail()
 	_ZN4dyld4haltEPKc("stack buffer overrun");
 }
 
-
 // std::_throw_bad_alloc()
 void _ZSt17__throw_bad_allocv()
 {
@@ -363,6 +391,7 @@ char* mach_error_type(mach_error_t err)
 
 // _pthread_reap_thread calls fprintf(stderr).
 // We map fprint to _simple_vdprintf and ignore FILE* stream, so ok for it to be NULL
+FILE *__stdinp = NULL;
 FILE* __stderrp = NULL;
 FILE* __stdoutp = NULL;
 
@@ -390,6 +419,7 @@ void _ZNKSt3__120__vector_base_commonILb1EE20__throw_length_errorEv()
 }
 
 // libc.a sometimes missing memset
+#if 0
 #undef memset
 void* memset(void* b, int c, size_t len)
 {
@@ -398,7 +428,7 @@ void* memset(void* b, int c, size_t len)
 		*p++ = c;
 	return b;
 }
-
+#endif
 
 // <rdar://problem/10111032> wrap calls to stat() with check for EAGAIN
 int _ZN4dyld7my_statEPKcP4stat(const char* path, struct stat* buf)
@@ -1086,10 +1116,6 @@ void _ZN4dyld20notifyMonitoringDyldEbjPPK11mach_headerPPKc(bool unloading, unsig
 #endif
 }
 
-int* __error(void) {
-	return gSyscallHelpers->errnoAddress();
-}
-
 void mach_init() {
 	mach_task_self_ = task_self_trap();
 	//_task_reply_port = _mach_reply_port();
@@ -1099,7 +1125,6 @@ mach_port_t mach_task_self_ = MACH_PORT_NULL;
 
 extern int myerrno_fallback  __asm("_errno");
 int myerrno_fallback = 0;
-
 
 vm_size_t vm_kernel_page_mask = 0xFFF;
 vm_size_t vm_page_size = 0x1000;
@@ -1116,7 +1141,6 @@ vm_size_t vm_page_size = 0x1000;
 	}
 #endif
 
-
 void* _NSConcreteStackBlock[32];
 void* _NSConcreteGlobalBlock[32];
 
@@ -1131,8 +1155,6 @@ void _Block_object_dispose(const void* object, int flags)
 	if ( flags != 8 )
 		_ZN4dyld4haltEPKc("_Block_object_dispose()");
 }
-
-
 
 #if !TARGET_OS_SIMULATOR
 errno_t memset_s(void* s, rsize_t smax, int c, rsize_t n)

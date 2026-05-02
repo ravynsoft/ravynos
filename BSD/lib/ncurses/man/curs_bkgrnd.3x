@@ -1,0 +1,250 @@
+.\"***************************************************************************
+.\" Copyright 2018-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 2002-2015,2017 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" $Id: curs_bkgrnd.3x,v 1.60 2025/08/23 22:39:20 tom Exp $
+.TH curs_bkgrnd 3X 2025-08-23 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.de bP
+.ie n  .IP \(bu 4
+.el    .IP \(bu 2
+..
+.SH NAME
+\fB\%bkgrnd\fP,
+\fB\%wbkgrnd\fP,
+\fB\%bkgrndset\fP,
+\fB\%wbkgrndset\fP,
+\fB\%getbkgrnd\fP,
+\fB\%wgetbkgrnd\fP \-
+manipulate background of a \fIcurses\fP window of wide characters
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>
+.PP
+\fBint bkgrnd(const cchar_t *\fIwch\fP);
+\fBint wbkgrnd(WINDOW *\fIwin\fP, const cchar_t *\fIwch\fP);
+.PP
+\fBvoid bkgrndset(const cchar_t *\fIwch\fP);
+\fBvoid wbkgrndset(WINDOW *\fIwin\fP, const cchar_t *\fIwch\fP);
+.PP
+\fBint getbkgrnd(cchar_t *\fIwch\fP);
+\fBint wgetbkgrnd(WINDOW *\fIwin\fP, cchar_t *\fIwch\fP);
+.fi
+.SH DESCRIPTION
+Every
+.I curses
+window has a
+.I "background character"
+property:
+in the library's wide configuration,
+it is a
+.I curses
+complex character
+.RI \%( cchar_t )
+that combines a set of attributes
+(and,
+if colors are enabled,
+a color pair identifier)
+with a character code.
+When erasing
+(parts of)
+a window,
+.I curses
+replaces the erased cells with the background character.
+.PP
+.I curses
+also uses the background character when writing characters to a
+populated window.
+.bP
+The attribute part of the background character combines with all
+non-blank character cells in the window,
+as populated by the \fB\%wadd_wch\fP(3X) and \fB\%wins_wch\fP(3X)
+families of functions
+(and those that call them).
+.bP
+Both the character code and attributes of the background character
+combine with blank character cells in the window.
+.PP
+The background character's set of attributes becomes a property
+of the character cell
+and move with it through any scrolling
+and insert/delete line/character operations.
+To the extent possible on the terminal type,
+.I curses
+displays the attributes of the background character
+as the graphic rendition of a character cell on the display.
+.SS "bkgrnd, wbkgrnd"
+.B \%bkgrnd
+and
+.B \%wbkgrnd
+set the background property of
+.B \%stdscr
+or the specified window and then apply this setting to
+every character cell in that window.
+.bP
+The rendition of every character in the window changes to the new
+background rendition.
+.bP
+Wherever the former background character appears,
+it changes to the new background character.
+.PP
+.I \%ncurses
+updates the rendition of each character cell by comparing the character,
+non-color attributes,
+and color pair selection.
+The library applies to following procedure to each cell in the window,
+whether or not it is blank.
+.bP
+.I \%ncurses
+first compares the cell's character to the previously specified
+background character;
+if they match,
+.I \%ncurses
+writes the new background character to the cell.
+.bP
+.I \%ncurses
+then checks whether the cell uses color;
+that is,
+its color pair value is nonzero.
+If not,
+it simply replaces the attributes and color pair in the cell with those
+from the new background character.
+.bP
+If the cell uses color,
+and its background color matches that of the current window background,
+.I \%ncurses
+removes attributes that may have come from the current background and
+adds those from the new background.
+It finishes by setting the cell's background to use the new window
+background color.
+.bP
+If the cell uses color,
+and its background color does not match that of the current window
+background,
+.I \%ncurses
+updates only the non-color attributes,
+first removing those that may have come from the current background,
+and then adding attributes from the new background.
+.PP
+If the new background's character is non-spacing,
+.I \%ncurses
+reuses the old background character,
+except for one special case:
+.I \%ncurses
+treats a background character code of zero (0) as a space.
+.PP
+If the terminal does not support color,
+or if color has not been initialized with \fB\%start_color\fP(3X),
+.I \%ncurses
+ignores the new background character's color pair selection.
+.SS "bkgrndset, wbkgrndset"
+.B \%bkgrndset
+and
+.B \%wbkgrndset
+manipulate the background of the applicable window,
+without updating the character cells as
+.B \%bkgrnd
+and
+.B \%wbkgrnd
+do;
+only future writes reflect the updated background.
+.SS "getbkgrnd, wgetbkgrnd"
+.B \%getbkgrnd
+and
+.B \%wgetbkgrnd
+respectively obtain
+.BR \%stdscr 's
+or the given window's background character,
+attributes,
+and color pair,
+and store it in their
+.I wch
+argument.
+.SH RETURN VALUE
+.B \%bkgrndset
+and
+.B \%wbkgrndset
+do not return a value.
+.PP
+Functions returning an
+.I int
+return
+.B ERR
+upon failure and
+.B OK
+upon success.
+In
+.IR \%ncurses ","
+failure occurs if
+.bP
+the
+.I curses
+screen has not been initialized,
+.bP
+.I win
+is
+.IR NULL ","
+or
+.bP
+.I wch
+is
+.IR NULL "."
+.SH NOTES
+.BR \%bkgrnd ","
+.BR \%bkgrndset ","
+and
+.B \%getbkgrnd
+may be implemented as macros.
+.PP
+Unlike their counterparts in the non-wide-character configuration of
+.IR \%ncurses ","
+.B \%getbkgrnd
+and
+.B \%wgetbkgrnd
+store the background character in a modifiable
+.I \%cchar_t
+parameter,
+rather than supplying it as the return value.
+.SH PORTABILITY
+X/Open Curses Issue\ 4 describes these functions.
+It specifies no error conditions for them.
+.PP
+X/Open Curses does not provide details of how the rendition is updated.
+.I \%ncurses
+follows the approach used in SVr4
+.IR curses 's
+non-wide functions for manipulating the window background.
+.SH HISTORY
+X/Open Curses Issue\ 4 (1995) initially specified these functions.
+.SH SEE ALSO
+\fB\%curs_bkgd\fP(3X) describes the corresponding functions in the
+non-wide-character configuration of
+.IR \%ncurses "."
+.PP
+\fB\%curses\fP(3X),
+\fB\%curs_add_wch\fP(3X),
+\fB\%curs_attr\fP(3X)

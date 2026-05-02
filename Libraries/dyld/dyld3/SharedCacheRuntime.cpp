@@ -705,7 +705,9 @@ bool loadDyldCache(const SharedCacheOptions& options, SharedCacheLoadInfo* resul
 
 bool findInSharedCacheImage(const SharedCacheLoadInfo& loadInfo, const char* dylibPathToFind, SharedCacheFindDylibResults* results)
 {
+#ifndef __RAVYNOS__
     if ( loadInfo.loadAddress == nullptr )
+#endif
         return false;
 
     if ( loadInfo.loadAddress->header.formatVersion != dyld3::closure::kFormatVersion ) {

@@ -98,8 +98,8 @@ static void _initializeAvailabilityCheck(bool LoadPlist) {
   }
 
   // Use the new API if it's is available.
-  if (_availability_version_check)
-    AvailabilityVersionCheck = &_availability_version_check;
+  //if (_availability_version_check)
+  //  AvailabilityVersionCheck = &_availability_version_check;
 
   if (AvailabilityVersionCheck && !LoadPlist) {
     // New API is supported and we're not being asked to load the plist,

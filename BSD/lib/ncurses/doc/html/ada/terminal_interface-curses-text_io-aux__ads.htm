@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+<title>terminal_interface-curses-text_io-aux.ads</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style type="text/css">
+*.comment {
+	color: green;
+}
+*.symbol {
+	color: red;
+}
+</style>
+</head>
+<body>
+<hr><div style="text-align:center"><h1> File : terminal_interface-curses-text_io-aux.ads </h1></div><hr>
+<pre>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                           <strong>GNAT</strong> ncurses Binding                           --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                   Terminal_Interface.Curses.Text_IO.Aux                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                                 S P E C                                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>-- Copyright 2020 Thomas E. Dickey                                          --</em></span>
+<span class="comment"><em>-- Copyright 1999-2006,2009 Free Software Foundation, Inc.                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Permission is hereby granted, free of charge, to any person obtaining a  --</em></span>
+<span class="comment"><em>-- copy of this software and associated documentation files (the            --</em></span>
+<span class="comment"><em>-- "Software"), to deal in the Software without restriction, including      --</em></span>
+<span class="comment"><em>-- without limitation the rights to use, copy, modify, merge, publish,      --</em></span>
+<span class="comment"><em>-- distribute, distribute with modifications, sublicense, and/or sell       --</em></span>
+<span class="comment"><em>-- copies of the Software, and to permit persons to whom the Software is    --</em></span>
+<span class="comment"><em>-- furnished to do so, subject to the following conditions:                 --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- The above copyright notice and this permission notice shall be included  --</em></span>
+<span class="comment"><em>-- in all copies or substantial portions of the Software.                   --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  --</em></span>
+<span class="comment"><em>-- OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               --</em></span>
+<span class="comment"><em>-- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   --</em></span>
+<span class="comment"><em>-- IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   --</em></span>
+<span class="comment"><em>-- DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    --</em></span>
+<span class="comment"><em>-- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    --</em></span>
+<span class="comment"><em>-- THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Except as contained in this notice, the name(s) of the above copyright   --</em></span>
+<span class="comment"><em>-- holders shall not be used in advertising or otherwise to promote the     --</em></span>
+<span class="comment"><em>-- sale, use or other dealings in this Software without prior written       --</em></span>
+<span class="comment"><em>-- authorization.                                                           --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--  Author:  Juergen Pfeifer, 1996</em></span>
+<span class="comment"><em>--  Version Control:</em></span>
+<span class="comment"><em>--  @Revision: 1.15 @</em></span>
+<span class="comment"><em>--  @Date: 2020/02/02 23:34:34 @</em></span>
+<span class="comment"><em>--  Binding Version 01.00</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<b>private</b> <b>package</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-text_io__ads.htm#ref_45_35">Text_IO</a>.<span class="symbol"><a name="ref_43_51" href="terminal_interface-curses-text_io-aux__adb.htm#ref_43_48">Aux</a></span> <b>is</b>
+   <span class="comment"><em>--  pragma Preelaborate (Aux);</em></span>
+
+   <span class="comment"><em>--  This routine is called from the Text_IO output routines for numeric</em></span>
+   <span class="comment"><em>--  and enumeration types.</em></span>
+   <span class="comment"><em>--</em></span>
+   <b>procedure</b> <span class="symbol"><a name="ref_49_14" href="terminal_interface-curses-text_io-aux__adb.htm#ref_45_14">Put_Buf</a></span>
+     (<span class="symbol"><a name="ref_50_7" href="terminal_interface-curses-text_io-aux__adb.htm#ref_46_7">Win</a></span>    : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>;               <span class="comment"><em>-- The output window</em></span>
+      <span class="symbol"><a name="ref_51_7" href="terminal_interface-curses-text_io-aux__adb.htm#ref_47_7">Buf</a></span>    : String;               <span class="comment"><em>-- The buffer containing the text</em></span>
+      <span class="symbol"><a name="ref_52_7" href="terminal_interface-curses-text_io-aux__adb.htm#ref_48_7">Width</a></span>  : <a href="terminal_interface-curses-text_io__ads.htm#ref_51_12">Field</a>;                <span class="comment"><em>-- The width of the output field</em></span>
+      <span class="symbol"><a name="ref_53_7" href="terminal_interface-curses-text_io-aux__adb.htm#ref_49_7">Signal</a></span> : Boolean := True;      <span class="comment"><em>-- If true, we raise Layout_Error</em></span>
+      <span class="symbol"><a name="ref_54_7" href="terminal_interface-curses-text_io-aux__adb.htm#ref_50_7">Ljust</a></span>  : Boolean := False);    <span class="comment"><em>-- The Buf is left justified</em></span>
+
+<b>end</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-text_io__ads.htm#ref_45_35">Text_IO</a>.<a href="terminal_interface-curses-text_io-aux__ads.htm#ref_43_51">Aux</a>;
+</pre></body></html>

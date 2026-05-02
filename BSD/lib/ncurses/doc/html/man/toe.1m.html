@@ -1,0 +1,199 @@
+<!--
+  * t
+  ****************************************************************************
+  * Copyright 2019-2024,2025 Thomas E. Dickey                                *
+  * Copyright 1998-2015,2017 Free Software Foundation, Inc.                  *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+  * "Software"), to deal in the Software without restriction, including      *
+  * without limitation the rights to use, copy, modify, merge, publish,      *
+  * distribute, distribute with modifications, sublicense, and/or sell       *
+  * copies of the Software, and to permit persons to whom the Software is    *
+  * furnished to do so, subject to the following conditions:                 *
+  *                                                                          *
+  * The above copyright notice and this permission notice shall be included  *
+  * in all copies or substantial portions of the Software.                   *
+  *                                                                          *
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+  * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+  * THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+  *                                                                          *
+  * Except as contained in this notice, the name(s) of the above copyright   *
+  * holders shall not be used in advertising or otherwise to promote the     *
+  * sale, use or other dealings in this Software without prior written       *
+  * authorization.                                                           *
+  ****************************************************************************
+  * @Id: toe.1m,v 1.75 2025/11/12 01:06:36 tom Exp @
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta name="generator" content="Manpage converted by man2html - see https://invisible-island.net/scripts/readme.html#others_scripts">
+<TITLE>toe 1m 2025-11-11 ncurses 6.6 User commands</TITLE>
+<link rel="author" href="mailto:bug-ncurses@gnu.org">
+
+</HEAD>
+<BODY>
+<H1 class="no-header">toe 1m 2025-11-11 ncurses 6.6 User commands</H1>
+<PRE>
+<STRONG><A HREF="toe.1m.html">toe(1m)</A></STRONG>                          User commands                         <STRONG><A HREF="toe.1m.html">toe(1m)</A></STRONG>
+
+
+</PRE><H2><a name="h2-NAME">NAME</a></H2><PRE>
+       <STRONG>toe</STRONG> - list table of entries of <EM>terminfo</EM> terminal types
+
+
+</PRE><H2><a name="h2-SYNOPSIS">SYNOPSIS</a></H2><PRE>
+       <STRONG>toe</STRONG> [<STRONG>-ahs</STRONG>] [<STRONG>-v</STRONG> [<EM>n</EM>]] [<EM>directory</EM> ...]
+
+       <STRONG>toe</STRONG> [<STRONG>-u</STRONG>|<STRONG>-U</STRONG>] <EM>file</EM>
+
+       <STRONG>toe</STRONG> <STRONG>-V</STRONG>
+
+
+</PRE><H2><a name="h2-DESCRIPTION">DESCRIPTION</a></H2><PRE>
+       <STRONG>toe</STRONG>  reports  to  the  standard  output  stream the (primary) names and
+       descriptions of the terminal types available to the  <EM>terminfo</EM>  library.
+       Each  <EM>directory</EM>  is  scanned;  if none are given, <STRONG>toe</STRONG> scans the default
+       <EM>terminfo</EM> directory.
+
+
+</PRE><H2><a name="h2-OPTIONS">OPTIONS</a></H2><PRE>
+       The <STRONG>-h</STRONG> option can be helpful  to  observe  where  <STRONG>toe</STRONG>  is  looking  for
+       terminal  descriptions.   Other options support maintainers of <EM>terminfo</EM>
+       terminal descriptions.
+
+       <STRONG>-a</STRONG>       lists entries from  all  terminal  database  directories  that
+                <EM>terminfo</EM>  would  search,  instead  of  only  the first that it
+                finds.
+
+                If  <STRONG>-s</STRONG>  is  also  given,  <STRONG>toe</STRONG>   additionally   reports,   like
+                <STRONG>conflict(1)</STRONG>,  which  entries  correspond  to  a given terminal
+                database.  An "*" marks entries that  differ,  and  "+"  marks
+                equivalent entries.
+
+                Without   the  <STRONG>-s</STRONG>  option,  <STRONG>toe</STRONG>  does  not  attempt  to  merge
+                duplicates in its report.
+
+       <STRONG>-h</STRONG>       writes a heading naming each directory as it is accessed.
+
+       <STRONG>-s</STRONG>       sorts the output by the entry names.
+
+       <STRONG>-u</STRONG> <EM>file</EM>  lists terminal type dependencies in  <EM>file</EM>,  a  <EM>terminfo</EM>  entry
+                source  or  <EM>termcap</EM>  database file.  The report summarizes the
+                "<STRONG>use</STRONG>"  (<EM>terminfo</EM>)  and  <STRONG>tc</STRONG>  (<EM>termcap</EM>)  relations:  each   line
+                comprises the primary name of a terminal type employing <STRONG>use</STRONG>/<STRONG>tc</STRONG>
+                capabilities,  a  colon,  a  space-  and tab-separated list of
+                primary names of terminal types thus named, and a newline.
+
+       <STRONG>-U</STRONG> <EM>file</EM>  lists terminal type reverse dependencies in <EM>file</EM>,  a  <EM>terminfo</EM>
+                entry  source or <EM>termcap</EM> database file.  The report summarizes
+                the "<STRONG>use</STRONG>" (<EM>terminfo</EM>) and <STRONG>tc</STRONG> (<EM>termcap</EM>) reverse relations:  each
+                line  comprises  the primary name of a terminal type occurring
+                in <STRONG>use</STRONG>/<STRONG>tc</STRONG> capabilities, a colon, a  space-  and  tab-separated
+                list  of primary names of terminal types naming them thus, and
+                a newline.
+
+       <STRONG>-v</STRONG> [<EM>n</EM>]   reports verbose  status  information  to  the  standard  error
+                stream, showing <STRONG>toe</STRONG>'s progress.
+
+                The  optional  parameter  <EM>n</EM>  is  an  integer  between 1 and 10
+                inclusive, interpreted as for <STRONG><A HREF="tic.1m.html">tic(1m)</A></STRONG>.  If  <EM>ncurses</EM>  is  built
+                without tracing support, <EM>n</EM> is ignored.
+
+       <STRONG>-V</STRONG>       reports  the  version  of <EM>ncurses</EM> associated with this program
+                and exits with a successful status.
+
+
+</PRE><H2><a name="h2-FILES">FILES</a></H2><PRE>
+       <EM>/usr/share/terminfo</EM>
+              compiled terminal description database
+
+
+</PRE><H2><a name="h2-PORTABILITY">PORTABILITY</a></H2><PRE>
+       <STRONG>toe</STRONG> is not provided by other implementations.  There is  no  applicable
+       X/Open or POSIX standard for it.
+
+
+</PRE><H2><a name="h2-HISTORY">HISTORY</a></H2><PRE>
+       <STRONG>toe</STRONG>  replaces  a  <STRONG>-T</STRONG>  option  that was briefly supported by the <EM>ncurses</EM>
+       <STRONG>infocmp</STRONG> utility in 1995.
+
+       The <STRONG>-a</STRONG> and <STRONG>-s</STRONG> options were added in 2006 and 2011, respectively.
+
+       The program's name originates with a developer's pun:
+
+       <STRONG>o</STRONG>   <STRONG>tic</STRONG>,
+
+       <STRONG>o</STRONG>   <STRONG>tac</STRONG> (now <STRONG>tack</STRONG>),
+
+       <STRONG>o</STRONG>   <STRONG>toe</STRONG>.
+
+
+</PRE><H2><a name="h2-EXAMPLES">EXAMPLES</a></H2><PRE>
+       When not sorting with the <STRONG>-s</STRONG> option, the <STRONG>-a</STRONG> option reports all  of  the
+       names  found  in  all of the terminal database directories named in the
+       <EM>TERMINFO</EM> and <EM>TERMINFO</EM><STRONG>_</STRONG><EM>DIRS</EM> environment variables.
+
+           xterm-color     generic color xterm
+           xterm-xfree86   xterm terminal emulator (XFree86)
+           xterm-vt220     xterm emulating vt220
+           xterm-256color  xterm with 256 colors
+           xterm-r6        xterm X11R6 version
+           xterm-r5        xterm R5 version
+           xterm-mono      monochrome xterm
+           xterm           xterm terminal emulator (X Window System)
+           vt220           dec vt220
+           vt102           dec vt102
+           vt100           dec vt100 (w/advanced video)
+           vt52            dec vt52
+           ...
+
+       Use the <STRONG>-a</STRONG>  and  <STRONG>-s</STRONG>  options  together  to  show  where  each  terminal
+       description was found.
+
+           --&gt; /etc/terminfo
+           ----&gt; /lib/terminfo
+           ------&gt; /usr/share/terminfo
+           --*---: vt100           dec vt100 (w/advanced video)
+           --*---: vt102           dec vt102
+           --*---: vt220           dec vt220
+           --*---: vt52            dec vt52
+           --*---: xterm           xterm terminal emulator (X Window System)
+           --*---: xterm-256color  xterm with 256 colors
+           --*---: xterm-color     generic color xterm
+           --*---: xterm-mono      monochrome xterm
+           --*---: xterm-r5        xterm R5 version
+           --*---: xterm-r6        xterm X11R6 version
+           --*---: xterm-vt220     xterm emulating vt220
+           --*---: xterm-xfree86   xterm terminal emulator (XFree86)
+           ...
+
+
+</PRE><H2><a name="h2-SEE-ALSO">SEE ALSO</a></H2><PRE>
+       <STRONG><A HREF="captoinfo.1m.html">captoinfo(1m)</A></STRONG>,   <STRONG><A HREF="infocmp.1m.html">infocmp(1m)</A></STRONG>,   <STRONG><A HREF="infotocap.1m.html">infotocap(1m)</A></STRONG>,   <STRONG><A HREF="tic.1m.html">tic(1m)</A></STRONG>,   <STRONG><A HREF="ncurses.3x.html">curses(3x)</A></STRONG>,
+       <STRONG><A HREF="terminfo.5.html">terminfo(5)</A></STRONG>
+
+ncurses 6.6                       2025-11-11                           <STRONG><A HREF="toe.1m.html">toe(1m)</A></STRONG>
+</PRE>
+<div class="nav">
+<ul>
+<li><a href="#h2-NAME">NAME</a></li>
+<li><a href="#h2-SYNOPSIS">SYNOPSIS</a></li>
+<li><a href="#h2-DESCRIPTION">DESCRIPTION</a></li>
+<li><a href="#h2-OPTIONS">OPTIONS</a></li>
+<li><a href="#h2-FILES">FILES</a></li>
+<li><a href="#h2-PORTABILITY">PORTABILITY</a></li>
+<li><a href="#h2-HISTORY">HISTORY</a></li>
+<li><a href="#h2-EXAMPLES">EXAMPLES</a></li>
+<li><a href="#h2-SEE-ALSO">SEE ALSO</a></li>
+</ul>
+</div>
+</BODY>
+</HTML>

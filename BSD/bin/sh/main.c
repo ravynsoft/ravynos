@@ -40,6 +40,7 @@
 #include <locale.h>
 #include <errno.h>
 
+#include "shims.h"
 #include "shell.h"
 #include "main.h"
 #include "mail.h"

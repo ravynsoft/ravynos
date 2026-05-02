@@ -1,0 +1,131 @@
+.\"***************************************************************************
+.\" Copyright 2018-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 1998-2010,2015 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" Author: Thomas E. Dickey 1996
+.\"
+.\" $Id: wresize.3x,v 1.47 2025/01/19 00:51:54 tom Exp $
+.TH wresize 3X 2025-01-18 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.SH NAME
+\fB\%wresize\fP \-
+resize a \fIcurses\fR window
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>
+.PP
+\fBint wresize(WINDOW * \fIwin\fP, int \fIlines\fP, int \fIcolumns\fP);
+.fi
+.SH DESCRIPTION
+.BR \%wresize ","
+an
+.I \%ncurses
+extension to the
+.I curses
+library,
+reallocates storage for
+.IR win ,
+adjusting its dimensions to
+.I lines
+and
+.IR columns "."
+If either dimension is larger than its current value,
+.I \%ncurses
+fills the expanded part of the window
+with the window's background character as configured by
+\fB\%wbkgdset\fP(3X)
+(wide-character API: \fB\%wbkgrndset\fP(3X)).
+.SH RETURN VALUE
+.B \%wresize
+returns
+.B OK
+on success and
+.B ERR
+on failure.
+It fails if either
+.I lines
+or
+.I columns
+is less than or equal to zero,
+or if an error occurs while (re)allocating memory for
+.IR win "."
+.SH NOTES
+The only restriction placed on the values of
+.I lines
+and
+.I columns
+is that they be greater than zero.
+They are
+.I not
+compared to the dimensions of the
+.I curses
+screen;
+this keeps the logic of \fB\%resizeterm\fP(3X) simple.
+The caller must ensure that
+.IR win 's
+dimensions fit within those of the screen.
+.SH EXTENSIONS
+.B \%wresize
+is an \fB\%ncurses\fP(3X) extension,
+and is not found in SVr4
+.IR curses ","
+4.4BSD
+.IR curses ","
+or any other previous
+.I curses
+implementation.
+.SH PORTABILITY
+Applications employing
+.I \%ncurses
+extensions should condition their use on the visibility of the
+.B \%NCURSES_VERSION
+preprocessor macro.
+.PP
+NetBSD
+.I curses
+adopted
+.I \%wresize
+in 2001 (release 1.5.3),
+and
+.I \%PDCurses
+in 2004 (version 2.7).
+.PP
+It is not possible to resize windows with SVr4
+.IR curses "."
+.SH HISTORY
+Thomas Dickey developed
+.I \%wresize
+as an extension to BSD
+.I curses
+in 1988,
+and brought it to
+.I \%ncurses
+in mid-1995.
+.SH AUTHORS
+Thomas Dickey
+.SH SEE ALSO
+\fB\%resizeterm\fP(3X)

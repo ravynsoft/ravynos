@@ -1,0 +1,581 @@
+'\" t
+.\"***************************************************************************
+.\" Copyright 2018-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 1998-2016,2017 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" $Id: term.5,v 1.85 2025/08/16 19:11:47 tom Exp $
+.TH term 5 2025-08-16 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "File formats"
+.ie \n(.g \{\
+.ds `` \(lq
+.ds '' \(rq
+.ds '  \(aq
+.ds ^  \(ha
+.\}
+.el \{\
+.ie t .ds `` ``
+.el   .ds `` ""
+.ie t .ds '' ''
+.el   .ds '' ""
+.ds       '  '
+.ds       ^  ^
+.\}
+.ie n .ds CW R
+.el   \{
+.ie \n(.g .ds CW CR
+.el       .ds CW CW
+.\}
+.
+.de bP
+.ie n  .IP \(bu 4
+.el    .IP \(bu 2
+..
+.
+.SH NAME
+term \-
+compiled \fI\%term\%info\fP terminal description
+.\"SH SYNOPSIS
+.SH DESCRIPTION
+\fB\%@TIC@\fP(1) compiles a
+.I \%term\%info
+terminal type description,
+and \fB\%setupterm\fP(3X) reads it.
+A compiled description may be stored in a file or in a database of,
+potentially,
+many such descriptions.
+Further,
+a compiled description may be in one of two formats:
+one similar to that used by System\ V,
+and a newer,
+extensible format employed exclusively by
+.IR \%ncurses .
+.SS "Storage Location"
+Compiled
+.I \%term\%info descriptions are placed
+under the directory
+.IR \%@TERMINFO@ .
+One of two configurations is selected
+when building the
+.I \%ncurses
+libraries.
+.TP 5
+.B directory tree
+A two-level scheme is used to avoid a linear search
+of a huge Unix system directory:
+.IR \%@TERMINFO@/ c / name
+where
+.I name
+is the name of the terminal,
+and
+.I c
+is the first character of
+.IR name .
+Thus,
+the compiled description of terminal type \*(``act4\*(''
+is found in the file
+.IR \%@TERMINFO@/a/act4 .
+Synonyms for the same terminal are implemented by multiple
+links to the same compiled file.
+.TP 5
+.B hashed database
+Using the Berkeley database API,
+two types of records are stored:
+the
+.I \%term\%info
+data in the same format as that stored in a directory tree with
+the terminal's primary type name as a key,
+and records containing only aliases pointing to the primary name.
+.IP
+If built to write hashed databases,
+.I \%ncurses
+can still read
+.I \%term\%info
+databases organized as a
+directory tree,
+but cannot write entries into the directory tree.
+It can write
+(or rewrite)
+entries in the hashed database.
+.IP
+.I \%ncurses
+distinguishes the two cases in the
+.I \%TERMINFO
+and
+.I \%TERMINFO_DIRS
+environment variable by assuming a directory tree for entries that
+correspond to an existing directory,
+and a hashed database otherwise.
+.SS "Legacy Storage Format"
+The format has been chosen so that it will be the same on all hardware.
+A byte of at least eight bits' width is assumed,
+but no assumptions about bit ordering
+or sign extension are made.
+.PP
+The file is divided into six parts:
+.RS 5
+.IP (a) 4
+.IR header ,
+.IP (b)
+.IR "terminal names" ,
+.IP (c)
+.IR "Boolean flags" ,
+.IP (d)
+.IR numbers ,
+.IP (e)
+.IR strings ,
+and
+.IP (f)
+a
+.IR "string table" .
+.RE
+.PP
+The \fIheader\fP section begins the file.
+This section contains six short integers in the format
+described below.
+These integers are
+.RS 5
+.TP 5
+(1) the \fImagic number\fP
+(octal 0432);
+.TP 5
+(2) the size,
+in bytes,
+of the \fIterminal names\fP section;
+.TP 5
+(3) the number of bytes in the \fIBoolean flags\fP section;
+.TP 5
+(4) the number of short integers in the \fInumbers\fP section;
+.TP 5
+(5) the number of offsets
+(short integers)
+in the \fIstrings\fP section;
+.TP 5
+(6) the size,
+in bytes,
+of the \fIstring table\fP.
+.RE
+.PP
+The capabilities in the
+\fIBoolean flags\fP,
+\fInumbers\fP,
+and
+\fIstrings\fP
+sections are in the same order as in the header file
+.IR term.h .
+.PP
+Short integers are signed,
+in the range \-32768 to 32767,
+and stored in little-endian format.
+.PP
+Numbers in a terminal description,
+whether they are entries in the \fInumbers\fP or \fIstrings\fP table,
+are positive integers.
+Boolean flags are treated as positive one-byte integers.
+In each case,
+those positive integers represent a terminal capability.
+The terminal compiler
+.I \%@TIC@
+uses negative integers to handle the cases where a capability is not
+available:
+.bP
+If a capability is absent from this terminal,
+.I \%@TIC@
+stores a \-1 in the corresponding table.
+.IP
+The integer value \-1 is represented by two bytes 0377,
+0377.
+.br
+Absent Boolean values are represented by the byte 0 (false).
+.bP
+If a capability has been canceled from this terminal,
+.I \%@TIC@
+stores a \-2 in the corresponding table.
+.IP
+The integer value \-2 is represented by two bytes 0377,
+0376.
+.br
+The Boolean value \-2 is represented by the byte 0376.
+.br
+.bP
+Other negative values are illegal.
+.PP
+The \fIterminal names\fP section comes after the \fIheader\fP.
+It contains the first line of the
+.I \%term\%info
+description,
+listing the various names for the terminal,
+separated by the \*(``|\*('' character.
+The \fIterminal names\fP section is terminated
+with an \s-1ASCII NUL\s+1 character.
+.PP
+The \fIBoolean flags\fP section has one byte for each flag.
+Boolean capabilities are either 1 or 0
+(true or false)
+according to whether the terminal supports the given capability or not.
+.PP
+Between the \fIBoolean flags\fP section and the \fInumber\fP section,
+a null byte will be inserted,
+if necessary,
+to ensure that the \fInumber\fP section begins on an even byte
+This is a relic of the PDP\-11's word-addressed architecture,
+originally designed to avoid traps induced
+by addressing a word on an odd byte boundary.
+All short integers are aligned on a short word boundary.
+.PP
+The \fInumbers\fP section is similar to the \fIBoolean flags\fP section.
+Each capability takes up two bytes,
+and is stored as a little-endian short integer.
+.PP
+The \fIstrings\fP section is also similar.
+Each capability is stored as a short integer.
+The capability value is an index into the \fIstring table\fP.
+.PP
+The \fIstring table\fP is the last section.
+It contains all of the values of string capabilities referenced in
+the \fIstrings\fP section.
+Each string is null-terminated.
+Special characters in \*^X or \ec notation are stored in their
+interpreted form,
+not the printing representation.
+Padding information
+.BI $< nn >
+and parameter information
+.B %x
+are stored intact in uninterpreted form.
+.SS "Extended Storage Format"
+The previous section describes the conventional
+.I \%term\%info
+binary format.
+With some minor variations of the offsets
+(see PORTABILITY),
+the same binary format is used in all modern Unix systems.
+Each system uses a standard set of Boolean,
+numeric,
+or string capabilities.
+.PP
+The
+.I \%ncurses
+libraries and applications support extended
+.I \%term\%info
+binary format,
+allowing users to define capabilities that are loaded at runtime.
+This extension is made possible by using the fact that the other
+implementations stop reading the
+.I \%term\%info
+data when they reach the end of the size given in the header.
+.I \%ncurses
+checks the size,
+and if it exceeds that specified in the header,
+continues to parse according to its own scheme.
+.PP
+First,
+it reads the extended header
+(5 short integers):
+.RS 5
+.TP 5
+(1)
+count of extended Boolean capabilities
+.TP 5
+(2)
+count of extended numeric capabilities
+.TP 5
+(3)
+count of extended string capabilities
+.TP 5
+(4)
+count of the items in extended string table
+.TP 5
+(5)
+size of the extended string table in bytes
+.RE
+.PP
+The count- and size-values for the extended string table
+include the extended capability \fInames\fP as well as
+extended capability \fIvalues\fP.
+.PP
+Using the counts and sizes,
+.I \%ncurses
+allocates arrays and reads data for the extended capabilities in the
+same order as the header information.
+.PP
+The extended string table contains values for string capabilities.
+After the end of these values,
+it contains the names for each of
+the extended capabilities in order:
+Boolean,
+numeric,
+and string.
+.PP
+By storing terminal descriptions in this way,
+.I \%ncurses
+is able to provide a database useful with legacy applications,
+as well as providing data for applications that require more information
+about a terminal type than was anticipated
+by X/Open Curses.
+See \fB\%user_caps\fP(5) for an overview of the way
+.I \%ncurses
+uses this extended information.
+.PP
+Applications that manipulate terminal data can use the definitions
+described in \fB\%term_variables\fP(3X) associating the long capability
+names with members of a
+.I \%TERMTYPE
+structure.
+.
+.SS "Extended Number Format"
+On occasion,
+16-bit signed integers are not large enough.
+.I \%ncurses
+6.1 introduced a new format
+by making a few changes to the legacy format:
+.bP
+a different magic number
+(octal 01036)
+.bP
+changing the type for the \fInumber\fP array from signed 16-bit integers
+to signed 32-bit integers.
+.PP
+To maintain compatibility,
+the library presents the same data structures
+to direct users of the
+.I \%TERMTYPE
+structure as in previous formats.
+However,
+that cannot provide callers with the extended numbers.
+The library uses a similar but hidden data structure
+.I \%TERMTYPE2
+to provide data for the
+.I \%term\%info
+functions.
+.SH FILES
+.TP
+.I @TERMINFO@
+compiled terminal description database
+.SH PORTABILITY
+.SS setupterm
+Note that it is possible for
+.B setupterm
+to expect a different set of capabilities
+than are actually present in the file.
+Either the database may have been updated since
+.B setupterm
+was recompiled
+(resulting in extra unrecognized entries in the file)
+or the program may have been recompiled more recently
+than the database was updated
+(resulting in missing entries).
+The routine
+.B setupterm
+must be prepared for both possibilities \-
+this is why the numbers and sizes are included.
+Also,
+new capabilities must always be added at the end of the lists
+of Boolean,
+number,
+and string capabilities.
+.SS "Binary Format"
+X/Open Curses does not specify a format for the
+.I \%term\%info
+database.
+System\ V
+.I curses
+used a directory-tree of binary files,
+one per terminal description.
+.PP
+Despite the consistent use of little-endian numbers and the otherwise
+self-describing format,
+it is not wise to count on portability of binary
+.I \%term\%info
+entries between commercial Unix versions.
+The problem is that there are at least three versions of
+.I \%term\%info
+(under HP\-UX,
+AIX,
+and OSF/1)
+each of which diverged from System\ V
+.I \%term\%info
+after SVr1,
+and added extension capabilities to the string table that
+(in the binary format)
+collide with System\ V and X/Open Curses extensions.
+See \fB\%terminfo\fP(5) for detailed
+discussion of
+.I \%term\%info
+source compatibility issues.
+.PP
+This implementation is by default compatible with the binary
+.I \%term\%info
+format used by Solaris
+.IR curses ,
+except in a few less-used details
+where it was found that the latter did not match X/Open Curses.
+The format used by the other Unix versions
+can be matched by building
+.I \%ncurses
+with different configuration options.
+.SS "Magic Codes"
+The magic number in a binary
+.I \%term\%info
+file is the first 16 bits
+(two bytes).
+Besides making it more reliable for the library to check that a file is
+.IR \%term\%info ,
+utilities such as \fIfile\fP(1) also use that to tell what the
+file-format is.
+System\ V defined more than one magic number,
+with 0433,
+0435 as screen-dumps
+(see \fB\%scr_dump\fP(5)).
+This implementation uses 01036 as a continuation of that sequence,
+but with a different high-order byte to avoid confusion.
+.SS "The \fITERMTYPE\fP Structure"
+Direct access to the
+.I \%TERMTYPE
+structure is provided for legacy applications.
+Portable applications should use \fB\%tigetflag\fP(3X) and related
+functions to read terminal capabilities.
+.SS "Mixed-case Terminal Names"
+A small number of terminal descriptions use uppercase characters in
+their names.
+If the underlying file system ignores the difference between
+uppercase and lowercase,
+.I \%ncurses
+represents the \*(``first character\*('' of the terminal name used as
+the intermediate level of a directory tree in (two-character)
+hexadecimal form.
+.SS Limits
+.I \%ncurses
+stores compiled terminal descriptions in three related formats,
+described in the subsections
+.bP
+.BR "Legacy Storage Format" ,
+and
+.bP
+.BR "Extended Storage Format" ,
+and
+.bP
+.BR "Extended Number Format" .
+.PP
+The legacy storage format and the extended number format differ by
+the types of numeric capability that they can store
+(for example,
+16- versus 32-bit integers).
+The extended storage format introduced by
+.I \%ncurses
+5.0 adds data to either of these formats.
+.PP
+Some limitations apply:
+.bP
+total compiled entries cannot exceed 4096 bytes in the legacy format.
+.bP
+total compiled entries cannot exceed 32768 bytes in the extended format.
+.bP
+the name field cannot exceed 128 bytes.
+.PP
+Compiled entries are limited to 32768 bytes because offsets into the
+\fIstrings table\fP use two-byte integers.
+The legacy format could have supported 32768-byte entries,
+but was limited to a virtual memory page's 4096 bytes.
+.SH EXAMPLES
+Here is a
+.I \%term\%info
+description of the Lear-Siegler ADM-3,
+a popular though rather stupid early terminal.
+.PP
+.EX
+.nf
+adm3a|lsi adm3a,
+        am,
+        cols#80, lines#24,
+        bel=\*^G, clear=\e032$<1>, cr=\*^M, cub1=\*^H, cud1=\*^J,
+        cuf1=\*^L, cup=\eE=%p1%{32}%+%c%p2%{32}%+%c, cuu1=\*^K,
+        home=\*^\*^, ind=\*^J,
+.fi
+.EE
+.PP
+A hexadecimal dump of its compiled terminal description
+(in legacy format)
+follows.
+.PP
+.if t .in +4n
+.ft \*(CW
+.TS
+Lp-1.
+0000  1a 01 10 00 02 00 03 00  82 00 31 00 61 64 6d 33  ........ ..1.adm3
+0010  61 7c 6c 73 69 20 61 64  6d 33 61 00 00 01 50 00  a|lsi ad m3a...P.
+0020  ff ff 18 00 ff ff 00 00  02 00 ff ff ff ff 04 00  ........ ........
+0030  ff ff ff ff ff ff ff ff  0a 00 25 00 27 00 ff ff  ........ ..%.\*'...
+0040  29 00 ff ff ff ff 2b 00  ff ff 2d 00 ff ff ff ff  ).....+. ..\-.....
+0050  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  ........ ........
+0060  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  ........ ........
+0070  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  ........ ........
+0080  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  ........ ........
+0090  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  ........ ........
+00a0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  ........ ........
+00b0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  ........ ........
+00c0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  ........ ........
+00d0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  ........ ........
+00e0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  ........ ........
+00f0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  ........ ........
+0100  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  ........ ........
+0110  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  ........ ........
+0120  ff ff ff ff ff ff 2f 00  07 00 0d 00 1a 24 3c 31  ....../. .....$<1
+0130  3e 00 1b 3d 25 70 31 25  7b 33 32 7d 25 2b 25 63  >..=%p1% {32}%+%c
+0140  25 70 32 25 7b 33 32 7d  25 2b 25 63 00 0a 00 1e  %p2%{32} %+%c....
+0150  00 08 00 0c 00 0b 00 0a  00                       ........ .
+.TE
+.ft
+.in
+.SH AUTHORS
+Thomas E. Dickey
+.br
+extended
+.I \%term\%info
+format for
+.I \%ncurses
+5.0
+.br
+hashed database support for
+.I \%ncurses
+5.6
+.br
+extended number support for
+.I \%ncurses
+6.1
+.sp
+Eric S. Raymond
+.br
+documented legacy
+.I \%term\%info
+format
+(that used by
+.IR \%pcurses ).
+.SH SEE ALSO
+\fB\%curses\fP(3X),
+\fB\%curs_terminfo\fP(3X),
+\fB\%terminfo\fP(5),
+\fB\%user_caps\fP(5)

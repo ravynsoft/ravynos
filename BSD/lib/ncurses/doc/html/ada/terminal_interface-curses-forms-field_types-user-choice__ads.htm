@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+<title>terminal_interface-curses-forms-field_types-user-choice.ads</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style type="text/css">
+*.comment {
+	color: green;
+}
+*.symbol {
+	color: red;
+}
+</style>
+</head>
+<body>
+<hr><div style="text-align:center"><h1> File : terminal_interface-curses-forms-field_types-user-choice.ads </h1></div><hr>
+<pre>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                           <strong>GNAT</strong> ncurses Binding                           --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--           Terminal_Interface.Curses.Forms.Field_Types.User.Choice        --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                                 S P E C                                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>-- Copyright 2020 Thomas E. Dickey                                          --</em></span>
+<span class="comment"><em>-- Copyright 1999-2008,2011 Free Software Foundation, Inc.                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Permission is hereby granted, free of charge, to any person obtaining a  --</em></span>
+<span class="comment"><em>-- copy of this software and associated documentation files (the            --</em></span>
+<span class="comment"><em>-- "Software"), to deal in the Software without restriction, including      --</em></span>
+<span class="comment"><em>-- without limitation the rights to use, copy, modify, merge, publish,      --</em></span>
+<span class="comment"><em>-- distribute, distribute with modifications, sublicense, and/or sell       --</em></span>
+<span class="comment"><em>-- copies of the Software, and to permit persons to whom the Software is    --</em></span>
+<span class="comment"><em>-- furnished to do so, subject to the following conditions:                 --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- The above copyright notice and this permission notice shall be included  --</em></span>
+<span class="comment"><em>-- in all copies or substantial portions of the Software.                   --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  --</em></span>
+<span class="comment"><em>-- OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               --</em></span>
+<span class="comment"><em>-- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   --</em></span>
+<span class="comment"><em>-- IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   --</em></span>
+<span class="comment"><em>-- DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    --</em></span>
+<span class="comment"><em>-- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    --</em></span>
+<span class="comment"><em>-- THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Except as contained in this notice, the name(s) of the above copyright   --</em></span>
+<span class="comment"><em>-- holders shall not be used in advertising or otherwise to promote the     --</em></span>
+<span class="comment"><em>-- sale, use or other dealings in this Software without prior written       --</em></span>
+<span class="comment"><em>-- authorization.                                                           --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--  Author:  Juergen Pfeifer, 1996</em></span>
+<span class="comment"><em>--  Version Control:</em></span>
+<span class="comment"><em>--  @Revision: 1.15 @</em></span>
+<span class="comment"><em>--  @Date: 2020/02/02 23:34:34 @</em></span>
+<span class="comment"><em>--  Binding Version 01.00</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<b>with</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C;
+
+<b>package</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-forms__ads.htm#ref_46_35">Forms</a>.<a href="terminal_interface-curses-forms-field_types__ads.htm#ref_45_41">Field_Types</a>.<a href="terminal_interface-curses-forms-field_types-user__ads.htm#ref_45_53">User</a>.<span class="symbol"><a name="ref_45_58" href="terminal_interface-curses-forms-field_types-user-choice__adb.htm#ref_46_63">Choice</a></span> <b>is</b>
+   <b>pragma</b> Preelaborate
+     (<a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-forms__ads.htm#ref_46_35">Forms</a>.<a href="terminal_interface-curses-forms-field_types__ads.htm#ref_45_41">Field_Types</a>.<a href="terminal_interface-curses-forms-field_types-user__ads.htm#ref_45_53">User</a>.<a href="terminal_interface-curses-forms-field_types-user-choice__ads.htm#ref_45_58">Choice</a>);
+
+   <b>subtype</b> <span class="symbol"><a name="ref_49_12">C_Int</a></span> <b>is</b> <a href="interfac__ads.htm#ref_38_9">Interfaces</a>.C.int;
+
+   <b>type</b> <span class="symbol"><a name="ref_51_9">User_Defined_Field_Type_With_Choice</a></span> <b>is</b> <b>abstract</b> <b>new</b>
+     <a href="terminal_interface-curses-forms-field_types-user__ads.htm#ref_49_9">User_Defined_Field_Type</a> <b>with</b> <b>null</b> <b>record</b>;
+   <span class="comment"><em>--  This is the root of the mechanism we use to create field types in</em></span>
+   <span class="comment"><em>--  Ada95 that allow the prev/next mechanism. You should your own type</em></span>
+   <span class="comment"><em>--  derive from this one and implement the Field_Check, Character_Check</em></span>
+   <span class="comment"><em>--  Next and Previous functions for your own type.</em></span>
+
+   <b>type</b> <span class="symbol"><a name="ref_58_9">User_Defined_Field_Type_With_Choice_Access</a></span> <b>is</b> <b>access</b> <b>all</b>
+     <a href="terminal_interface-curses-forms-field_types-user-choice__ads.htm#ref_51_9">User_Defined_Field_Type_With_Choice</a>'Class;
+
+   <b>function</b> <span class="symbol"><a name="ref_61_13">Next</a></span>
+     (<span class="symbol"><a name="ref_62_7">Fld</a></span> : <a href="terminal_interface-curses-forms__ads.htm#ref_52_9">Field</a>;
+      <span class="symbol"><a name="ref_63_7">Typ</a></span> : <a href="terminal_interface-curses-forms-field_types-user-choice__ads.htm#ref_51_9">User_Defined_Field_Type_With_Choice</a>) <b>return</b> Boolean
+      <b>is</b> <b>abstract</b>;
+   <span class="comment"><em>--  If True is returned, the function successfully generated a next</em></span>
+   <span class="comment"><em>--  value into the fields buffer.</em></span>
+
+   <b>function</b> <span class="symbol"><a name="ref_68_13">Previous</a></span>
+     (<span class="symbol"><a name="ref_69_7">Fld</a></span> : <a href="terminal_interface-curses-forms__ads.htm#ref_52_9">Field</a>;
+      <span class="symbol"><a name="ref_70_7">Typ</a></span> : <a href="terminal_interface-curses-forms-field_types-user-choice__ads.htm#ref_51_9">User_Defined_Field_Type_With_Choice</a>) <b>return</b> Boolean
+      <b>is</b> <b>abstract</b>;
+   <span class="comment"><em>--  If True is returned, the function successfully generated a previous</em></span>
+   <span class="comment"><em>--  value into the fields buffer.</em></span>
+
+   <span class="comment"><em>--  +----------------------------------------------------------------------</em></span>
+   <span class="comment"><em>--  | Private Part.</em></span>
+   <span class="comment"><em>--  |</em></span>
+<b>private</b>
+   <b>function</b> <span class="symbol"><a name="ref_79_13" href="terminal_interface-curses-forms-field_types-user-choice__adb.htm#ref_77_13">C_Generic_Choice</a></span> <b>return</b> <a href="terminal_interface-curses-forms-field_types__ads.htm#ref_133_9">C_Field_Type</a>;
+
+   <b>function</b> <span class="symbol"><a name="ref_81_13" href="terminal_interface-curses-forms-field_types-user-choice__adb.htm#ref_51_13">Generic_Next</a></span> (<span class="symbol"><a name="ref_81_27" href="terminal_interface-curses-forms-field_types-user-choice__adb.htm#ref_51_27">Fld</a></span> : <a href="terminal_interface-curses-forms__ads.htm#ref_52_9">Field</a>;
+                          <span class="symbol"><a name="ref_82_27" href="terminal_interface-curses-forms-field_types-user-choice__adb.htm#ref_52_27">Usr</a></span> : System.Address) <b>return</b> <a href="terminal_interface-curses__ads.htm#ref_2099_9">Curses_Bool</a>;
+   <b>pragma</b> Convention (C, <a href="terminal_interface-curses-forms-field_types-user-choice__ads.htm#ref_81_13">Generic_Next</a>);
+   <span class="comment"><em>--  This is the generic next Choice_Function for the low-level fieldtype</em></span>
+   <span class="comment"><em>--  representing all the User_Defined_Field_Type derivatives. It routes</em></span>
+   <span class="comment"><em>--  the call to the Next implementation for the type.</em></span>
+
+   <b>function</b> <span class="symbol"><a name="ref_88_13" href="terminal_interface-curses-forms-field_types-user-choice__adb.htm#ref_63_13">Generic_Prev</a></span> (<span class="symbol"><a name="ref_88_27" href="terminal_interface-curses-forms-field_types-user-choice__adb.htm#ref_63_27">Fld</a></span> : <a href="terminal_interface-curses-forms__ads.htm#ref_52_9">Field</a>;
+                          <span class="symbol"><a name="ref_89_27" href="terminal_interface-curses-forms-field_types-user-choice__adb.htm#ref_64_27">Usr</a></span> : System.Address) <b>return</b> <a href="terminal_interface-curses__ads.htm#ref_2099_9">Curses_Bool</a>;
+   <b>pragma</b> Convention (C, <a href="terminal_interface-curses-forms-field_types-user-choice__ads.htm#ref_88_13">Generic_Prev</a>);
+   <span class="comment"><em>--  This is the generic prev Choice_Function for the low-level fieldtype</em></span>
+   <span class="comment"><em>--  representing all the User_Defined_Field_Type derivatives. It routes</em></span>
+   <span class="comment"><em>--  the call to the Previous implementation for the type.</em></span>
+
+<b>end</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-forms__ads.htm#ref_46_35">Forms</a>.<a href="terminal_interface-curses-forms-field_types__ads.htm#ref_45_41">Field_Types</a>.<a href="terminal_interface-curses-forms-field_types-user__ads.htm#ref_45_53">User</a>.<a href="terminal_interface-curses-forms-field_types-user-choice__ads.htm#ref_45_58">Choice</a>;
+</pre></body></html>

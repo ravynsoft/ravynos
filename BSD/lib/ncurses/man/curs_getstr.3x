@@ -1,0 +1,523 @@
+.\"***************************************************************************
+.\" Copyright 2018-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 1998-2010,2017 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" $Id: curs_getstr.3x,v 1.94 2025/10/21 00:09:04 tom Exp $
+.TH curs_getstr 3X 2025-10-20 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.ie \n(.g \{\
+.ds `` \(lq
+.ds '' \(rq
+.ds ^  \(ha
+.\}
+.el \{\
+.ie t .ds `` ``
+.el   .ds `` ""
+.ie t .ds '' ''
+.el   .ds '' ""
+.ds       ^  ^
+.\}
+.
+.de bP
+.ie n  .IP \(bu 4
+.el    .IP \(bu 2
+..
+.SH NAME
+\fB\%getstr\fP,
+\fB\%getnstr\fP,
+\fB\%wgetstr\fP,
+\fB\%wgetnstr\fP,
+\fB\%mvgetstr\fP,
+\fB\%mvgetnstr\fP,
+\fB\%mvwgetstr\fP,
+\fB\%mvwgetnstr\fP \-
+read a character string from \fIcurses\fR terminal keyboard
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>
+.PP
+\fBint getstr(char * \fIstr\fP);
+\fBint wgetstr(WINDOW * \fIwin\fP, char * \fIstr\fP);
+\fBint mvgetstr(int \fIy\fP, int \fIx\fP, char * \fIstr\fP);
+\fBint mvwgetstr(WINDOW * \fIwin\fP, int \fIy\fP, int \fIx\fP, char * \fIstr\fP);
+.PP
+\fBint getnstr(char * \fIstr\fP, int \fIn\fP);
+\fBint wgetnstr(WINDOW * \fIwin\fP, char * \fIstr\fP, int \fIn\fP);
+\fBint mvgetnstr(int \fIy\fP, int \fIx\fP, char * \fIstr\fP, int \fIn\fP);
+\fBint mvwgetnstr(WINDOW * \fIwin\fP, int \fIy\fP, int \fIx\fP, char * \fIstr\fP, int \fIn\fP);
+.fi
+.SH DESCRIPTION
+.B \%wgetstr
+populates a user-supplied string buffer
+.I str
+by repeatedly calling \fBwgetch\fP(3X)
+with the
+.I win
+argument
+until a line feed or carriage return character is input.
+.\" Of the two, because wgetnstr() calls nl(), only a line feed (\n)
+.\" will ever be returned by wgetch().
+The function
+.bP
+does not copy the terminating character to
+.IR str ";"
+.bP
+always terminates
+.I str
+with a null character;
+.bP
+interprets the screen's erase and kill characters
+(see \fB\%erasechar\fP(3X) and \fB\%killchar\fP(3X));
+.bP
+recognizes function keys only if the screen's keypad option is enabled
+(see \fB\%keypad\fP(3X));
+.bP
+treats the function keys
+.B \%KEY_LEFT
+and
+.B \%KEY_BACKSPACE
+the same as the erase character;
+and
+.bP
+discards function key inputs other than those
+treated as the erase or kill characters,
+calling \fBbeep\fP(3X).
+.PP
+If any characters have been written to the input buffer,
+the erase character replaces the character
+at the current position in the buffer
+with a null character,
+then decrements the position by one;
+the kill character does the same repeatedly,
+backtracking to the beginning of the buffer.
+.PP
+If the screen's echo option is enabled
+(see \fBecho\fP(3X)),
+.B \%wgetstr
+updates
+.I win
+with \fB\%waddch\fP(3X).
+Further,
+.bP
+the erase character
+and its function key synonyms
+move the cursor to the left
+(if not already where it was located when
+.B \%wgetstr
+was called)
+and
+.bP
+the kill character returns the cursor to where it was located when
+.B \%wgetstr
+was called.
+.PP
+.B \%wgetnstr
+is similar,
+but reads at most
+.I n
+characters,
+aiding the application to avoid overrunning the buffer to which
+.I str
+points.
+.I curses
+ignores an attempt to input more than
+.I n
+characters
+(other than the terminating line feed or carriage return),
+calling \fBbeep\fP(3X).
+If
+.I n
+is negative,
+.B \%wgetn_wstr
+reads up to
+.I LINE_MAX
+characters
+(see
+.IR sysconf (3)).
+.PP
+\fB\%ncurses\fP(3X) describes the variants of these functions.
+.SH RETURN VALUE
+These functions return
+.B OK
+on success and
+.B ERR
+on failure.
+.PP
+In
+.IR \%ncurses ,
+these functions fail if
+.bP
+the
+.I curses
+screen has not been initialized,
+.bP
+(for functions taking a
+.I \%WINDOW
+pointer argument)
+.I win
+is a null pointer,
+.bP
+.I str
+is a null pointer,
+or
+.bP
+an internal \fB\%wgetch\fP(3X) call fails.
+.PP
+Further,
+in
+.IR \%ncurses ","
+these functions return
+.B \%KEY_RESIZE
+if a
+.I \%SIGWINCH
+event interrupts the function.
+.PP
+Functions prefixed with \*(``mv\*('' first perform cursor movement and
+fail if the position
+.RI ( y ,
+.IR x )
+is outside the window boundaries.
+.SH NOTES
+All of these functions except
+.B \%wgetnstr
+may be implemented as macros.
+.PP
+Reading input that overruns the buffer pointed to by
+.I str
+causes undefined results.
+Use the
+.BR n -infixed
+functions,
+and allocate sufficient storage for
+.I str
+\(em at least
+.IR n +1
+times
+.BR sizeof(char) "."
+.PP
+While these functions conceptually implement
+a series of calls to
+.BR \%wgetch ","
+they also temporarily change properties of the
+.I curses
+screen to permit simple editing of the input buffer.
+Each function saves the screen's state,
+calls \fBnl\fP(3X),
+and,
+if the screen was in canonical (\*(``cooked\*('') mode,
+\fB\%cbreak\fP(3X).
+Before returning,
+it restores the saved screen state.
+Other implementations differ in detail,
+affecting which control characters they can accept in the buffer;
+see section \*(``PORTABILITY\*('' below.
+.SH EXTENSIONS
+.BR \%getnstr ","
+.BR \%wgetnstr ","
+.BR \%mvgetnstr ","
+and
+.BR \%mvwgetnstr "'s"
+handing of negative
+.I n
+values is an
+.I \%ncurses
+extension.
+.PP
+The return value
+.B \%KEY_RESIZE
+is an
+.I \%ncurses
+extension.
+.SH PORTABILITY
+Applications employing
+.I \%ncurses
+extensions should condition their use on the visibility of the
+.B \%NCURSES_VERSION
+preprocessor macro.
+.PP
+X/Open Curses Issue\ 4 describes these functions.
+It specifies no error conditions for them,
+but indicates that
+.I \%wgetnstr
+and its variants read
+\*(``the entire multi-byte sequence associated with a character\*(''
+and \*(``fail\*('' if
+.I n
+and
+.I str
+together do not describe a buffer
+\*(``large enough to contain any complete characters\*(''.
+In
+.IR \%ncurses ","
+however,
+.I \%wgetch
+reads only single-byte characters,
+so this scenario does not arise.
+.\" You can pass ncurses wgetnstr n=0 and it will beep at you with each
+.\" key stroke.
+.PP
+SVr4 describes a successful return value only as
+\*(``an integer value other than
+.IR ERR \*(''. \" Courier roman in source; SVID 4, vol. 3, p. 495
+.PP
+SVr3 and early SVr4
+.I curses
+implementations did not reject function keys;
+the SVr4 documentation asserted that,
+like the screen's erase and kill characters,
+they were
+.PP
+.RS
+interpreted,
+as well as any special keys
+(such as function keys,
+\*(``home\*('' key,
+\*(``clear\*('' key,
+.IR etc. )
+.\" SVID 4, vol. 3, p. 495
+.RE
+.PP
+without further detail.
+It lied.
+The \*(``character\*('' value
+appended to the string
+by those implementations
+was predictable but not useful \(em
+being,
+in fact,
+the low-order eight bits of the key code's
+.I KEY_
+constant value.
+(The same language,
+unchanged except for styling,
+survived into X/Open Curses Issue\ 4,
+Version\ 2 \" p. 94 (PDF 114)
+but disappeared from Issue\ 7.) \" p. 105 (PDF 119)
+.PP
+A draft of X/Open Curses Issue\ 5
+(which never saw final release)
+stated that these functions
+\*(``read at most
+.I n
+bytes\*(''
+but did not state whether the terminating null character
+counted toward that limit.
+X/Open Curses Issue\ 7 changed that to say they
+\*(``read at most
+.IR n \-1
+bytes\*(''
+to allow for the terminating null character.
+As of 2018,
+some implementations count it,
+some do not.
+.bP
+.I \%ncurses
+6.1 and
+.I \%PDCurses
+do not count the null character toward the limit,
+while Solaris and NetBSD
+.I curses
+do.
+.bP
+Solaris
+.I xcurses
+offers both behaviors:
+its wide-character
+.I \%wgetn_wstr
+reserves room for a wide null character,
+but its non-wide
+.I \%wgetnstr
+does not consistently count a null character toward the limit.
+.PP
+X/Open Curses does not specify what happens if the length
+.I n
+is negative.
+.bP
+.I \%ncurses
+6.2 uses
+.I LINE_MAX
+or a larger (system-dependent) value
+provided by \fI\%sysconf\fP(3).
+If neither
+.I LINE_MAX
+nor
+.I \%sysconf
+is available,
+.I \%ncurses
+uses the POSIX minimum value for
+.I LINE_MAX
+(2048). \" _POSIX2_LINE_MAX
+In either case,
+it reserves a byte for the terminating null character.
+.bP
+In SVr4
+.IR curses ","
+a negative
+.I n
+tells
+.I \%wgetnstr
+to assume that the caller's buffer
+is large enough to hold the result;
+that is,
+the function then acts like
+.IR \%wgetstr "."
+X/Open Curses does not mention this behavior
+(or anything related to nonpositive
+.I n
+values),
+however most
+.I curses
+libraries implement it.
+Most implementations nevertheless enforce an upper limit
+on the count of bytes they write to the destination buffer
+.IR str "."
+.bP
+BSD
+.I curses
+lacked
+.IR \%wgetnstr ","
+and its
+.I \%wgetstr
+wrote to
+.I str
+unboundedly,
+.\" https://minnie.tuhs.org/cgi-bin/utree.pl?file=4BSD/usr/src/lib/\
+.\"   libcurses/getstr.c
+.\" https://minnie.tuhs.org/cgi-bin/utree.pl?file=4.4BSD/usr/src/lib/\
+.\"   libcurses/getstr.c
+as did that in SVr2.
+.\" https://github.com/ryanwoodsmall/oldsysv/blob/master/sysvr2-vax/\
+.\"   src/lib/libcurses/screen/getstr.c
+.bP
+.IR PDCurses ","
+and
+SVr3 and later,
+.\" https://github.com/ryanwoodsmall/oldsysv/blob/master/\
+.\"   sysvr3/301/usr/src/lib/libcurses/screen/getstr.c#L21
+.\"   sysvr3/31/usr/src/lib/libcurses/screen/wgetstr.c#L10
+.\"   sysvr4/svr4/lib/xlibcurses/screen/wgetstr.c#L12
+and
+Solaris
+.I curses
+limit both functions to writing 256 bytes.
+Other System\ V-based platforms likely use the same limit.
+.bP
+Solaris
+.I xcurses
+limits the write to
+.I LINE_MAX
+bytes
+(see
+.IR sysconf (3)).
+.bP
+NetBSD 7
+.I curses
+imposes no particular limit on the length of the write,
+but does validate
+.I n
+to ensure that it is greater than zero.
+A comment in NetBSD's source code asserts that SUSv2 specifies this.
+.PP
+Implementations vary in their handling of input control characters.
+.bP
+While they may enable the screen's echo option,
+some do not take it out of raw mode,
+and may take cbreak mode into account
+when deciding whether to handle echoing within
+.I \%wgetnstr
+or to rely on it as a side effect of calling
+.IR \%wgetch "."
+.bP
+Originally,
+.IR \%ncurses ","
+like its progenitor
+.IR \%pcurses ","
+had its
+.I \%wgetnstr
+call
+.I \%noraw
+and
+.I \%cbreak
+before accepting input.
+That may have been done to make function keys work;
+it is not necessary with modern
+.IR \%ncurses "."
+.IP
+Since 1995,
+.I \%ncurses
+has provided handlers for
+.I SIGINTR
+and
+.I SIGQUIT
+events,
+which are typically generated at the keyboard with
+.B \*^C
+and
+.B \*^\e
+respectively.
+In cbreak mode,
+those handlers catch a signal and stop the program,
+whereas other implementations write those characters into the buffer.
+.bP
+Starting with
+.I \%ncurses
+6.3 (2021),
+.I \%wgetnstr
+preserves raw mode if the screen was already in that state,
+allowing one to enter the characters the terminal interprets
+as interrupt and quit events
+into the buffer,
+for better compatibility with SVr4
+.IR curses "."
+.SH HISTORY
+4BSD (1980)
+introduced
+.I \%wgetstr
+along with its variants.
+.PP
+SVr3.1 (1987)
+added
+.IR \%wgetnstr ","
+but none of its variants.
+.PP
+X/Open Curses Issue\ 4 (1995)
+specified
+.IR \%getnstr ","
+.IR \%mvgetnstr ","
+and
+.IR \%mvwgetnstr "."
+.SH SEE ALSO
+\fB\%curs_get_wstr\fP(3X) describes comparable functions of the
+.I \%ncurses
+library in its wide-character configuration
+.RI \%( ncursesw ).
+.PP
+\fB\%curses\fP(3X),
+\fB\%curs_addch\fP(3X),
+\fB\%curs_getch\fP(3X),
+\fB\%curs_inopts\fP(3X), \" echo(), keypad()
+\fB\%curs_termattrs\fP(3X), \" erasechar(), killchar()

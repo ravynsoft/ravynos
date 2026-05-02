@@ -1,0 +1,376 @@
+.\"***************************************************************************
+.\" Copyright 2018-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 1998-2015,2017 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" $Id: curs_pad.3x,v 1.81 2025/08/23 22:50:00 tom Exp $
+.TH curs_pad 3X 2025-08-23 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.ie \n(.g \{\
+.ds `` \(lq
+.ds '' \(rq
+.\}
+.el \{\
+.ie t .ds `` ``
+.el   .ds `` ""
+.ie t .ds '' ''
+.el   .ds '' ""
+.\}
+.
+.de bP
+.ie n  .IP \(bu 4
+.el    .IP \(bu 2
+..
+.SH NAME
+\fB\%newpad\fP,
+\fB\%subpad\fP,
+\fB\%prefresh\fP,
+\fB\%pnoutrefresh\fP,
+\fB\%pechochar\fP,
+\fB\%pecho_wchar\fP \-
+create and display \fIcurses\fR pads
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>
+.PP
+\fBWINDOW *newpad(int \fInlines\fP, int \fIncols\fP);
+\fBWINDOW *subpad(WINDOW *\fIparent\fP, int \fInlines\fP, int \fIncols\fP,
+      \fBint \fIbegin_y\fB, int \fIbegin_x\fB);\fR
+.PP
+\fBint prefresh(WINDOW *\fIpad\fB, int \fIpminrow\fB, int \fIpmincol\fB,\fR
+      \fBint \fIsminrow\fB, int \fIsmincol\fB, int \fIsmaxrow\fB, int \fIsmaxcol\fB);\fR
+\fBint pnoutrefresh(WINDOW *\fIpad\fB, int \fIpminrow\fB, int \fIpmincol\fB,\fR
+      \fBint \fIsminrow\fB, int \fIsmincol\fB, int \fIsmaxrow\fB, int \fIsmaxcol\fB);\fR
+.PP
+\fBint pechochar(WINDOW *\fIpad\fB, chtype \fIch\fB);\fR
+\fBint pecho_wchar(WINDOW *\fIpad\fB, const cchar_t *\fIwch\fB);\fR
+.fi
+.SH DESCRIPTION
+A
+.I curses
+.I pad
+is like a window,
+except that it is not restricted by the screen size,
+and is not necessarily associated with a particular part of the screen.
+Pads can be used when a large window is needed,
+only part of which is to be visible on the screen.
+Pads are not automatically refreshed by scrolling or input-echoing
+operations.
+.PP
+Pads cannot be refreshed with \fB\%wrefresh\fP(3X);
+use
+.B \%prefresh
+or
+.B \%pnoutrefresh
+instead.
+.SS newpad
+.B \%newpad
+creates and returns a pointer to a new pad data structure
+with the given number of lines,
+.IR nlines ,
+and columns,
+.IR ncols .
+.SS subpad
+.B \%subpad
+creates and returns a pointer to a subwindow within a pad
+with the given number of lines,
+.IR nlines ,
+and columns,
+.IR ncols .
+Unlike \fB\%subwin\fP(3X),
+which uses screen coordinates,
+the new pad is placed at position
+.RI ( begin_y ,
+.IR begin_x )
+relative to its parent.
+Thus,
+changes made to one pad can affect both.
+When operating on a subpad,
+it is often necessary to call \fB\%touchwin\fP(3X) or
+\fB\%touchline\fP(3X) on
+.I parent
+before calling
+.BR \%prefresh .
+.SS "prefresh, pnoutrefresh"
+.B \%prefresh
+and
+.B \%pnoutrefresh
+are analogous to \fB\%wrefresh\fP(3X) and \fB\%wnoutrefresh\fP(3X)
+except that they operate on pads rather than windows.
+They require additional parameters are needed to indicate what portions
+of the pad and screen are involved.
+.bP
+.I pminrow
+and
+.I pmincol
+specify the upper left-hand corner of a rectangular view of the pad.
+.bP
+.IR sminrow ,
+.IR smincol ,
+.IR smaxrow ,
+and
+.I smaxcol
+specify the vertices of the rectangle to be displayed on the screen.
+.PP
+The lower right-hand corner
+of the rectangle to be displayed in the pad
+is calculated from the screen coordinates,
+since the rectangles must be the same size.
+Both rectangles must be entirely contained
+within their respective structures.
+.I curses
+treats
+negative values of any of these parameters as zero.
+.SS pechochar
+.B \%pechochar
+is functionally equivalent to calling \fB\%waddch\fP(3X) followed by
+.BR \%prefresh .
+It suggests to the
+.I curses
+optimizer that only a single character is being output;
+a considerable performance benefit may be thus enjoyed.
+The location of the character
+.I ch
+written to the pad is used to populate the arguments to
+.BR \%prefresh .
+.SS pecho_wchar
+.B \%pecho_wchar
+is functionally equivalent to calling \fB\%wadd_wch\fP(3X) followed by
+.BR \%prefresh .
+It suggests to the
+.I curses
+optimizer that only a single wide character is being output;
+a considerable performance benefit may be thus enjoyed.
+The location of the character
+.I wch
+written to the pad is used to populate the arguments to
+.BR \%prefresh .
+.SH RETURN VALUE
+Functions that return an integer return
+.B ERR
+upon failure and
+.B OK
+upon successful completion.
+.PP
+Functions that return pointers return a null pointer on failure,
+and set
+.I \%errno
+to
+.BR \%ENOMEM "."
+.PP
+In this implementation
+.RS 3
+.TP 5
+.BR prefresh\  and\  pnoutrefresh
+return
+.B ERR
+if the window pointer is null, or
+if the window is not really a pad or
+if the area to refresh extends off-screen or
+if the minimum coordinates are greater than the maximum.
+.TP 5
+.B pechochar
+returns
+.B ERR
+if the window is not really a pad,
+and the associated call to
+.B \%wechochar
+returns
+.BR ERR "."
+.TP 5
+.B pecho_wchar
+returns
+.B ERR
+if the window is not really a pad,
+and the associated call to
+.B \%wecho_wchar
+returns
+.BR ERR "."
+.RE
+.SH NOTES
+.B \%pechochar
+may be implemented as a macro.
+.PP
+.I curses
+documentation is traditionally averse to motivating the term
+\*(``pad\*(''.
+The Apollo Aegis workstation operating system
+.RI ( circa
+1981)
+supported a graphical pad feature.
+.bP
+These graphical pads could be much larger than the computer's display.
+.bP
+The read-only output from a command could be scrolled back to inspect
+and select text from the pad.
+.PP
+The two uses may be related.
+.SH PORTABILITY
+X/Open Curses Issue\ 4 describes these functions.
+It specifies no error conditions for them.
+.PP
+SVr4 describes a successful return value only as
+\*(``an integer value other than
+.IR ERR \*(''. \" Courier roman in source; SVID 4, vol. 3, p. 524
+.PP
+The behavior of
+.I \%subpad
+if the parent window is not a pad is undocumented,
+and is not checked by the vendor Unix implementations.
+.bP
+SVr4
+.IR curses 's
+.I \%newpad
+sets a flag in the
+.I \%WINDOW
+structure indicating that the window is a pad.
+.IP
+However,
+it uses this information only in
+.I \%waddch
+(to decide if it should call
+.IR \%wrefresh ")"
+and
+.I \%wscrl
+(to avoid scrolling a pad);
+its
+.I \%wrefresh
+does not check it to ensure that a pad is properly updated.
+.bP
+Solaris
+.I \%xcurses
+checks whether a window is a pad in its
+.IR \%wnoutrefresh ","
+returning
+.I ERR
+in that case.
+.IP
+However,
+it sets the flag on subwindows only if the parent window is a pad.
+Its
+.I \%newpad
+does not set this information.
+Consequently,
+the check never fails.
+.IP
+It makes no comparable check in
+.I \%pnoutrefresh
+\(em though interestingly enough,
+a comment in the source code states that the lack of a check
+was an MKS extension.
+.bP
+NetBSD\ 7
+.I curses
+sets a flag in the
+.I \%WINDOW
+structure for
+.I \%newpad
+and
+.IR \%subpad ","
+aiding itself to distinguish between
+.I \%wnoutrefresh
+and
+.IR \%pnoutrefresh "."
+.IP
+It does not check for the case where a subwindow is created in
+a pad using
+.I \%subwin
+or
+.IR \%derwin "."
+.IP
+Its
+.I \%dupwin
+returns a regular window when duplicating a pad.
+Likewise,
+its
+.I \%getwin
+always returns a window,
+even if the saved data was from a pad.
+.PP
+.IR \%ncurses ":"
+.bP
+sets a flag in the
+.I \%WINDOW
+structure for
+.I \%newpad
+and
+.IR \%subpad ","
+.bP
+allows a
+.I \%subwin
+or
+.I \%derwin
+call to succeed having a pad parent
+by forcing the subwindow to be a pad,
+.bP
+checks in both
+.I \%wnoutrefresh
+and
+.I \%pnoutrefresh
+to ensure that pads and windows are handled distinctly,
+and
+.bP
+ensures that
+.I \%dupwin
+and
+.I \%getwin
+treat pads versus windows consistently.
+.SH HISTORY
+SVr2 (1984) introduced
+.IR \%newpad ","
+.IR \%prefresh ","
+and
+.IR \%pnoutrefresh ","
+documenting them in a single line each.
+.PP
+SVr3 (1987) added
+.I \%subpad
+and
+.IR \%pechochar ","
+and provided more extensive documentation.
+.PP
+The System\ V Interface Definition,
+Version 4 (1995),
+specified a function named
+.IR \%pechowchar "."
+This was a later addition to
+.RI SVr4. x ,
+not appearing in the first SVr4 (1989).
+It differs from X/Open's later
+.I \%pecho_wchar
+in that its
+.I wstr
+parameter was a
+.I \%chtype
+instead of a
+.IR \%wchar_t ","
+and was not
+.IR const "-qualified."
+.SH SEE ALSO
+\fB\%curses\fP(3X),
+\fB\%curs_addch\fP(3X),
+\fB\%curs_refresh\fP(3X),
+\fB\%curs_touch\fP(3X)

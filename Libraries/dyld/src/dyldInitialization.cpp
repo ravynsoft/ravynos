@@ -29,13 +29,16 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <mach/mach.h>
+#include <System/sys/event.h>
 
 #include "dyld2.h"
 #include "dyldSyscallInterface.h"
 #include "MachOAnalyzer.h"
 #include "Tracing.h"
 
+// from libc.a
 extern "C" void mach_init();
+extern "C" void _dyld_setup_minimal_tsd();
 extern "C" void __guard_setup(const char* apple[]);
 
 
@@ -53,7 +56,6 @@ const dyld::SyscallHelpers* gSyscallHelpers = NULL;
 namespace dyldbootstrap {
 
 
-// ...existing code...
 // currently dyld has no initializers, but if some come back, set this to non-zero
 #define DYLD_INITIALIZER_SUPPORT  0
 
@@ -86,7 +88,6 @@ static void runDyldInitializers(int argc, const char* argv[], const char* envp[]
 //
 static void rebaseDyld(const dyld3::MachOLoaded* dyldMH)
 {
-	printf("[dyld] rebaseDyld: starting\n");
     // walk all fixups chains and rebase dyld
     const dyld3::MachOAnalyzer* ma = (dyld3::MachOAnalyzer*)dyldMH;
     assert(ma->hasChainedFixups());
@@ -96,11 +97,13 @@ static void rebaseDyld(const dyld3::MachOLoaded* dyldMH)
         ma->fixupAllChainedFixups(diag, starts, slide, dyld3::Array<const void*>(), nullptr);
     });
     diag.assertNoError();
-	printf("[dyld] rebaseDyld: done\n");
 
-    // now that rebasing done, initialize mach/syscall layer
+	// Install a tiny TSD block before any fallible syscalls hit libsyscall's
+	// cerror path, which expects GS-relative errno storage to exist.
+	_dyld_setup_minimal_tsd();
+
+	// now that rebasing done, initialize mach/syscall layer
     mach_init();
-	printf("[dyld] mach_init: done\n");
 
     // <rdar://47805386> mark __DATA_CONST segment in dyld as read-only (once fixups are done)
     ma->forEachSegment(^(const dyld3::MachOFile::SegmentInfo& info, bool& stop) {
@@ -108,7 +111,6 @@ static void rebaseDyld(const dyld3::MachOLoaded* dyldMH)
             ::mprotect(((uint8_t*)(dyldMH))+info.vmAddr, (size_t)info.vmSize, VM_PROT_READ);
         }
     });
-	printf("[dyld] DATA_CONST marked read-only\n");
 }
 
 
@@ -120,16 +122,13 @@ static void rebaseDyld(const dyld3::MachOLoaded* dyldMH)
 uintptr_t start(const dyld3::MachOLoaded* appsMachHeader, int argc, const char* argv[],
 				const dyld3::MachOLoaded* dyldsMachHeader, uintptr_t* startGlue)
 {
-	printf("[dyld] dyldbootstrap::start: entry\n");
 
     // Emit kdebug tracepoint to indicate dyld bootstrap has started <rdar://46878536>
     dyld3::kdebug_trace_dyld_marker(DBG_DYLD_TIMING_BOOTSTRAP_START, 0, 0, 0, 0);
-	printf("[dyld] kdebug_trace_dyld_marker done\n");
 
 	// if kernel had to slide dyld, we need to fix up load sensitive locations
 	// we have to do this before using any global variables
     rebaseDyld(dyldsMachHeader);
-	printf("[dyld] rebaseDyld completed\n");
 
 	// kernel sets up env pointer to be just past end of agv array
 	const char** envp = &argv[argc+1];
@@ -138,6 +137,10 @@ uintptr_t start(const dyld3::MachOLoaded* appsMachHeader, int argc, const char* 
 	const char** apple = envp;
 	while(*apple != NULL) { ++apple; }
 	++apple;
+
+        open("/dev/console", O_RDONLY); // stdin
+        open("/dev/console", O_WRONLY); // stdout
+        open("/dev/console", O_WRONLY); // stderr
 
 	// set up random value for stack canary
 	__guard_setup(apple);
@@ -149,7 +152,6 @@ uintptr_t start(const dyld3::MachOLoaded* appsMachHeader, int argc, const char* 
 
 	// now that we are done bootstrapping dyld, call dyld's main
 	uintptr_t appsSlide = appsMachHeader->getSlide();
-	printf("[dyld] calling dyld::_main with appSlide=0x%lx\n", appsSlide);
 	return dyld::_main((macho_header*)appsMachHeader, appsSlide, argc, argv, envp, apple, startGlue);
 }
 

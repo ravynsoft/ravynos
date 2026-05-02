@@ -21,7 +21,7 @@ target_link_options(removefile PRIVATE
     -umbrella System -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib
     -L${RAVYN_SDKROOT}/usr/lib/system  -mmacos-version-min=${MACOS_VERSION_MIN}
     -Wl,-install_name,/usr/lib/system/libremovefile.dylib -Wl,-compatibility_version,1
-    -Wl,-current_version,48 -lsystem_kernel)
+    -Wl,-current_version,48 -lsystem_kernel -lsystem_c -ldyld -lsystem_malloc)
 
 
 add_custom_command(TARGET removefile POST_BUILD

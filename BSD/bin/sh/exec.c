@@ -48,6 +48,7 @@
  * would make the command name "hash" a misnomer.
  */
 
+#include "shims.h"
 #include "shell.h"
 #include "main.h"
 #include "nodes.h"

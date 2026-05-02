@@ -59,7 +59,9 @@ target_link_options(liblaunch PRIVATE
     -Wl,-current_version,1738.0.17 -Wl,-compatibility_version,1.0.0
     -Wl,-install_name,/usr/lib/system/liblaunch.dylib -umbrella System
     -L${RAVYN_SDKROOT}/usr/lib/system -lcompiler_rt -ldispatch -lsystem_c
-    -lsystem_asl -mmacos-version-min=10.15)
+    -lsystem_kernel -lsystem_malloc -lsystem_asl -ldyld -lsystem_platform
+    -lsystem_pthread
+    -mmacos-version-min=${MACOS_VERSION_MIN})
 
 add_dependencies(liblaunch libsystem_darwin libsystem_asl libxpc)
 add_custom_command(TARGET liblaunch POST_BUILD

@@ -29,7 +29,7 @@
 #include <sys/cdefs.h>
 
 #include <dirent.h>
-#if __has_include(<libamfi.h>)
+#if !defined(__RAVYNOS__) && __has_include(<libamfi.h>)
 #include <libamfi.h>
 #else
 __BEGIN_DECLS

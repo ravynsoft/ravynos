@@ -1,6 +1,7 @@
 
 #ifndef XPC_LAUNCHD_H_
 #define XPC_LAUNCHD_H_
+#include <errno.h>
 #include <xpc/xpc.h>
 
 #define EXNOERROR	0
@@ -8,6 +9,20 @@
 #define EXINVAL		2
 #define EXSRCH      3
 #define EXMAX		EXSRCH
+
+/* These are almost certainly the wrong values
+ * FIXME: print out the values from Catalina using a test app
+ */
+enum {
+    XPC_PIPE_PRIVILEGED = (1ULL << 0),
+    XPC_PIPE_USE_SYNC_IPC_OVERRIDE = (1ULL << 1),
+};
+
+typedef xpc_object_t xpc_pipe_t;
+
+xpc_pipe_t xpc_pipe_create(const char *name, uint64_t flags);
+void xpc_pipe_invalidate(xpc_pipe_t pipe);
+int xpc_pipe_routine(xpc_pipe_t pipe, xpc_object_t msg, xpc_object_t *reply);
 
 const char *xpc_strerror(int error);
 xpc_object_t xpc_copy_entitlement_for_token(const char *, audit_token_t *);

@@ -1,0 +1,134 @@
+.\"***************************************************************************
+.\" Copyright 2018-2024,2025 Thomas E. Dickey                                *
+.\" Copyright 1998-2010,2017 Free Software Foundation, Inc.                  *
+.\"                                                                          *
+.\" Permission is hereby granted, free of charge, to any person obtaining a  *
+.\" copy of this software and associated documentation files (the            *
+.\" "Software"), to deal in the Software without restriction, including      *
+.\" without limitation the rights to use, copy, modify, merge, publish,      *
+.\" distribute, distribute with modifications, sublicense, and/or sell       *
+.\" copies of the Software, and to permit persons to whom the Software is    *
+.\" furnished to do so, subject to the following conditions:                 *
+.\"                                                                          *
+.\" The above copyright notice and this permission notice shall be included  *
+.\" in all copies or substantial portions of the Software.                   *
+.\"                                                                          *
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+.\" IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+.\" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+.\" OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+.\" THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+.\"                                                                          *
+.\" Except as contained in this notice, the name(s) of the above copyright   *
+.\" holders shall not be used in advertising or otherwise to promote the     *
+.\" sale, use or other dealings in this Software without prior written       *
+.\" authorization.                                                           *
+.\"***************************************************************************
+.\"
+.\" $Id: curs_insch.3x,v 1.56 2025/03/08 23:10:02 tom Exp $
+.TH curs_insch 3X 2025-03-08 "ncurses @NCURSES_MAJOR@.@NCURSES_MINOR@" "Library calls"
+.ie \n(.g \{\
+.ds `` \(lq
+.ds '' \(rq
+.\}
+.el \{\
+.ie t .ds `` ``
+.el   .ds `` ""
+.ie t .ds '' ''
+.el   .ds '' ""
+.\}
+.
+.de bP
+.ie n  .IP \(bu 4
+.el    .IP \(bu 2
+..
+.SH NAME
+\fB\%insch\fP,
+\fB\%winsch\fP,
+\fB\%mvinsch\fP,
+\fB\%mvwinsch\fP \-
+insert a \fIcurses\fP character in a window
+.SH SYNOPSIS
+.nf
+\fB#include <curses.h>\fP
+.PP
+\fBint insch(chtype \fIch\fP);
+\fBint winsch(WINDOW * \fIwin\fP, chtype \fIch\fP);
+\fBint mvinsch(int \fIy\fP, int \fIx\fP, chtype \fIch\fP);
+\fBint mvwinsch(WINDOW * \fIwin\fP, int \fIy\fP, int \fIx\fP, chtype \fIch\fP);
+.fi
+.SH DESCRIPTION
+.B \%winsch
+inserts the
+.I curses
+character
+.I ch
+at the cursor position in the window
+.IR win "."
+The character previously at the cursor and any to its right move one
+cell to the right;
+the formerly rightmost character on the line is discarded.
+Unlike \fB\%addch\fP(3X),
+.B \%winsch
+does not advance the cursor.
+\fB\%ncurses\fP(3X) describes the variants of this function.
+.SH "RETURN VALUE"
+These functions return
+.B OK
+on success and
+.B ERR
+on failure.
+.PP
+In
+.IR \%ncurses ,
+they return
+.B ERR
+if
+.bP
+the
+.I curses
+screen has not been initialized,
+or
+.bP
+(for functions taking a
+.I \%WINDOW
+pointer argument)
+.I win
+is a null pointer.
+.PP
+Functions prefixed with \*(``mv\*('' first perform cursor movement and
+fail if the position
+.RI ( y ,
+.IR x )
+is outside the window boundaries.
+.SH NOTES
+.BR \%insch ","
+.BR \%mvinsch ","
+and
+.B \%mvwinsch
+may be implemented as macros.
+.PP
+.I curses
+does not necessarily employ the terminal's
+.B \%insert_character
+.RB ( ich1 )
+capability to achieve insertion.
+.SH PORTABILITY
+X/Open Curses Issue\ 4 describes these functions.
+It specifies no error conditions for them.
+.PP
+SVr4 describes a successful return value only as
+\*(``an integer value other than
+.IR ERR \*(''. \" Courier roman in source; SVID 4, vol. 3, p. 509
+.SH HISTORY
+SVr2 (1984) introduced these functions.
+.SH "SEE ALSO"
+\fB\%curs_ins_wch\fP(3X) describes comparable functions in the
+wide-character
+.I curses
+configuration.
+.PP
+\fB\%curses\fP(3X),
+\fB\%terminfo\fP(5)

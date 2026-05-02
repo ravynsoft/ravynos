@@ -29,6 +29,10 @@
 
 
 static pthread_mutex_t	sGlobalMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+typedef int (*pthread_mutex_lock_proc)(pthread_mutex_t*);
+typedef int (*pthread_mutex_unlock_proc)(pthread_mutex_t*);
+static pthread_mutex_lock_proc    lockProc   = &pthread_mutex_lock;
+static pthread_mutex_unlock_proc  unlockProc = &pthread_mutex_unlock;
 
 // <rdar://problem/6361143> Need a way to determine if a gdb call to dlopen() would block
 int	__attribute__((visibility("hidden")))			_dyld_global_lock_held = 0;
@@ -46,14 +50,13 @@ LockHelper::~LockHelper()
 
 void dyldGlobalLockAcquire() 
 {
-	pthread_mutex_lock(&sGlobalMutex);
+	(*lockProc)(&sGlobalMutex);
 	++_dyld_global_lock_held;
 }
 
 void dyldGlobalLockRelease() 
 {
 	--_dyld_global_lock_held;
-	pthread_mutex_unlock(&sGlobalMutex);
+	(*unlockProc)(&sGlobalMutex);
 }
-
 

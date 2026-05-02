@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+<title>terminal_interface-curses-text_io.ads</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style type="text/css">
+*.comment {
+	color: green;
+}
+*.symbol {
+	color: red;
+}
+</style>
+</head>
+<body>
+<hr><div style="text-align:center"><h1> File : terminal_interface-curses-text_io.ads </h1></div><hr>
+<pre>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                           <strong>GNAT</strong> ncurses Binding                           --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                     Terminal_Interface.Curses.Text_IO                    --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>--                                 S P E C                                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>-- Copyright 2020 Thomas E. Dickey                                          --</em></span>
+<span class="comment"><em>-- Copyright 1999-2003,2009 Free Software Foundation, Inc.                  --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Permission is hereby granted, free of charge, to any person obtaining a  --</em></span>
+<span class="comment"><em>-- copy of this software and associated documentation files (the            --</em></span>
+<span class="comment"><em>-- "Software"), to deal in the Software without restriction, including      --</em></span>
+<span class="comment"><em>-- without limitation the rights to use, copy, modify, merge, publish,      --</em></span>
+<span class="comment"><em>-- distribute, distribute with modifications, sublicense, and/or sell       --</em></span>
+<span class="comment"><em>-- copies of the Software, and to permit persons to whom the Software is    --</em></span>
+<span class="comment"><em>-- furnished to do so, subject to the following conditions:                 --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- The above copyright notice and this permission notice shall be included  --</em></span>
+<span class="comment"><em>-- in all copies or substantial portions of the Software.                   --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  --</em></span>
+<span class="comment"><em>-- OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               --</em></span>
+<span class="comment"><em>-- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   --</em></span>
+<span class="comment"><em>-- IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   --</em></span>
+<span class="comment"><em>-- DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    --</em></span>
+<span class="comment"><em>-- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    --</em></span>
+<span class="comment"><em>-- THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               --</em></span>
+<span class="comment"><em>--                                                                          --</em></span>
+<span class="comment"><em>-- Except as contained in this notice, the name(s) of the above copyright   --</em></span>
+<span class="comment"><em>-- holders shall not be used in advertising or otherwise to promote the     --</em></span>
+<span class="comment"><em>-- sale, use or other dealings in this Software without prior written       --</em></span>
+<span class="comment"><em>-- authorization.                                                           --</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<span class="comment"><em>--  Author:  Juergen Pfeifer, 1996</em></span>
+<span class="comment"><em>--  Version Control:</em></span>
+<span class="comment"><em>--  @Revision: 1.15 @</em></span>
+<span class="comment"><em>--  Binding Version 01.00</em></span>
+<span class="comment"><em>------------------------------------------------------------------------------</em></span>
+<b>with</b> Ada.Text_IO;
+<b>with</b> Ada.IO_Exceptions;
+
+<b>package</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<span class="symbol"><a name="ref_45_35" href="terminal_interface-curses-text_io__adb.htm#ref_43_40">Text_IO</a></span> <b>is</b>
+
+   <b>use</b> <b>type</b> Ada.Text_IO.Count;
+   <b>subtype</b> <span class="symbol"><a name="ref_48_12">Count</a></span> <b>is</b> Ada.Text_IO.Count;
+   <b>subtype</b> <span class="symbol"><a name="ref_49_12">Positive_Count</a></span> <b>is</b> <a href="terminal_interface-curses-text_io__ads.htm#ref_48_12">Count</a> <b>range</b> 1 .. <a href="terminal_interface-curses-text_io__ads.htm#ref_48_12">Count</a>'Last;
+
+   <b>subtype</b> <span class="symbol"><a name="ref_51_12">Field</a></span> <b>is</b> Ada.Text_IO.Field;
+   <b>subtype</b> <span class="symbol"><a name="ref_52_12">Number_Base</a></span> <b>is</b> Integer <b>range</b> 2 .. 16;
+
+   <b>type</b> <span class="symbol"><a name="ref_54_9">Type_Set</a></span> <b>is</b> (<span class="symbol"><a name="ref_54_22">Lower_Case</a></span>, <span class="symbol"><a name="ref_54_34">Upper_Case</a></span>, <span class="symbol"><a name="ref_54_46">Mixed_Case</a></span>);
+
+   <span class="comment"><em>--  For most of the routines you will see a version without a Window</em></span>
+   <span class="comment"><em>--  type parameter. They will operate on a default window, which can</em></span>
+   <span class="comment"><em>--  be set by the user. It is initially equal to Standard_Window.</em></span>
+
+   <b>procedure</b> <span class="symbol"><a name="ref_60_14" href="terminal_interface-curses-text_io__adb.htm#ref_47_14">Set_Window</a></span> (<span class="symbol"><a name="ref_60_26" href="terminal_interface-curses-text_io__adb.htm#ref_47_26">Win</a></span> : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>);
+   <span class="comment"><em>--  Set Win as the default window</em></span>
+
+   <b>function</b> <span class="symbol"><a name="ref_63_13" href="terminal_interface-curses-text_io__adb.htm#ref_53_13">Get_Window</a></span> <b>return</b> <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>;
+   <span class="comment"><em>--  Get the current default window</em></span>
+
+   <b>procedure</b> <span class="symbol"><a name="ref_66_14" href="terminal_interface-curses-text_io__adb.htm#ref_64_14">Flush</a></span> (<span class="symbol"><a name="ref_66_21" href="terminal_interface-curses-text_io__adb.htm#ref_64_21">Win</a></span> : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>);
+   <b>procedure</b> <span class="symbol"><a name="ref_67_14" href="terminal_interface-curses-text_io__adb.htm#ref_70_14">Flush</a></span>;
+
+   <span class="comment"><em>--------------------------------------------</em></span>
+   <span class="comment"><em>-- Specification of line and page lengths --</em></span>
+   <span class="comment"><em>--------------------------------------------</em></span>
+
+   <span class="comment"><em>--  There are no set routines in this package. I assume, that you allocate</em></span>
+   <span class="comment"><em>--  the window with an appropriate size.</em></span>
+   <span class="comment"><em>--  A scroll-window is interpreted as an page with unbounded page length,</em></span>
+   <span class="comment"><em>--  i.e. it returns the conventional 0 as page length.</em></span>
+
+   <b>function</b> <span class="symbol"><a name="ref_78_13" href="terminal_interface-curses-text_io__adb.htm#ref_85_13">Line_Length</a></span> (<span class="symbol"><a name="ref_78_26" href="terminal_interface-curses-text_io__adb.htm#ref_85_26">Win</a></span> : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>) <b>return</b> <a href="terminal_interface-curses-text_io__ads.htm#ref_48_12">Count</a>;
+   <b>function</b> <span class="symbol"><a name="ref_79_13" href="terminal_interface-curses-text_io__adb.htm#ref_97_13">Line_Length</a></span> <b>return</b> <a href="terminal_interface-curses-text_io__ads.htm#ref_48_12">Count</a>;
+
+   <b>function</b> <span class="symbol"><a name="ref_81_13" href="terminal_interface-curses-text_io__adb.htm#ref_103_13">Page_Length</a></span> (<span class="symbol"><a name="ref_81_26" href="terminal_interface-curses-text_io__adb.htm#ref_103_26">Win</a></span> : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>) <b>return</b> <a href="terminal_interface-curses-text_io__ads.htm#ref_48_12">Count</a>;
+   <b>function</b> <span class="symbol"><a name="ref_82_13" href="terminal_interface-curses-text_io__adb.htm#ref_119_13">Page_Length</a></span> <b>return</b> <a href="terminal_interface-curses-text_io__ads.htm#ref_48_12">Count</a>;
+
+   <span class="comment"><em>------------------------------------</em></span>
+   <span class="comment"><em>-- Column, Line, and Page Control --</em></span>
+   <span class="comment"><em>------------------------------------</em></span>
+   <b>procedure</b> <span class="symbol"><a name="ref_87_14" href="terminal_interface-curses-text_io__adb.htm#ref_128_14">New_Line</a></span> (<span class="symbol"><a name="ref_87_24" href="terminal_interface-curses-text_io__adb.htm#ref_128_24">Win</a></span> : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>; <span class="symbol"><a name="ref_87_38" href="terminal_interface-curses-text_io__adb.htm#ref_128_38">Spacing</a></span> : <a href="terminal_interface-curses-text_io__ads.htm#ref_49_12">Positive_Count</a> := 1);
+   <b>procedure</b> <span class="symbol"><a name="ref_88_14" href="terminal_interface-curses-text_io__adb.htm#ref_145_14">New_Line</a></span> (<span class="symbol"><a name="ref_88_24" href="terminal_interface-curses-text_io__adb.htm#ref_145_24">Spacing</a></span> : <a href="terminal_interface-curses-text_io__ads.htm#ref_49_12">Positive_Count</a> := 1);
+
+   <b>procedure</b> <span class="symbol"><a name="ref_90_14" href="terminal_interface-curses-text_io__adb.htm#ref_151_14">New_Page</a></span> (<span class="symbol"><a name="ref_90_24" href="terminal_interface-curses-text_io__adb.htm#ref_151_24">Win</a></span> : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>);
+   <b>procedure</b> <span class="symbol"><a name="ref_91_14" href="terminal_interface-curses-text_io__adb.htm#ref_157_14">New_Page</a></span>;
+
+   <b>procedure</b> <span class="symbol"><a name="ref_93_14" href="terminal_interface-curses-text_io__adb.htm#ref_163_14">Set_Col</a></span> (<span class="symbol"><a name="ref_93_23" href="terminal_interface-curses-text_io__adb.htm#ref_163_23">Win</a></span> : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>;  <span class="symbol"><a name="ref_93_38" href="terminal_interface-curses-text_io__adb.htm#ref_163_38">To</a></span> : <a href="terminal_interface-curses-text_io__ads.htm#ref_49_12">Positive_Count</a>);
+   <b>procedure</b> <span class="symbol"><a name="ref_94_14" href="terminal_interface-curses-text_io__adb.htm#ref_191_14">Set_Col</a></span> (<span class="symbol"><a name="ref_94_23" href="terminal_interface-curses-text_io__adb.htm#ref_191_23">To</a></span> : <a href="terminal_interface-curses-text_io__ads.htm#ref_49_12">Positive_Count</a>);
+
+   <b>procedure</b> <span class="symbol"><a name="ref_96_14" href="terminal_interface-curses-text_io__adb.htm#ref_197_14">Set_Line</a></span> (<span class="symbol"><a name="ref_96_24" href="terminal_interface-curses-text_io__adb.htm#ref_197_24">Win</a></span> : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>; <span class="symbol"><a name="ref_96_38" href="terminal_interface-curses-text_io__adb.htm#ref_197_38">To</a></span> : <a href="terminal_interface-curses-text_io__ads.htm#ref_49_12">Positive_Count</a>);
+   <b>procedure</b> <span class="symbol"><a name="ref_97_14" href="terminal_interface-curses-text_io__adb.htm#ref_221_14">Set_Line</a></span> (<span class="symbol"><a name="ref_97_24" href="terminal_interface-curses-text_io__adb.htm#ref_221_24">To</a></span> : <a href="terminal_interface-curses-text_io__ads.htm#ref_49_12">Positive_Count</a>);
+
+   <b>function</b> <span class="symbol"><a name="ref_99_13" href="terminal_interface-curses-text_io__adb.htm#ref_227_13">Col</a></span> (<span class="symbol"><a name="ref_99_18" href="terminal_interface-curses-text_io__adb.htm#ref_227_18">Win</a></span> : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>) <b>return</b> <a href="terminal_interface-curses-text_io__ads.htm#ref_49_12">Positive_Count</a>;
+   <b>function</b> <span class="symbol"><a name="ref_100_13" href="terminal_interface-curses-text_io__adb.htm#ref_241_13">Col</a></span> <b>return</b> <a href="terminal_interface-curses-text_io__ads.htm#ref_49_12">Positive_Count</a>;
+
+   <b>function</b> <span class="symbol"><a name="ref_102_13" href="terminal_interface-curses-text_io__adb.htm#ref_247_13">Line</a></span> (<span class="symbol"><a name="ref_102_19" href="terminal_interface-curses-text_io__adb.htm#ref_247_19">Win</a></span> : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>) <b>return</b> <a href="terminal_interface-curses-text_io__ads.htm#ref_49_12">Positive_Count</a>;
+   <b>function</b> <span class="symbol"><a name="ref_103_13" href="terminal_interface-curses-text_io__adb.htm#ref_261_13">Line</a></span> <b>return</b> <a href="terminal_interface-curses-text_io__ads.htm#ref_49_12">Positive_Count</a>;
+
+   <span class="comment"><em>-----------------------</em></span>
+   <span class="comment"><em>-- Characters-Output --</em></span>
+   <span class="comment"><em>-----------------------</em></span>
+
+   <b>procedure</b> <span class="symbol"><a name="ref_109_14" href="terminal_interface-curses-text_io__adb.htm#ref_271_14">Put</a></span> (<span class="symbol"><a name="ref_109_19" href="terminal_interface-curses-text_io__adb.htm#ref_271_19">Win</a></span>  : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>; <span class="symbol"><a name="ref_109_34" href="terminal_interface-curses-text_io__adb.htm#ref_271_34">Item</a></span> : Character);
+   <b>procedure</b> <span class="symbol"><a name="ref_110_14" href="terminal_interface-curses-text_io__adb.htm#ref_289_14">Put</a></span> (<span class="symbol"><a name="ref_110_19" href="terminal_interface-curses-text_io__adb.htm#ref_289_19">Item</a></span> : Character);
+
+   <span class="comment"><em>--------------------</em></span>
+   <span class="comment"><em>-- Strings-Output --</em></span>
+   <span class="comment"><em>--------------------</em></span>
+
+   <b>procedure</b> <span class="symbol"><a name="ref_116_14" href="terminal_interface-curses-text_io__adb.htm#ref_299_14">Put</a></span> (<span class="symbol"><a name="ref_116_19" href="terminal_interface-curses-text_io__adb.htm#ref_299_19">Win</a></span>  : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>; <span class="symbol"><a name="ref_116_34" href="terminal_interface-curses-text_io__adb.htm#ref_299_34">Item</a></span> : String);
+   <b>procedure</b> <span class="symbol"><a name="ref_117_14" href="terminal_interface-curses-text_io__adb.htm#ref_317_14">Put</a></span> (<span class="symbol"><a name="ref_117_19" href="terminal_interface-curses-text_io__adb.htm#ref_317_19">Item</a></span> : String);
+
+   <b>procedure</b> <span class="symbol"><a name="ref_119_14" href="terminal_interface-curses-text_io__adb.htm#ref_323_14">Put_Line</a></span>
+     (<span class="symbol"><a name="ref_120_7" href="terminal_interface-curses-text_io__adb.htm#ref_324_7">Win</a></span>  : <a href="terminal_interface-curses__ads.htm#ref_56_9">Window</a>;
+      <span class="symbol"><a name="ref_121_7" href="terminal_interface-curses-text_io__adb.htm#ref_325_7">Item</a></span> : String);
+
+   <b>procedure</b> <span class="symbol"><a name="ref_123_14" href="terminal_interface-curses-text_io__adb.htm#ref_332_14">Put_Line</a></span>
+     (<span class="symbol"><a name="ref_124_7" href="terminal_interface-curses-text_io__adb.htm#ref_333_7">Item</a></span> : String);
+
+   <span class="comment"><em>--  Exceptions</em></span>
+
+   <span class="symbol"><a name="ref_128_4">Status_Error</a></span> : <b>exception</b> <b>renames</b> Ada.IO_Exceptions.Status_Error;
+   <span class="symbol"><a name="ref_129_4">Mode_Error</a></span>   : <b>exception</b> <b>renames</b> Ada.IO_Exceptions.Mode_Error;
+   <span class="symbol"><a name="ref_130_4">Name_Error</a></span>   : <b>exception</b> <b>renames</b> Ada.IO_Exceptions.Name_Error;
+   <span class="symbol"><a name="ref_131_4">Use_Error</a></span>    : <b>exception</b> <b>renames</b> Ada.IO_Exceptions.Use_Error;
+   <span class="symbol"><a name="ref_132_4">Device_Error</a></span> : <b>exception</b> <b>renames</b> Ada.IO_Exceptions.Device_Error;
+   <span class="symbol"><a name="ref_133_4">End_Error</a></span>    : <b>exception</b> <b>renames</b> Ada.IO_Exceptions.End_Error;
+   <span class="symbol"><a name="ref_134_4">Data_Error</a></span>   : <b>exception</b> <b>renames</b> Ada.IO_Exceptions.Data_Error;
+   <span class="symbol"><a name="ref_135_4">Layout_Error</a></span> : <b>exception</b> <b>renames</b> Ada.IO_Exceptions.Layout_Error;
+
+<b>end</b> <a href="terminal_interface__ads.htm#ref_43_9">Terminal_Interface</a>.<a href="terminal_interface-curses__ads.htm#ref_48_28">Curses</a>.<a href="terminal_interface-curses-text_io__ads.htm#ref_45_35">Text_IO</a>;
+</pre></body></html>

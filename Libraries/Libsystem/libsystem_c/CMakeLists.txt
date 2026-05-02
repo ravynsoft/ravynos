@@ -170,7 +170,8 @@ add_library(Base STATIC
     string/strncat.c
     gen/sync_volume_np.c
     gen/dirfd.c
-    os/assumes.c)
+    os/assumes.c
+    stubs.c)
 
 target_include_directories(Base PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -869,7 +870,7 @@ add_library(libc_dyld STATIC
     gen/FreeBSD/sysctlbyname.c
     gen/FreeBSD/telldir.c
     gen/FreeBSD/usleep.c
-    stdlib/FreeBSD/atexit.c
+    #stdlib/FreeBSD/atexit.c
     stdlib/FreeBSD/exit.c
     stdlib/FreeBSD/heapsort.c
     stdlib/FreeBSD/merge.c
@@ -945,7 +946,7 @@ add_library(libc_static STATIC
 if("${CpuArch}" STREQUAL "x86_64")
     target_sources(libc_static PRIVATE x86_64/gen/mcount.s)
 endif()
-set_property(TARGET libc_static PROPERTY OUTPUT_NAME c)
+set_property(TARGET libc_static PROPERTY OUTPUT_NAME c_static)
 
 add_dependencies(libc_static features)
 
@@ -963,12 +964,13 @@ target_include_directories(libc_static PRIVATE
     ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
     ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern)
 
-target_link_options(libc_static PRIVATE -ld-path=${LIBTOOL} -Wl,-static -o libc.a
-    $<TARGET_FILE:Base> $<TARGET_FILE:NetBSD> $<TARGET_FILE:FortifySource>
-    $<TARGET_FILE:FreeBSD> $<TARGET_FILE:TRE>
-    $<TARGET_FILE:vCancelable> $<TARGET_FILE:vDarwinExtsn>)
-
-add_custom_command(TARGET libc_static POST_BUILD
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libc.a
+    DEPENDS libc_static
+    COMMAND ${TOOLS}/llvm-libtool-darwin -o ${CMAKE_CURRENT_BINARY_DIR}/libc.a -static 
+        $<TARGET_FILE:libc_static>
+        $<TARGET_FILE:Base> $<TARGET_FILE:NetBSD> #$<TARGET_FILE:FortifySource>
+        $<TARGET_FILE:FreeBSD> $<TARGET_FILE:TRE>
+        $<TARGET_FILE:vCancelable> $<TARGET_FILE:vDarwinExtsn>
     COMMAND ${CMAKE_COMMAND} -E make_directory ${RAVYN_SDKROOT}/usr/local/lib/system
         ${RAVYN_SDKROOT}/usr/local/lib/loaderd
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/libc.a
@@ -976,6 +978,9 @@ add_custom_command(TARGET libc_static POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E create_symlink ../system/libc.a
         ${RAVYN_SDKROOT}/usr/local/lib/loaderd/libc.a
 )
+add_custom_target(link_libc_static DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/libc.a)
+add_dependencies(link_libc_static libc_static)
+add_dependencies(libsystem_c link_libc_static)
 
 #-------------------------------------------------------------------------
 #                             VARIANT TARGETS
@@ -1300,13 +1305,13 @@ target_link_options(libsystem_c PRIVATE
     -Wl,-search_paths_first -Wl,-all_load
     -Wl,-upward-lsystem_blocks -Wl,-upward-lxpc -Wl,-upward-ldispatch
     -Wl,-upward-lsystem_asl -Wl,-upward-lsystem_info -Wl,-upward-lsystem_notify
-    #-Wl,-upward-lcorecrypto -Wl,-upward-lsystem_trace -Wl,-upward-lmacho
+    -Wl,-upward-lsystem_trace #-Wl,-upward-lcorecrypto -Wl,-upward-lmacho
     -Wl,-interposable_list,${CMAKE_CURRENT_BINARY_DIR}/interposable.list
     -Wl,-unexported_symbols_list,${CMAKE_CURRENT_BINARY_DIR}/unexport.list
     -Wl,-alias_list,${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/alias.list
     -Wl,-order_file,${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/Libc.order
-    -ldyld -lsystem_malloc -lsystem_platform -lsystem_pthread -lsystem_kernel
-    -lsystem_m -lCrashReporterClient -Wl,-flat_namespace -Wl,-undefined,warning
+    -lsystem_malloc -lsystem_platform -lsystem_pthread -lsystem_kernel -ldyld
+    -llaunch -lsystem_m -lCrashReporterClient 
 )
 target_link_libraries(libsystem_c PRIVATE Platform Base NetBSD FortifySource FreeBSD TRE
     vCancelable vDarwinExtsn vInode32 vPre1050)

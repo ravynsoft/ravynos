@@ -57,7 +57,11 @@ ffsll(unsigned long long mask)
 #endif
 }
 
-#if VARIANT_DYLD && TARGET_OS_SIMULATOR
+/* Why is this guarded behind a variant? The ffs function is used in 
+ * libsystem_asl and other places, and nothing else seems to expose it.
+ * Perhaps meant to be an aliased symbol - for now, just exposing this.
+ */
+//#if VARIANT_DYLD && TARGET_OS_SIMULATOR
 int
 ffsl(unsigned long mask)
 {
@@ -99,5 +103,5 @@ ffs(unsigned int mask)
 	return (bit);
 #endif
 }
-#endif
+//#endif
 
