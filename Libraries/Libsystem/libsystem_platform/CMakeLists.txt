@@ -4,7 +4,7 @@ set_target_properties(libsystem_platform PROPERTIES
 
 add_library(libplatform STATIC)
 set_target_properties(libplatform PROPERTIES
-    OUTPUT_NAME "platform" PREFIX "libsystem_" SUFFIX ".a")
+    OUTPUT_NAME "platform" PREFIX "lib" SUFFIX ".a")
 
 set(libplatform_sources
     simple/asl.c
@@ -91,7 +91,7 @@ set_source_files_properties(_setcontext.s os/lock.c
 target_sources(libplatform PRIVATE ${libplatform_sources} os/lock.c)
 target_include_directories(libplatform PRIVATE ${libplatform_incs})
 target_compile_definitions(libplatform PRIVATE ${libplatform_defs}
-    VARIANT_STATIC VARIANT_NO_RESOLVERS)
+    VARIANT_STATIC VARIANT_NO_RESOLVERS VARIANT_DYLD)
 target_compile_options(libplatform PRIVATE ${libplatform_opts})
 
 target_link_options(libsystem_platform PRIVATE
@@ -108,12 +108,13 @@ target_link_options(libsystem_platform PRIVATE
 
 add_custom_command(TARGET libplatform POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E make_directory
-                ${RAVYN_SDKROOT}/usr/local/lib/system &&
+                ${RAVYN_SDKROOT}/usr/local/lib/dyld &&
                 ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libplatform>
-		${RAVYN_SDKROOT}/usr/local/lib/system/
+		${RAVYN_SDKROOT}/usr/local/lib/dyld/
 )
 
 add_custom_command(TARGET libsystem_platform POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libsystem_platform>
 		${RAVYN_SDKROOT}/usr/lib/system/
 )
+

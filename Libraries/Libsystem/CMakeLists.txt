@@ -79,6 +79,7 @@ target_compile_options(libSystem PRIVATE
 
 add_dependencies(libdyld libsystem_pthread libsystem_c)
 add_dependencies(libsystem_c libsystem_malloc libsystem_platform)
+add_dependencies(libpthread_dyld libsystem_platform)
 add_dependencies(libsystem_pthread libsystem_platform)
 add_dependencies(libsystem_malloc libsystem_platform CrashReporterClient)
 add_dependencies(libsystem_platform compiler_rt libkernel)
@@ -129,7 +130,7 @@ target_link_options(libSystem PRIVATE
     -L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/local/lib/system
     -L${RAVYN_SDKROOT}/usr/lib -Wl,-no_warn_inits
     -Wl,-install_name,/usr/lib/libSystem.B.dylib -Wl,-current_version,1254
-    -Wl,-compatibility_version,1.0.0 -all_load
+    -Wl,-compatibility_version,1.0.0
     -nodefaultlibs -Wl,-dylib -Wl,-search_paths_first
     -Wl,-reexport-lsystem_c -Wl,-reexport-lsystem_blocks -Wl,-reexport-lsystem_asl
     -Wl,-reexport-lsystem_malloc -Wl,-reexport-lsystem_platform
@@ -140,9 +141,9 @@ target_link_options(libSystem PRIVATE
     -Wl,-reexport-lsystem_notify -Wl,-reexport-lsystem_info -Wl,-reexport-lcopyfile
     -Wl,-reexport-lremovefile -Wl,-reexport-lsystem_trace -Wl,-reexport-lsystem_dnssd
     -Wl,-force_load,${RAVYN_SDKROOT}/usr/lib/system/libCrashReporterClient.a
-    -Wl,-force_load,${ROOT_BINARY_DIR}/Libraries/Libsystem/libsystem_kernel/libmach.a
-    -Wl,-force_load,${ROOT_BINARY_DIR}/Libraries/Libsystem/libsystem_kernel/libsyscalls.a
-    -Wl,-force_load,${RAVYN_SDKROOT}/usr/local/lib/system/libc.a
+    #-Wl,-force_load,${ROOT_BINARY_DIR}/Libraries/Libsystem/libsystem_kernel/libmach.a
+    #-Wl,-force_load,${ROOT_BINARY_DIR}/Libraries/Libsystem/libsystem_kernel/libsyscalls.a
+    #-Wl,-force_load,${RAVYN_SDKROOT}/usr/local/lib/system/libc.a
     -L${CMAKE_CURRENT_BINARY_DIR}/../llvm_target/compiler-rt/lib/ravynos
     -lclang_rt.builtins-${CpuArch} -ldyld -lsystem_c -lc++
     -lsystem_platform -lsystem_kernel -lsystem_blocks -lsystem_malloc 

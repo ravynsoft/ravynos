@@ -43,7 +43,7 @@ target_compile_options(libsystem_pthread PRIVATE ${libpthread_opts})
 
 target_link_options(libsystem_pthread PRIVATE
     --sysroot=${RAVYN_SDKROOT} -isysroot${RAVYN_SDKROOT}
-    -mmacos-version-min=${MACOS_VERSION_MIN} #-flat_namespace -undefined warning
+    -mmacos-version-min=${MACOS_VERSION_MIN} 
     -Wl,-install_name,/usr/lib/system/libsystem_pthread.dylib
     -Wl,-current_version,416.0.6 -Wl,-compatibility_version,1.0.0
     -rdynamic -nodefaultlibs -Wl,-search_paths_first
@@ -57,3 +57,17 @@ add_custom_command(TARGET libsystem_pthread POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libsystem_pthread>
 		${RAVYN_SDKROOT}/usr/lib/system/
 )
+
+add_library(libpthread_dyld STATIC)
+set_target_properties(libpthread_dyld PROPERTIES OUTPUT_NAME "pthread" PREFIX "lib")
+target_sources(libpthread_dyld PRIVATE ${libpthread_sources})
+target_include_directories(libpthread_dyld PRIVATE ${libpthread_incs})
+target_compile_definitions(libpthread_dyld PRIVATE ${libpthread_defs}
+    VARIANT_STATIC VARIANT_DYLD)
+target_compile_options(libpthread_dyld PRIVATE ${libpthread_opts})
+
+add_custom_command(TARGET libpthread_dyld POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libpthread_dyld>
+		${RAVYN_SDKROOT}/usr/local/lib/dyld/
+)
+

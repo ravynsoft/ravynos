@@ -238,7 +238,6 @@ add_library(libkernel STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/__commpage_gettimeofday.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/__get_cpu_capabilities.s
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/_libc_funcptr.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/_libkernel_init.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/string/strlen.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/string/index.c
@@ -266,13 +265,20 @@ target_compile_options(libkernel PRIVATE ${common_opts} $<$<COMPILE_LANGUAGE:ASM
 
 add_custom_command(TARGET libkernel POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${RAVYN_SDKROOT}/usr/local/lib/kernel
-        && ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libkernel> ${RAVYN_SDKROOT}/usr/local/lib/kernel/
+    && ${TOOLS}/llvm-libtool-darwin -static 
+    	-o ${RAVYN_SDKROOT}/usr/local/lib/kernel/libkernel.a
+    	$<TARGET_FILE:libkernel> ${CMAKE_CURRENT_BINARY_DIR}/libmach.a
+	${CMAKE_CURRENT_BINARY_DIR}/libsyscalls.a
 )
 
-add_library(libsystem_kernel SHARED stub.c)
+add_library(libsystem_kernel SHARED stub.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/_libc_funcptr.c)
 set_target_properties(libsystem_kernel PROPERTIES
     OUTPUT_NAME "kernel" SUFFIX ".dylib" PREFIX "libsystem_" NO_SONAME true)
 add_dependencies(libsystem_kernel libkernel)
+target_include_directories(libsystem_kernel PRIVATE ${common_headers})
+target_compile_definitions(libsystem_kernel PRIVATE ${common_defs})
+target_compile_options(libsystem_kernel PRIVATE ${common_opts} $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>)
 
 target_link_options(libsystem_kernel PRIVATE
     -Wl,-umbrella,System -Wl,-all_load
