@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 4.0)
 
-add_executable(sh 
+add_executable(sh)
+set(sh_src
+	bltin/echo.c
 	alias.c
 	arith_yacc.c
 	arith_yylex.c
-	builtins.c
 	cd.c
 	error.c
 	eval.c
@@ -17,8 +18,6 @@ add_executable(sh
 	main.c
 	memalloc.c
 	miscbltin.c
-	mknodes.c
-	mksyntax.c
 	mystring.c
 	options.c
 	output.c
@@ -28,9 +27,12 @@ add_executable(sh
 	trap.c
 	var.c)
 target_sources(sh PRIVATE
+	${sh_src}
+	${CMAKE_CURRENT_BINARY_DIR}/builtins.c 
 	${CMAKE_CURRENT_BINARY_DIR}/nodes.c 
 	${CMAKE_CURRENT_BINARY_DIR}/syntax.c)
 target_sources(sh PRIVATE
+	${CMAKE_CURRENT_BINARY_DIR}/builtins.h
 	${CMAKE_CURRENT_BINARY_DIR}/nodes.h
 	${CMAKE_CURRENT_BINARY_DIR}/syntax.h
 	${CMAKE_CURRENT_BINARY_DIR}/token.h)
@@ -45,6 +47,10 @@ target_include_directories(sh PRIVATE
 	. 
 	${CMAKE_CURRENT_BINARY_DIR}
 	../../lib/libedit/src)
+
+add_custom_command(OUTPUT builtins.c builtins.h
+	COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/mkbuiltins ${CMAKE_CURRENT_SOURCE_DIR}
+	DEPENDS ${sh_src})
 
 add_custom_command(OUTPUT syntax.c syntax.h
 	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/mksyntax
@@ -74,7 +80,8 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/token.h
 	COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/mktokens)
 
 target_link_options(sh PRIVATE
-	-mmacos-version-min=${MACOS_VERSION_MIN})
+	-mmacos-version-min=${MACOS_VERSION_MIN}
+	-L${ROOT_BINARY_DIR}/BSD/lib/ncurses -lncurses)
 
 target_link_libraries(sh PRIVATE
 	${ROOT_BINARY_DIR}/BSD/lib/libedit/libedit.a)

@@ -23,4 +23,4 @@ add_custom_target(BSD)
 add_dependencies(BSD Darwin)
 
 add_subdirectory(lib)
-#add_subdirectory(bin)
+add_subdirectory(bin)
