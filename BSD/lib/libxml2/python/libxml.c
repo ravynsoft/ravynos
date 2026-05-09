@@ -1224,7 +1224,6 @@ pythonAttributeDecl(void *user_data,
         for (node = tree; node != NULL; node = node->next) {
             newName = PY_IMPORT_STRING((char *) node->name);
             PyList_SetItem(nameList, count, newName);
-	    Py_DECREF(newName);
             count++;
         }
         result = PyObject_CallMethod(handler, (char *) "attributeDecl",
