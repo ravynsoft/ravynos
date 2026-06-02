@@ -24,7 +24,7 @@ ifeq ($(OPSYS),Linux)
 # The linux linker needs these to come after object files :(
 export LIBS = -L../../../../Developer/Default.xctoolchain/cctools/libmacho \
 	-L../../../../Developer/Default.xctoolchain/cctools/libstuff \
-	-luuid -lmacho -lstuff
+	-luuid -L${TOOLCHAIN}/usr/lib -lmacho -lstuff
 endif
 
 WARNFLAGS = -Wall -Wno-int-conversion

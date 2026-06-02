@@ -1719,7 +1719,11 @@ wq_init(workqueue_t *wq, int nfiles)
 
 	wq->wq_wip = xcalloc(sizeof (wip_t) * nslots);
 	wq->wq_nwipslots = nslots;
+#ifdef __linux__
+	wq->wq_nthreads = 1;
+#else
 	wq->wq_nthreads = MIN(sysconf(_SC_NPROCESSORS_ONLN) * 3 / 2, nslots);
+#endif
 	wq->wq_thread = xmalloc(sizeof (pthread_t) * wq->wq_nthreads);
 
 	if (getenv("CTFMERGE_INPUT_THROTTLE"))

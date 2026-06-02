@@ -20,6 +20,9 @@
  *
  * @APPLE_LICENSE_HEADER_END@
  */
+/* Modified June 2026 for ravynOS. This note is in support of Clause 2.2
+ * of the License.
+ */
 #include "internal.h"
 
 #pragma mark Types
@@ -483,3 +486,67 @@ os_assert_mach_port_status(const char *desc, mach_port_t p,
 		}
 	}
 }
+
+/* Routines below were copied from getsecbyname.c in cctools/libmacho */
+/*
+ * This routine returns the a pointer to the data for the named section in the
+ * named segment if it exist in the 64-bit mach header passed to it.  Also it
+ * returns the size of the section data indirectly through the pointer size.
+ * Otherwise it returns zero for the pointer and the size.
+ */
+char *
+getsectdatafromheader_64(
+const struct mach_header_64 *mhp,
+const char *segname,
+const char *sectname,
+uint64_t *size)
+{
+    const struct section_64 *sp;
+
+	sp = getsectbynamefromheader_64(mhp, segname, sectname);
+	if(sp == NULL){
+	    *size = 0;
+	    return(NULL);
+	}
+	*size = sp->size;
+	return((char *)((uintptr_t)(sp->addr)));
+}
+
+/*
+ * This routine returns the section structure for the named section in the
+ * named segment for the mach_header_64 pointer passed to it if it exist.
+ * Otherwise it returns zero.
+ */
+const struct section_64 *
+getsectbynamefromheader_64(
+const struct mach_header_64 *mhp,
+const char *segname,
+const char *sectname)
+{
+	struct segment_command_64 *sgp;
+	struct section_64 *sp;
+	uint32_t i, j;
+        
+	sgp = (struct segment_command_64 *)
+	      ((char *)mhp + sizeof(struct mach_header_64));
+	for(i = 0; i < mhp->ncmds; i++){
+	    if(sgp->cmd == LC_SEGMENT_64)
+		if(strncmp(sgp->segname, segname, sizeof(sgp->segname)) == 0 ||
+		   mhp->filetype == MH_OBJECT){
+		    sp = (struct section_64 *)((char *)sgp +
+			 sizeof(struct segment_command_64));
+		    for(j = 0; j < sgp->nsects; j++){
+			if(strncmp(sp->sectname, sectname,
+			   sizeof(sp->sectname)) == 0 &&
+			   strncmp(sp->segname, segname,
+			   sizeof(sp->segname)) == 0)
+			    return(sp);
+			sp = (struct section_64 *)((char *)sp +
+			     sizeof(struct section_64));
+		    }
+		}
+	    sgp = (struct segment_command_64 *)((char *)sgp + sgp->cmdsize);
+	}
+	return((struct section_64 *)0);
+}
+

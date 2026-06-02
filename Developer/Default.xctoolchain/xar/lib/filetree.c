@@ -955,7 +955,9 @@ void xar_prop_serialize(xar_prop_t p, xmlTextWriterPtr writer) {
 
 				tmp = malloc(len);
 				assert(tmp);
-				if( UTF8Toisolat1(tmp, &len, BAD_CAST(XAR_PROP(i)->value), &inlen) < 0 ) {
+				xmlCharEncodingHandlerPtr codec = 
+					xmlFindCharEncodingHandler("ISO-8859-1");
+				if( codec && xmlCharEncOutFunc(codec, &len, BAD_CAST(XAR_PROP(i)->value)) < 0 ) {
 					xmlTextWriterWriteAttribute(writer, BAD_CAST("enctype"), BAD_CAST("base64"));
 					xmlTextWriterWriteBase64(writer, XAR_PROP(i)->value, 0, (int)strlen(XAR_PROP(i)->value));
 				} else

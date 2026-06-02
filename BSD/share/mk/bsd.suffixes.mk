@@ -33,6 +33,9 @@
 	${OBJC} ${OBJCFLAGS} -c ${.IMPSRC} -o ${.TARGET}
 	${CTFCONVERT_CMD}
 
+.mm.o:
+	${OBJCXX} ${OBJCXXFLAGS} -c ${.IMPSRC} -o ${.TARGET}
+
 .p.o:
 	${PC} ${PFLAGS} -c ${.IMPSRC} -o ${.TARGET}
 	${CTFCONVERT_CMD}
@@ -44,17 +47,9 @@
 .e.o .r.o .F.o .f.o:
 	${FC} ${RFLAGS} ${EFLAGS} ${FFLAGS} -c ${.IMPSRC} -o ${.TARGET}
 
-.S.o:
-	${CC:N${CCACHE_BIN}} ${CFLAGS} ${ACFLAGS} -c ${.IMPSRC} -o ${.TARGET}
-	${CTFCONVERT_CMD}
-
-.asm.o:
-	${CC:N${CCACHE_BIN}} -x assembler-with-cpp ${CFLAGS} ${ACFLAGS} -c ${.IMPSRC} \
-	    -o ${.TARGET}
-	${CTFCONVERT_CMD}
-
-.s.o:
-	${CC:N${CCACHE_BIN}} -x assembler ${ACFLAGS} -c ${.IMPSRC} -o ${.TARGET}
+.S.o .s.o .asm.o:
+	${CC:N${CCACHE_BIN}} -x assembler-with-cpp ${CFLAGS} ${ACFLAGS} \
+		-c ${.IMPSRC} -o ${.TARGET}
 	${CTFCONVERT_CMD}
 
 # XXX not -j safe

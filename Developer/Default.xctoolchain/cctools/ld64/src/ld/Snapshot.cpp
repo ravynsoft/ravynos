@@ -8,6 +8,7 @@
 
 #ifdef __linux__
 #include <algorithm>
+#include <stdarg.h>
 namespace {
 	typedef long double max_align_t;
 }

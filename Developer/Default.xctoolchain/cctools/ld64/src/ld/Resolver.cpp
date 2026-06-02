@@ -29,7 +29,7 @@
 #include <sys/mman.h>
 #ifdef __linux__
 #define MAXPATHLEN 1024
-#include <string.h>
+#include <bsd/string.h>
 namespace {
 	typedef long double max_align_t;
 }

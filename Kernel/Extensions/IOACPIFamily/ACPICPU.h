@@ -24,6 +24,7 @@
 #ifndef _IOKIT_APPLEI386CPU_H
 #define _IOKIT_APPLEI386CPU_H
 
+#include <i386/machine_routines.h>
 #include <IOKit/IOCPU.h>
 
 extern uint32_t ncpus;

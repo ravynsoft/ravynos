@@ -25,6 +25,8 @@
 #define _crc_make_getter(attr) ((const char *)(unsigned long)gCRAnnotations.attr)
 #define _crc_make_setter(attr, arg) (gCRAnnotations.attr = (uint64_t)(unsigned long)(arg))
 
+void _crc_collect_info(void);
+
 CRASH_REPORTER_CLIENT_HIDDEN
 void _crc_collect_info(void)
 {

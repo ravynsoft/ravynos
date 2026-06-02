@@ -27,7 +27,7 @@
 
 #include <mach/mach_types.h>
 
-extern const char *CRGetCrashLogMessage();
+extern const char *CRGetCrashLogMessage(void);
 extern void CRSetCrashLogMessage(const char *crashString);
 extern void CRSetCrashLogMessage2(const char *crashString);
 

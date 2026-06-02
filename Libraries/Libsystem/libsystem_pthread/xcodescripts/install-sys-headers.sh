@@ -32,7 +32,7 @@ mkdir -p "$DESTDIR"
 for X in \
 	qos.h \
 	; do
-	cp "sys/$X" "$DESTDIR"
+	cp "../../../Developer/ravynOS.sdk/usr/include/sys/$X" "$DESTDIR"
 done
 
 DESTDIR="$DSTROOT/usr/local/include/sys"
@@ -40,7 +40,7 @@ mkdir -p "$DESTDIR"
 for X in \
 	qos_private.h \
 	; do
-	cp "sys/$X" "$DESTDIR"
+	cp "../../../Developer/ravynOS.sdk/usr/include/sys/$X" "$DESTDIR"
 done
 
 DESTDIR="$DSTROOT/usr/include/sys/_pthread"
@@ -58,6 +58,6 @@ for X in \
 	_pthread_t.h \
 	_pthread_types.h \
 	; do
-	cp "sys/_pthread/$X" "$DESTDIR"
+	cp "../../../Developer/ravynOS.sdk/usr/include/sys/_pthread/$X" "$DESTDIR"
 done
 

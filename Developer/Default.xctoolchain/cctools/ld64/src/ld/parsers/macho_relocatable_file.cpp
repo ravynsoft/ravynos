@@ -24,6 +24,7 @@
  
 #ifdef __linux__
 #include <Availability.h>
+#include <bsd/string.h>
 #define __OSX_AVAILABLE_STARTING(...)
 #define __API_AVAILABLE(...)
 #define CPU_SUBTYPE_X86_ALL 3

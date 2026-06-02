@@ -33,6 +33,9 @@
 #ifdef __linux__
 #include <sys/types.h>
 typedef __caddr_t caddr_t;
+#ifndef uint_t
+typedef unsigned int uint_t;
+#endif
 #endif
 #include <stdbool.h>
 #include <stdio.h>

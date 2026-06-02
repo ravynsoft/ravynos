@@ -101,7 +101,7 @@ vprocmgr_lookup_vproc(const char *label)
 vproc_t
 vproc_retain(vproc_t vp)
 {
-	int32_t orig = atomic_fetch_add(&vp->refcount, 1) - 1;
+	int32_t orig = OSAtomicIncrement32(&vp->refcount) - 1;
 	if (orig <= 0) {
 		_vproc_set_crash_log_message("Under-retain / over-release of vproc_t.");
 		abort();
@@ -113,7 +113,7 @@ vproc_retain(vproc_t vp)
 void
 vproc_release(vproc_t vp)
 {
-	int32_t newval = atomic_fetch_add(&vp->refcount, -1);
+	int32_t newval = OSAtomicDecrement32(&vp->refcount);
 	if (newval < 0) {
 		_vproc_set_crash_log_message("Over-release of vproc_t.");
 		abort();

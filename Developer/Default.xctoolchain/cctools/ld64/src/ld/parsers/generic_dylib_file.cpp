@@ -24,7 +24,7 @@
 
 #ifdef __linux__
 #include <algorithm>
-#include <string.h>
+#include <bsd/string.h>
 #ifndef PATH_MAX
 #define PATH_MAX 1024
 #endif

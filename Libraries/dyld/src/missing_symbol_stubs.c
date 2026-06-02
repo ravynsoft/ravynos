@@ -14,6 +14,15 @@
 #include <sys/stat.h>
 #include <sys/fcntl.h>
 
+int __snprintf_chk(char * str, size_t maxlen, int flag, size_t strlen, const char * format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    int result = __builtin___snprintf_chk(str, maxlen, 0, __builtin_object_size(str, 1), format, args);
+    va_end(args);
+    return result;
+}
+
 void* malloc(size_t size);  /* dyldNew.cpp */
 
 int inDenyList(const char * path)
@@ -293,47 +302,6 @@ int amfi_check_dyld_policy_self(uint64_t inFlags, uint64_t* outFlags)
 {
     *outFlags = 0x3F;  // on old kernel, simulator process get all flags
     return 0;
-}
-
-/* FIXME: remove once we have CommonCrypto working */
-struct ccdigest_info;
-
-void cc_clear(size_t len, void* dst)
-{
-    if ( dst == NULL )
-        return;
-    volatile unsigned char* p = (volatile unsigned char*)dst;
-    while ( len-- )
-        *p++ = 0;
-}
-
-void ccdigest_init(const struct ccdigest_info* di, void* ctx)
-{
-    (void)di;
-    (void)ctx;
-}
-
-void ccdigest_update(const struct ccdigest_info* di, void* ctx, size_t len, const void* data)
-{
-    (void)di;
-    (void)ctx;
-    (void)len;
-    (void)data;
-}
-
-const struct ccdigest_info* ccsha1_di(void)
-{
-    return NULL;
-}
-
-const struct ccdigest_info* ccsha256_di(void)
-{
-    return NULL;
-}
-
-const struct ccdigest_info* ccsha384_di(void)
-{
-    return NULL;
 }
 
 int dyld_shared_cache_extract_dylibs_progress(const char* shared_cache_file_path,

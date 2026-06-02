@@ -12,6 +12,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define __STDC_VERSION__ 199000L
 #endif
 
+#include <Availability.h>
+
 #include <sys/types.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -36,6 +38,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #import <CoreFoundation/CoreFoundation.h>
 #import <CoreServices/CoreServices.h> // This is actually imported by NSURLError.h
+
+#define NS_ENUM(_type, _name) enum _name:_type _name; enum _name : _type
+#define NS_UNAVAILABLE __attribute__((unavailable))
 
 #import <Foundation/FoundationErrors.h>
 #import <Foundation/NSAffineTransform.h>

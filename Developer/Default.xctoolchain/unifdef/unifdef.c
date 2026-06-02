@@ -56,6 +56,9 @@
 #include <string.h>
 #include <unistd.h>
 
+extern char *optarg;
+extern int optind;
+
 const char copyright[] =
     "@(#) $Version: unifdef-2.5.6.21f1388 $\n"
     "@(#) $FreeBSD: src/usr.bin/unifdef/unifdef.c,v 1.31 2011/01/21 18:10:11 fanf Exp $\n"

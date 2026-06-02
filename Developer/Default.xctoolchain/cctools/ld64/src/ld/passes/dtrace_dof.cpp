@@ -24,7 +24,7 @@
 
 #ifdef __linux__
 #include <algorithm>
-#include <string.h>
+#include <bsd/string.h>
 #endif
 
 #include <stdint.h>

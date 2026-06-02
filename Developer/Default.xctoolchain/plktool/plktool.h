@@ -32,12 +32,17 @@
 
 #define RANGE_ALL(a)    CFRangeMake(0, CFArrayGetCount(a))
 
+#ifndef API_AVAILABLE
+#define API_AVAILABLE(...)
+#endif
+
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <strings.h>
 #include <stdio.h>
 #include <libgen.h>
 #include <byteswap.h>
+#include <fcntl.h>
 #include <sys/mman.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreFoundation/CFRuntime.h>

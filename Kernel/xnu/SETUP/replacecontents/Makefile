@@ -13,6 +13,8 @@ LDFLAGS =
 ifeq ($(shell uname -s),"Darwin")
 	CFLAGS += -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION)
 	LDFLAGS += -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION)
+else
+LDFLAGS += -lbsd -L${TOOLCHAIN}/usr/lib
 endif
 
 WARNFLAGS = -Wall

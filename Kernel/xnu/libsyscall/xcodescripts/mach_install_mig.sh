@@ -33,6 +33,7 @@ cd $OBJROOT
 MIG=`xcrun -sdk "$SDKROOT" -find mig`
 MIGCC=`xcrun -sdk "$SDKROOT" -find cc`
 export MIGCC
+VER=${MACOS_VERSION_MIN:-10.15}
 MIG_DEFINES="-DLIBSYSCALL_INTERFACE"
 MIG_HEADER_OBJ="$OBJROOT/mig_hdr/include/mach"
 MIG_HEADER_DST="$BUILT_PRODUCTS_DIR/mig_hdr/include/mach"
@@ -41,7 +42,7 @@ SERVER_HEADER_DST="$BUILT_PRODUCTS_DIR/mig_hdr/include/servers"
 MACH_HEADER_DST="$BUILT_PRODUCTS_DIR/mig_hdr/include/mach"
 MACH_PRIVATE_HEADER_DST="$BUILT_PRODUCTS_DIR/mig_hdr/local/include/mach"
 MIG_INTERNAL_HEADER_DST="$BUILT_PRODUCTS_DIR/internal_hdr/include/mach"
-MIG_INCFLAGS="-I${SDKROOT}/${SDK_INSTALL_HEADERS_ROOT}/usr/include -I${SDKROOT}/${SDK_INSTALL_HEADERS_ROOT}/usr/local/include"
+MIG_INCFLAGS="-mmacos-version-min=$VER -I${SDKROOT}/${SDK_INSTALL_HEADERS_ROOT}/usr/include -I${SDKROOT}/${SDK_INSTALL_HEADERS_ROOT}/usr/local/include"
 MIG_PRIVATE_DEFS_INCFLAGS="-I${SDKROOT}/${SDK_INSTALL_HEADERS_ROOT}/System/Library/Frameworks/System.framework/PrivateHeaders"
 SRC="$SRCROOT/mach"
 FILTER_MIG="$SRCROOT/xcodescripts/filter_mig.awk"

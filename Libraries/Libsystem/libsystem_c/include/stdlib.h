@@ -267,7 +267,11 @@ int	 putenv(char *) __DARWIN_ALIAS(putenv);
 int	 putenv(char *) LIBC_ALIAS(putenv);
 #endif /* !LIBC_ALIAS_PUTENV */
 //End-Libc
+#ifdef __OS_OBJECT__ /* avoid redeclaration with libkern */
+unsigned int random(void) __swift_unavailable("Use arc4random instead.");
+#else
 long	 random(void) __swift_unavailable("Use arc4random instead.");
+#endif
 int	 rand_r(unsigned *) __swift_unavailable("Use arc4random instead.");
 //Begin-Libc
 #ifdef __LIBC__

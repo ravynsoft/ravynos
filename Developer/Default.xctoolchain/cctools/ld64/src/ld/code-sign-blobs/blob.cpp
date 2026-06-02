@@ -24,6 +24,9 @@
 #include <unistd.h>
 #ifdef __linux__
 #include <string.h>
+#ifndef ptrdiff_t
+typedef __PTRDIFF_TYPE__ ptrdiff_t;
+#endif
 #endif
 
 //

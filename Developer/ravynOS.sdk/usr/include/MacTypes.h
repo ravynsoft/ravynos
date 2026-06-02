@@ -275,7 +275,10 @@ typedef UInt8 *                         BytePtr;
 typedef unsigned long                   ByteCount;
 typedef unsigned long                   ByteOffset;
 typedef SInt32                          Duration;
+
+#ifndef _OS_OSTYPES_H /* avoid redeclaration if libkern/OSTypes.h */
 typedef UnsignedWide                    AbsoluteTime;
+#endif
 typedef UInt32                          OptionBits;
 typedef unsigned long                   ItemCount;
 typedef UInt32                          PBVersion;
@@ -297,7 +300,9 @@ typedef ResType *                       ResTypePtr;
         true            Now defined in stdbool.h
         
 *********************************************************************************/
+#ifndef _OS_OSTYPES_H /* avoid redeclaration if libkern/OSTypes.h */
 typedef unsigned char                   Boolean;
+#endif
 /********************************************************************************
 
     Function Pointer Types
@@ -499,6 +504,7 @@ struct ProcessSerialNumber {
 };
 typedef struct ProcessSerialNumber      ProcessSerialNumber;
 typedef ProcessSerialNumber *           ProcessSerialNumberPtr;
+#if QUICKDRAW_TYPES
 /********************************************************************************
 
     Quickdraw Types
@@ -558,7 +564,6 @@ typedef unsigned char                   Style;
 typedef short                           StyleParameter;
 typedef Style                           StyleField;
 
-
 /********************************************************************************
 
     QuickTime TimeBase types (previously in Movies.h)
@@ -582,6 +587,7 @@ struct TimeRecord {
   TimeBase            base;                   /* refernce to the time base */
 };
 typedef struct TimeRecord               TimeRecord;
+#endif /* QUICKDRAW_TYPES */
 
 /********************************************************************************
 
@@ -666,7 +672,9 @@ typedef VersRecPtr *                    VersRecHndl;
 *********************************************************************************/
 typedef UInt8                           Byte;
 typedef SInt8                           SignedByte;
+#ifndef __OS_OBJECT__
 typedef wide *                          WidePtr;
+#endif
 typedef UnsignedWide *                  UnsignedWidePtr;
 typedef Float80                         extended80;
 typedef Float96                         extended96;
@@ -685,7 +693,7 @@ typedef SInt8                           VHSelect;
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  */
 extern void 
-Debugger(void);
+Debugger(const char *msg);
 
 
 /*

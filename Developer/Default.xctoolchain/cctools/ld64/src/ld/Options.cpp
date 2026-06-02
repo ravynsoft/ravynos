@@ -29,6 +29,8 @@
 #ifdef __linux__
 #include <algorithm>
 #include <limits.h>
+#include <stdarg.h>
+#include <bsd/string.h>
 #define PATH_MAX 1024
 #define MAXPATHLEN PATH_MAX
 #define CPU_SUBTYPE_X86_ALL 3

@@ -39,7 +39,7 @@
 #define	SBUF_INITIAL_SIZE	128
 
 struct sbuf *
-sbuf_new_auto()
+sbuf_new_auto(void)
 {
 	struct sbuf *s;
 

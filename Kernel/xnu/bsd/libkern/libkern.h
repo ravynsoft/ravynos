@@ -148,7 +148,7 @@ extern int      ffs(unsigned int);
 extern int      ffsll(unsigned long long);
 extern int      fls(unsigned int);
 extern int      flsll(unsigned long long);
-extern u_int32_t        random(void);
+extern u_int32_t	random(void);
 extern int      scanc(u_int, u_char *, const u_char *, int);
 extern int      skpc(int, int, char *);
 extern long     strtol(const char*, char **, int);

@@ -272,7 +272,7 @@ _posix_availability.h: $(MAKE_POSIX_AVAILABILITY)
 MAKE_SYMBOL_ALIASING = $(SRCROOT)/bsd/sys/make_symbol_aliasing.sh
 _symbol_aliasing.h: $(MAKE_SYMBOL_ALIASING)
 	$(call makelog,[$(CMD_MC)] $(ColorH)GENERATING$(Color0) $(ColorLF)bsd/sys/$@$(Color0))
-	$(_v)$(MAKE_SYMBOL_ALIASING) "$(SDKROOT)" "$@"
+	$(_v)$(MAKE_SYMBOL_ALIASING) "$(RAVYN_SDKROOT)" "$@"
 
 # generated headers needed early (used by iig during installhdrs of iokit/DriverKit)
 SETUP_GEN_LIST = _posix_availability.h _symbol_aliasing.h

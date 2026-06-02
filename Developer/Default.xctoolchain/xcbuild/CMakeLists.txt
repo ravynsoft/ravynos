@@ -11,11 +11,25 @@ project(xcbuild C CXX)
 
 cmake_minimum_required(VERSION 3.13)
 cmake_policy(SET CMP0054 NEW)
-include(../../cmake/Paths.cmake)
 
 set(BUILD_SHARED_LIBS True CACHE BOOL "Build shared libraries." FORCE)
 
 set(CMAKE_SKIP_RPATH FALSE)
+set(CMAKE_BUILD_RPATH \$ORIGIN/../lib)
+set(CMAKE_INSTALL_RPATH \$ORIGIN/../lib)
+set(CMAKE_INSTALL_PREFIX ${TOOLCHAIN})
+
+# Output into root build directory.
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/src/external/xcbuild")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/src/external/xcbuild")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
+
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 set(CMAKE_BUILD_RPATH \$ORIGIN/../lib)
 set(CMAKE_INSTALL_RPATH \$ORIGIN/../lib)
 set(CMAKE_INSTALL_PREFIX ${TOOLCHAIN})
@@ -52,3 +66,4 @@ endif ()
 
 add_subdirectory(Libraries)
 add_subdirectory(Specifications)
+

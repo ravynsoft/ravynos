@@ -34,6 +34,7 @@ namespace {
 }
 #include <sys/statfs.h>
 #include <md5.h>
+#include <bsd/string.h>
 #else
 #include <sys/sysctl.h>
 #endif

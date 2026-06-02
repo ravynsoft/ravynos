@@ -236,8 +236,8 @@ typedef struct Float32Point Float32Point;
         Size            The number of bytes in a block (signed for historical reasons)
         
 *********************************************************************************/
-typedef char *                          Ptr;
-typedef Ptr *                           Handle;
+//typedef char *                          Ptr;
+//typedef Ptr *                           Handle;
 typedef long                            Size;
 
 /********************************************************************************
@@ -499,6 +499,7 @@ struct ProcessSerialNumber {
 };
 typedef struct ProcessSerialNumber      ProcessSerialNumber;
 typedef ProcessSerialNumber *           ProcessSerialNumberPtr;
+#if QUICKDRAW_TYPES
 /********************************************************************************
 
     Quickdraw Types
@@ -582,6 +583,7 @@ struct TimeRecord {
   TimeBase            base;                   /* refernce to the time base */
 };
 typedef struct TimeRecord               TimeRecord;
+#endif
 
 /********************************************************************************
 
@@ -685,7 +687,7 @@ typedef SInt8                           VHSelect;
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  */
 extern void 
-Debugger(void);
+Debugger(const char *msg);
 
 
 /*
