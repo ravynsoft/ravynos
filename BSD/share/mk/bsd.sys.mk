@@ -1,11 +1,10 @@
 #
-# This file contains common settings used for building FreeBSD
+# This file contains common settings used for building ravynOS
 # sources.
 
 # Enable various levels of compiler warning checks.  These may be
-# overridden (e.g. if using a non-gcc compiler) by defining MK_WARNS=no.
+# overridden by defining MK_WARNS=no.
 
-# for GCC:   https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
 # for clang: https://clang.llvm.org/docs/DiagnosticsReference.html
 
 .include <bsd.compiler.mk>
@@ -518,6 +517,20 @@ STAGE_SYMLINKS.links= ${SYMLINKS}
 ${_tgt}: ${META_DEPS}
 .endif
 .endfor
+.endif
+
+MK_COLOR ?= yes
+.if "${MK_COLOR}" != "no"
+CFLAGS += -fcolor-diagnostics
+.endif
+
+# This flag controls whether libobjc and Foundation.framework are
+# linked automatically for ObjC objects. It should normally be left
+# as "yes"
+MK_OBJC_RUNTIME ?= yes
+_OBJC_SRCS = ${SRCS:M*.m} ${SRCS:M*.mm}
+.if "${MK_OBJC_RUNTIME}" != "no" && !empty(_OBJC_SRCS)
+LDFLAGS += -fobjc-link-runtime
 .endif
 
 # we are generally the last makefile read
