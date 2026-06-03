@@ -152,7 +152,7 @@ protected:
 
     virtual void     resumeFromSleep( void );
 
-    virtual void     free( void );
+    virtual void     free( void ) APPLE_KEXT_OVERRIDE;
 
 public:
     virtual bool     start( IOService * provider );

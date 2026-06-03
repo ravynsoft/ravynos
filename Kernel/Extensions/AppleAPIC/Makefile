@@ -1,10 +1,11 @@
+MK_WERROR = no
+KERNEL_PRIVATE = yes
+KEXT = AppleAPIC
 INFO_PLIST = Info.plist
 BUNDLE_IDENTIFIER = com.apple.driver.AppleAPIC
 BUNDLE_VERSION = 1.4
-KEXT = AppleAPIC
 
 SRCS =	Apple8259PIC.cpp AppleAPIC.cpp
-OBJS = ${SRCS:%.cpp=%.o}
 
 CFLAGS += -I${.CURDIR}/../../xnu/iokit -I${.CURDIR}/../../xnu/osfmk \
 	-I${.CURDIR}/../../xnu/bsd -I${.CURDIR}/../../xnu/libkern \
