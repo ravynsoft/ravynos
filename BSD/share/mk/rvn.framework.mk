@@ -1,7 +1,9 @@
-.include <bsd.subdir.mk>
-
-FRAMEWORK_DIR=${MAKEOBJDIR}/${FRAMEWORK}.framework
-FMWK_VERSION?=A
+FRAMEWORK_DIR = ${.OBJDIR}/${FRAMEWORK}.framework
+.if defined(VERSION)
+FMWK_VERSION = ${VERSION}
+.else
+FMWK_VERSION ?= A
+.endif
 NO_ROOT=yes
 
 UID != id -u
@@ -9,62 +11,99 @@ UID != id -u
 INSTALLFLAGS=-U
 .endif
 
-.if defined(SRCS) && !empty(SRCS)
-LIBMODE?=0555
-SHLIB_NAME=lib${FRAMEWORK}.so
-SHLIB_VERSION=${FMWK_VERSION}
-SHLIBDIR=${FRAMEWORK_DIR}/Versions/${FMWK_VERSION}
+.if defined(MACOS_VERSION_MIN)
+CFLAGS += -mmacos-version-min=${MACOS_VERSION_MIN}
+LDFLAGS += -mmacos-version-min=${MACOS_VERSION_MIN}
 .endif
 
-.if defined(INCS) && !empty(INCS)
-INSTALL+= ${INSTALLFLAGS}
-INCLUDEDIR=${FRAMEWORK_DIR}/Versions/${FMWK_VERSION}/Headers
-.endif
-
-.if defined(RESOURCES) && !empty(RESOURCES)
-RSCDIR=${FRAMEWORK_DIR}/Versions/${FMWK_VERSION}/Resources
-installresources: ${RESOURCES}
-	tar -C ${.CURDIR} -cf - ${RESOURCES} | tar -C ${RSCDIR} -xvf -
+.if defined(RAVYN_SDKROOT)
+CFLAGS += --sysroot=${RAVYN_SDKROOT}
+LDFLAGS += --sysroot=${RAVYN_SDKROOT}
 .else
-installresources: .PHONY
+.if defined(SDKROOT)
+CFLAGS += --sysroot=${SDKROOT}
+LDFLAGS += --sysroot=${SDKROOT}
+.endif
 .endif
 
-.include <rvn.common.mk>
+.if defined(INSTALL_NAME_DIR) && !empty(INSTALL_NAME_DIR)
+LDFLAGS += -Wl,-install_name,${INSTALL_NAME_DIR}/${FRAMEWORK}
+.else
+.if defined(INSTALL_NAME) && !empty(INSTALL_NAME)
+LDFLAGS += -Wl,-install_name,${INSTALL_NAME}
+.endif
+.endif
 
-all: ${FRAMEWORK_DIR} ${SHLIB_NAME} installincludes _libinstall installresources \
-	post-resources
-post-resources: .PHONY
+.if defined(SRCS) && !empty(SRCS)
+LIBMODE ?= 0555
+LIB = ${FRAMEWORK}
+.endif
+
+.for rpath in ${RPATHS}
+LDFLAGS += -rpath,${rpath}
+.endfor
+
+RESOURCES_DIR = ${FRAMEWORK_DIR}/Versions/${FMWK_VERSION}/Resources
+HEADER_DIR = ${FRAMEWORK_DIR}/Versions/${FMWK_VERSION}/Headers
+PRIVHDR_DIR = ${FRAMEWORK_DIR}/Versions/${FMWK_VERSION}/PrivateHeaders
+
+.if defined(HEADERS) && !empty(HEADERS)
+${HEADER_DIR}: ${HEADERS}
+.for hdr in ${HEADERS}
+	mkdir -p ${HEADER_DIR}/${hdr:R}
+	cp -f ${.CURDIR}/${hdr} ${HEADER_DIR}/${hdr}
+.endfor
+
+${FRAMEWORK}: ${HEADER_DIR}
+.endif
+
+.if defined(PRIVATE_HEADERS) && !empty(PRIVATE_HEADERS)
+${PRIVHEADER_DIR}: ${PRIVATE_HEADERS}
+.for hdr in ${PRIVATE_HEADERS}
+	mkdir -p ${PRIVHEADER_DIR}/${hdr:R}
+	cp -f ${.CURDIR}/${hdr} ${PRIVHEADER_DIR}/${hdr}
+.endfor
+
+${FRAMEWORK}: ${PRIVHEADER_DIR}
+.endif
+
+${RESOURCES_DIR}: ${RESOURCES_DIRS}
+	mkdir -p ${RESOURCES_DIR}
+.if defined(RESOURCES_DIRS) && !empty(RESOURCES_DIRS)
+.for rsc in ${RESOURCES_DIRS}
+	cp -fR ${.CURDIR}/${rsc} ${RESOURCES_DIR}
+.endfor
+.endif
+.if defined(RESOURCES_FILES) && !empty(RESOURCES_FILES)
+.for rsc in ${RESOURCES_FILES}
+	cp -fR ${.CURDIR}/${rsc} ${RESOURCES_DIR}
+.endfor
+.endif
+
+${FRAMEWORK}: ${FRAMEWORK_DIR} ${RESOURCES_DIR} lib${LIB}.a
+	${CC} -shared -dylib \
+	  -o ${FRAMEWORK_DIR}/Versions/${FMWK_VERSION}/${FRAMEWORK} \
+	  -Wl,-force_load,${.OBJDIR}/lib${LIB}.a ${LDFLAGS}
+
+all: ${FRAMEWORK}
 
 ${FRAMEWORK_DIR}:
-	@${ECHO} building ${FRAMEWORK_DIR} bundle
+	@${ECHO} building ${FRAMEWORK_DIR:T} bundle
 	mkdir -p "${FRAMEWORK_DIR}/Versions/${FMWK_VERSION}/Headers" \
 		"${FRAMEWORK_DIR}/Versions/${FMWK_VERSION}/Modules" \
 		"${FRAMEWORK_DIR}/Versions/${FMWK_VERSION}/Resources"
 	(cd "${FRAMEWORK_DIR}"; \
 		ln -sf Versions/${FMWK_VERSION}/Headers Headers; \
+		ln -sf Versions/${FMWK_VERSION}/PrivateHeaders PrivateHeaders; \
 		ln -sf Versions/${FMWK_VERSION}/Modules Modules; \
 		ln -sf Versions/${FMWK_VERSION}/Resources Resources)
 .if defined(SRCS) && !empty(SRCS)
 	(cd ${FRAMEWORK_DIR}; \
-		ln -sf Versions/${FMWK_VERSION}/lib${FRAMEWORK}.so lib${FRAMEWORK}.so)
+		ln -sf Versions/${FMWK_VERSION}/${FRAMEWORK} ${FRAMEWORK})
 .endif
 	(cd "${FRAMEWORK_DIR}/Versions"; ln -sf ${FMWK_VERSION} Current)
 	touch "${FRAMEWORK_DIR}/Versions/${FMWK_VERSION}/Resources/Info.plist"
 
-link_subdirs:
-_fcmd=(
-.for d in ${LINK_SUBDIR}
-LINK_EXT.${d}?=.o
-_fcmd+=find ${d} -name '*${LINK_EXT.${d}:M*}' -a -not -name '.depend.*'
-.for _excl in ${LINK_EXCLUDE.${d}:M*}
-_fcmd+= -a -not -name '${_excl}'
-.endfor
-_fcmd+=;
-.endfor
-_fcmd+=)
-LDADD+= ${_fcmd:sh:M*}
-
+.include <bsd.subdir.mk>
 .include <bsd.lib.mk>
 .include <bsd.incs.mk>
-
-${SHLIB_NAME_FULL}: link_subdirs
