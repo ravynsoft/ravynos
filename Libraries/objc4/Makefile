@@ -1,4 +1,7 @@
 MK_WERROR = no
+
+# Don't try to link System or Foundation to this
+MK_OBJC_RUNTIME = no
 LIB = objc.A
 OBJC = ${CC} -ObjC
 OBJCXX = ${CC} -ObjC++
@@ -80,7 +83,8 @@ LDFLAGS = -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib \
 	-L${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib/system \
 	-umbrella System -mmacos-version-min=${MACOS_VERSION_MIN} \
 	-Wl,-install_name,/usr/lib/libobjc.dylib -Wl,-current_version,228 \
-	-Wl,-compatibility_version,1 \
+	-Wl,-compatibility_version,1 -Wl,-allowable_client,libSystem \
+	-Wl,-allowable_client,System -Wl,-allowable_client,Foundation \
 	-Wl,-order_file,${.CURDIR}/libobjc.order \
 	-Wl,-interposable_list,${.CURDIR}/interposable.txt \
 	-Wl,-sectalign,__DATA,__data,0x1000 -lc++ -lCrashReporterClient \
