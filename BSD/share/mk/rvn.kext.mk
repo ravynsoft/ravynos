@@ -7,6 +7,8 @@ _KEXT_LIB = ${_KEXT_FOLDER}/Contents/MacOS/${KEXT}
 SDKROOT = ${RAVYN_SDKROOT}
 .endif
 
+.PATH: ${.OBJDIR}
+SRCS += kmod_info.c
 OBJS = ${SRCS:C/\..*$/.o/}
 
 CFLAGS += --sysroot=${SDKROOT} -DKERNEL -I${SDKROOT}/usr/include \
@@ -38,13 +40,13 @@ LDFLAGS += -mmacos-version-min=${MACOS_VERSION_MIN}
 .endif
 
 .if defined(MAIN_FUNCTION)
-MAIN_FUNCTION_DECL = "extern kern_return_t ${MAIN_FUNCTION}(kmod_info_t *ki, void *data);"
+MAIN_FUNCTION_DECL = extern kern_return_t ${MAIN_FUNCTION}(kmod_info_t *ki, void *data);
 .else
 MAIN_FUNCTION = 0
 .endif
 
 .if defined(ANTIMAIN_FUNCTION)
-ANTIMAIN_FUNCTION_DECL = "extern kern_return_t ${ANTIMAIN_FUNCTION}(kmod_info_t *ki, void *data);"
+ANTIMAIN_FUNCTION_DECL = extern kern_return_t ${ANTIMAIN_FUNCTION}(kmod_info_t *ki, void *data);
 .else
 ANTIMAIN_FUNCTION = 0
 .endif
@@ -67,6 +69,7 @@ ${_KEXT_LIB}: ${_KEXT_FOLDER} ${_KEXT_FOLDER}/Contents/Info.plist ${OBJS} \
 ${_KEXT_LIB}: ${SDKROOT}/usr/local/lib/kernel/libkmod.a
 .endif
 
+kmod_info.c: ${.OBJDIR}/kmod_info.c
 ${.OBJDIR}/kmod_info.c:
 	(echo '#include <mach/kmod.h>'; \
 	 echo 'extern kern_return_t _start(kmod_info_t *ki, void *data);'; \
