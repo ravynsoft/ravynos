@@ -1,0 +1,107 @@
+﻿# ***************************************************************************
+# *
+# *  Copyright (C) 2011 Apple Inc. All Rights Reserved.
+# *
+# ***************************************************************************
+# File: Any_KDDISMS.txt
+#
+
+####
+# Fallbacks from Unicode emoji codepoints that do not correspond
+# to emoji in the KDDI set; they are mapped to other Unicode emoji
+# that do, or to GETA MARK if there is no good replacement.
+####
+
+# Part 1 BMP
+\u24C2 → \U0001F687 ; # \xF7\xEC
+\u2754 → \u2753 ; # \xF6\x5B
+\u2755 → \u2757 ; # \xF6\x5A
+\u27BF → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\u3030 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\u303D → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+
+# Part 2 non-BMP
+\U0001F196 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F201 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F21A → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F232 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F234 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F236 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F237 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F238 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F304 → \U0001F305 ; # \xF3\xC8
+\U0001F307 → \U0001F306 ; # \xF3\x4D
+\U0001F315 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F31F → \u2B50 ; # \xF6\x63
+\U0001F33E → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F343 → \U0001F342 ; # \xF3\x40
+\U0001F3A0 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F3A6 → \U0001F3A5 ; # \xF6\xF0
+\U0001F3B7 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F3BD → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F40E → \U0001F434 ; # \xF6\xB1
+\U0001F411 → \u2648 ; # \xF6\x67
+\U0001F412 → \U0001F435 ; # \xF6\xB2
+\U0001F41F → \u2653 ; # \xF6\x72
+\U0001F426 → \U0001F424 ; # \xF6\xB9
+\U0001F439 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F43A → \U0001F436 ; # \xF6\xBA
+\U0001F450 → \U0001F44B ; # \xF3\xAA
+\U0001F45D → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F461 → \U0001F460 ; # \xF6\xF3
+\U0001F464 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F466 → \U0001F468 ; # \xF6\xD5
+\U0001F467 → \U0001F469 ; # \xF6\xD3
+\U0001F46B → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F481 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F482 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F48E → \U0001F48D ; # \xF6\xED
+\U0001F492 → \u26EA ; # \xF7\xEB
+\U0001F497 → \U0001F493 ; # \xF4\x79
+\U0001F49F → \u2764 ; # \xF7\xB2
+\U0001F4A0 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F4B1 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F4BA → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F4C0 → \U0001F4BF ; # \xF6\xE5
+\U0001F4E2 → \U0001F50A ; # \xF6\xEA
+\U0001F4E3 → \U0001F50A ; # \xF6\xEA
+\U0001F4EE → \U0001F4EA ; # \xF6\xF4
+\U0001F513 → \U0001F512 ; # \xF6\xF5
+\U0001F51A → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F51B → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F51C → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F51D → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F52F → \U0001F52E ; # \xF3\x62
+\U0001F531 → \U0001F451 ; # \xF7\xF9
+\U0001F532 → \U0001F535 ; # \xF7\x67
+\U0001F533 → \U0001F535 ; # \xF7\x67
+\U0001F550 → \u23F0 ; # \xF7\xB1
+\U0001F551 → \u23F0 ; # \xF7\xB1
+\U0001F552 → \u23F0 ; # \xF7\xB1
+\U0001F553 → \u23F0 ; # \xF7\xB1
+\U0001F554 → \u23F0 ; # \xF7\xB1
+\U0001F555 → \u23F0 ; # \xF7\xB1
+\U0001F556 → \u23F0 ; # \xF7\xB1
+\U0001F557 → \u23F0 ; # \xF7\xB1
+\U0001F558 → \u23F0 ; # \xF7\xB1
+\U0001F559 → \u23F0 ; # \xF7\xB1
+\U0001F55A → \u23F0 ; # \xF7\xB1
+\U0001F55B → \u23F0 ; # \xF7\xB1
+\U0001F5FD → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F604 → \U0001F603 ; # \xF6\x49
+\U0001F605 → \U0001F603\U0001F4A6 ; # \xF6\x49 \xF7\xCE
+\U0001F606 → \U0001F60C ; # \xF3\x99
+\U0001F60B → \U0001F60A ; # \xF3\xA1
+\U0001F61D → \U0001F61C ; # \xF6\xC0
+\U0001F61E → \U0001F614 ; # \xF3\x94
+\U0001F625 → \U0001F613 ; # \xF7\xF6
+\U0001F684 → \U0001F685 ; # \xF6\x89
+\U0001F695 → \U0001F697 ; # \xF6\x8A
+\U0001F699 → \U0001F697 ; # \xF6\x8A
+\U0001F6A4 → \u26F5 ; # \xF6\x8D
+\U0001F6AA → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F6B9 → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F6BA → \u3013 ; # \x81\xAC (fallback to GETA MARK)
+\U0001F6BC → \U0001F476 ; # \xF3\xD9
+\U0001F6BD → \U0001F6BB ; # \xF6\x7D
+\U0001F6BE → \U0001F6BB ; # \xF6\x7D

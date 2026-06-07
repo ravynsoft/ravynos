@@ -1,0 +1,222 @@
+--- icuSources/data/unidata/base_unidata/DerivedCoreProperties.txt	2019-04-12 09:47:22.000000000 -0700
++++ icuSources/data/unidata/DerivedCoreProperties.txt	2019-04-13 15:13:06.000000000 -0700
+@@ -163,6 +163,9 @@
+ 29FE..2AFF    ; Math
+ 2B30..2B44    ; Math
+ 2B47..2B4C    ; Math
++F8BC          ; Math
++F8BD          ; Math
++F8C0          ; Math
+ FB29          ; Math
+ FE61          ; Math
+ FE62          ; Math
+@@ -253,7 +256,7 @@
+ 1EEAB..1EEBB  ; Math
+ 1EEF0..1EEF1  ; Math
+ 
+-# Total code points: 2310
++# Total code points: 2310+ApplePUA
+ 
+ # ================================================
+ 
+@@ -924,6 +927,11 @@
+ AC00..D7A3    ; Alphabetic
+ D7B0..D7C6    ; Alphabetic
+ D7CB..D7FB    ; Alphabetic
++F882          ; Alphabetic
++F89A..F89E    ; Alphabetic
++F8A2..F8A7    ; Alphabetic
++F8B8          ; Alphabetic
++F8C1..F8D6    ; Alphabetic
+ F900..FA6D    ; Alphabetic
+ FA70..FAD9    ; Alphabetic
+ FB00..FB06    ; Alphabetic
+@@ -1319,7 +1327,7 @@
+ 2CEB0..2EBE0  ; Alphabetic
+ 2F800..2FA1D  ; Alphabetic
+ 
+-# Total code points: 127256
++# Total code points: 127256+ApplePUA
+ 
+ # ================================================
+ 
+@@ -3117,6 +3125,10 @@
+ ABE5          ; Case_Ignorable
+ ABE8          ; Case_Ignorable
+ ABED          ; Case_Ignorable
++F870..F87F    ; Case_Ignorable
++F884..F899    ; Case_Ignorable
++F89F          ; Case_Ignorable
++F8B8          ; Case_Ignorable
+ FB1E          ; Case_Ignorable
+ FBB2..FBC1    ; Case_Ignorable
+ FE00..FE0F    ; Case_Ignorable
+@@ -3260,7 +3272,7 @@
+ E0020..E007F  ; Case_Ignorable
+ E0100..E01EF  ; Case_Ignorable
+ 
+-# Total code points: 2396
++# Total code points: 2396+ApplePUA
+ 
+ # ================================================
+ 
+@@ -10045,6 +10057,9 @@
+ ABE5          ; Grapheme_Extend
+ ABE8          ; Grapheme_Extend
+ ABED          ; Grapheme_Extend
++F870..F87F    ; Grapheme_Extend
++F884..F899    ; Grapheme_Extend
++F89F          ; Grapheme_Extend
+ FB1E          ; Grapheme_Extend
+ FE00..FE0F    ; Grapheme_Extend
+ FE20..FE2F    ; Grapheme_Extend
+@@ -10169,7 +10184,7 @@
+ E0020..E007F  ; Grapheme_Extend
+ E0100..E01EF  ; Grapheme_Extend
+ 
+-# Total code points: 1965
++# Total code points: 1965+ApplePUA
+ 
+ # ================================================
+ 
+@@ -11208,6 +11223,10 @@
+ AC00..D7A3    ; Grapheme_Base
+ D7B0..D7C6    ; Grapheme_Base
+ D7CB..D7FB    ; Grapheme_Base
++F7F3..F84F    ; Grapheme_Base
++F880..F883    ; Grapheme_Base
++F89A..F89E    ; Grapheme_Base
++F8A0..F8FF    ; Grapheme_Base
+ F900..FA6D    ; Grapheme_Base
+ FA70..FAD9    ; Grapheme_Base
+ FB00..FB06    ; Grapheme_Base
+@@ -11818,7 +11837,7 @@
+ 2CEB0..2EBE0  ; Grapheme_Base
+ 2F800..2FA1D  ; Grapheme_Base
+ 
+-# Total code points: 135898
++# Total code points: 135898+ApplePUA
+ 
+ # ================================================
+ 
+--- icuSources/data/unidata/base_unidata/ppucd.txt	2019-04-12 09:47:23.000000000 -0700
++++ icuSources/data/unidata/ppucd.txt	2019-04-13 15:14:09.000000000 -0700
+@@ -19274,8 +19274,47 @@
+ block;DC00..DFFF;age=2.0;blk=Low_Surrogates;gc=Cs;lb=SG
+ # DC00..DFFF Low Surrogates
+ 
+-block;E000..F8FF;age=1.1;blk=PUA;ea=A;gc=Co;vo=U
+-# E000..F8FF Private Use Area
++block;E000..F7F2;age=1.1;blk=PUA;ea=A;gc=Co;vo=U
++# E000..F7F2 Private Use Area
++
++# Apple Corp Chars
++block;F7F3..F8FF;age=1.1;bc=ON;blk=PUA;ea=N;gc=So;lb=AL;sc=Zyyy
++cp;F7F3..F84F;Gr_Base
++cp;F850..F86F;ea=A
++cp;F870..F87F;bc=NSM;ea=A;gc=Mn;GCB=EX;lb=CM;Gr_Ext;Case_Ignorable
++cp;F880..F881;bc=L;ea=W;Gr_Base
++cp;F882;bc=AL;gc=Lo;Alpha;Gr_Base
++cp;F883;bc=R;gc=Sc;Gr_Base
++cp;F884..F889;bc=NSM;gc=Mn;GCB=EX;lb=CM;Gr_Ext;Case_Ignorable
++cp;F88A..F895;bc=NSM;gc=Mn;GCB=EX;lb=CM;Gr_Ext;Case_Ignorable
++cp;F896..F899;bc=NSM;gc=Mn;GCB=EX;lb=CM;Gr_Ext;Case_Ignorable
++cp;F89A..F89E;bc=R;gc=Lo;Alpha;Gr_Base
++cp;F89F;bc=NSM;gc=Mn;GCB=EX;lb=CM;Gr_Ext;Case_Ignorable
++cp;F8A0;bc=ET;gc=Sc;lb=PR;Gr_Base
++cp;F8A1;bc=EN;ea=W;gc=No;nt=Di;nv=0;Gr_Base
++cp;F8A2;bc=L;ea=W;gc=Nl;nt=Nu;nv=13;Alpha;Gr_Base
++cp;F8A3;bc=L;ea=W;gc=Nl;nt=Nu;nv=14;Alpha;Gr_Base
++cp;F8A4;bc=L;ea=W;gc=Nl;nt=Nu;nv=15;Alpha;Gr_Base
++cp;F8A5;bc=L;ea=W;gc=Nl;nt=Nu;nv=13;Alpha;Gr_Base
++cp;F8A6;bc=L;ea=W;gc=Nl;nt=Nu;nv=14;Alpha;Gr_Base
++cp;F8A7;bc=L;ea=W;gc=Nl;nt=Nu;nv=15;Alpha;Gr_Base
++cp;F8A8..F8AC;bc=L;ea=W;Gr_Base
++cp;F8AD..F8B1;ea=W;Gr_Base
++cp;F8B2..F8B3;bc=L;ea=W;Gr_Base
++cp;F8B4;ea=W;gc=Pe;lb=CL;Gr_Base
++cp;F8B5..F8B6;ea=W;gc=Po;lb=CL;Gr_Base
++cp;F8B7;ea=F;gc=Po;lb=ID;Gr_Base
++cp;F8B8;bc=L;ea=W;gc=Lm;lb=NS;Alpha;Gr_Base;Case_Ignorable
++cp;F8B9;ea=W;gc=Pd;lb=BA;Gr_Base
++cp;F8BA;ea=W;gc=Pd;lb=NS;Gr_Base
++cp;F8BB;ea=W;gc=Po;lb=AI;Gr_Base
++cp;F8BC;ea=F;gc=Sm;lb=ID;Math;Gr_Base
++cp;F8BD;ea=W;gc=Sm;lb=IN;Math;Gr_Base
++cp;F8BE;ea=F;gc=Ps;lb=OP;Gr_Base
++cp;F8BF;ea=F;gc=Pe;lb=CL;Gr_Base
++cp;F8C0;ea=F;gc=Sm;lb=ID;Math;Gr_Base
++cp;F8C1..F8D6;bc=L;ea=W;gc=Lo;lb=NS;Alpha;Gr_Base
++cp;F8D7..F8FF;Gr_Base
+ 
+ block;F900..FAFF;age=1.1;Alpha;blk=CJK_Compat_Ideographs;Comp_Ex;CWKCF;dt=Can;ea=W;gc=Lo;Gr_Base;IDC;Ideo;IDS;lb=ID;NFC_QC=N;NFD_QC=N;NFKC_QC=N;NFKD_QC=N;SB=LE;sc=Hani;vo=U;XIDC;XIDS
+ # F900..FAFF CJK Compatibility Ideographs
+--- icuSources/data/unidata/base_unidata/UnicodeData.txt	2019-04-12 09:47:23.000000000 -0700
++++ icuSources/data/unidata/UnicodeData.txt	2019-04-13 15:15:21.000000000 -0700
+@@ -15114,7 +15114,65 @@
+ DC00;<Low Surrogate, First>;Cs;0;L;;;;;N;;;;;
+ DFFF;<Low Surrogate, Last>;Cs;0;L;;;;;N;;;;;
+ E000;<Private Use, First>;Co;0;L;;;;;N;;;;;
+-F8FF;<Private Use, Last>;Co;0;L;;;;;N;;;;;
++F7F2;<Private Use, Last>;Co;0;L;;;;;N;;;;;
++F7F3;<Apple Corporate Use symbols and other, First>;So;0;ON;;;;;N;;;;;
++F86F;<Apple Corporate Use symbols and other, Last>;So;0;ON;;;;;N;;;;;
++F870;<Apple Corporate Use transcoding hints, First>;Mn;0;NSM;;;;;N;;;;;
++F87F;<Apple Corporate Use transcoding hints, Last>;Mn;0;NSM;;;;;N;;;;;
++F880;Apple Corporate deprecated metrics char;So;0;L;;;;;N;;;;;
++F881;Apple Corporate deprecated metrics char;So;0;L;;;;;N;;;;;
++F882;Apple Corporate Arabic ligature;Lo;0;AL;;;;;N;;;;;
++F883;Apple Corporate deprecated Arabic rial;Sc;0;R;;;;;N;;;;;
++F884;<Apple Corporate deprecated Thai forms, First>;Mn;0;NSM;;;;;N;;;;;
++F889;<Apple Corporate deprecated Thai forms, Last>;Mn;0;NSM;;;;;N;;;;;
++F88A;Apple Corporate deprecated Thai form;Mn;0;NSM;;;;;N;;;;;
++F88B;Apple Corporate deprecated Thai form;Mn;0;NSM;;;;;N;;;;;
++F88C;Apple Corporate deprecated Thai form;Mn;0;NSM;;;;;N;;;;;
++F88D;Apple Corporate deprecated Thai form;Mn;0;NSM;;;;;N;;;;;
++F88E;Apple Corporate deprecated Thai form;Mn;0;NSM;;;;;N;;;;;
++F88F;Apple Corporate deprecated Thai form;Mn;0;NSM;;;;;N;;;;;
++F890;Apple Corporate deprecated Thai form;Mn;0;NSM;;;;;N;;;;;
++F891;Apple Corporate deprecated Thai form;Mn;0;NSM;;;;;N;;;;;
++F892;Apple Corporate deprecated Thai form;Mn;0;NSM;;;;;N;;;;;
++F893;Apple Corporate deprecated Thai form;Mn;0;NSM;;;;;N;;;;;
++F894;Apple Corporate deprecated Thai form;Mn;0;NSM;;;;;N;;;;;
++F895;Apple Corporate deprecated Thai form;Mn;0;NSM;;;;;N;;;;;
++F896;<Apple Corporate deprecated Thai forms, First>;Mn;0;NSM;;;;;N;;;;;
++F899;<Apple Corporate deprecated Thai forms, Last>;Mn;0;NSM;;;;;N;;;;;
++F89A;<Apple Corporate mostly deprecated Hebrew misc, First>;Lo;0;R;;;;;N;;;;;
++F89E;<Apple Corporate mostly deprecated Hebrew misc, Last>;Lo;0;R;;;;;N;;;;;
++F89F;Apple Corporate deprecated Hebrew misc;Mn;0;NSM;;;;;N;;;;;
++F8A0;Apple Corporate deprecated Euro;Sc;0;ET;;;;;N;;;;;
++F8A1;Apple Corporate deprecated Japanese digit zero full stop;No;0;EN;;;0;0;N;;;;;
++F8A2;Apple Corporate deprecated Japanese roman numeral thirteen;Nl;0;L;;;;13;N;;;;;
++F8A3;Apple Corporate deprecated Japanese roman numeral fourteen;Nl;0;L;;;;14;N;;;;;
++F8A4;Apple Corporate deprecated Japanese roman numeral fifteen;Nl;0;L;;;;15;N;;;;;
++F8A5;Apple Corporate deprecated Japanese small roman numeral thirteen;Nl;0;L;;;;13;N;;;;;
++F8A6;Apple Corporate deprecated Japanese small roman numeral fourteen;Nl;0;L;;;;14;N;;;;;
++F8A7;Apple Corporate deprecated Japanese small roman numeral fifteen;Nl;0;L;;;;15;N;;;;;
++F8A8;<Apple Corporate deprecated Japanese symbols, First>;So;0;L;;;;;N;;;;;
++F8AC;<Apple Corporate deprecated Japanese symbols, Last>;So;0;L;;;;;N;;;;;
++F8AD;<Apple Corporate deprecated Japanese arrows, First>;So;0;ON;;;;;N;;;;;
++F8B1;<Apple Corporate deprecated Japanese arrows, Last>;So;0;ON;;;;;N;;;;;
++F8B2;Apple Corporate deprecated Japanese symbol;So;0;L;;;;;N;;;;;
++F8B3;Apple Corporate deprecated Japanese symbol;So;0;L;;;;;N;;;;;
++F8B4;Apple Corporate deprecated Japanese punct;Pe;0;ON;;;;;N;;;;;
++F8B5;<Apple Corporate deprecated Japanese punct, First>;Po;0;ON;;;;;N;;;;;
++F8B7;<Apple Corporate deprecated Japanese punct, Last>;Po;0;ON;;;;;N;;;;;
++F8B8;Apple Corporate deprecated kana form;Lm;0;L;;;;;N;;;;;
++F8B9;Apple Corporate deprecated Japanese punct;Pd;0;ON;;;;;N;;;;;
++F8BA;Apple Corporate deprecated Japanese punct;Pd;0;ON;;;;;N;;;;;
++F8BB;Apple Corporate deprecated Japanese punct;Po;0;ON;;;;;N;;;;;
++F8BC;Apple Corporate deprecated Japanese punct;Sm;0;ON;;;;;N;;;;;
++F8BD;Apple Corporate deprecated Japanese punct;Sm;0;ON;;;;;N;;;;;
++F8BE;Apple Corporate deprecated Japanese punct;Ps;0;ON;;;;;N;;;;;
++F8BF;Apple Corporate deprecated Japanese punct;Pe;0;ON;;;;;N;;;;;
++F8C0;Apple Corporate deprecated Japanese punct;Sm;0;ON;;;;;N;;;;;
++F8C1;<Apple Corporate deprecated kana forms, First>;Lo;0;L;;;;;N;;;;;
++F8D6;<Apple Corporate deprecated kana forms, Last>;Lo;0;L;;;;;N;;;;;
++F8D7;<Apple Corporate deprecated symbols, First>;So;0;ON;;;;;N;;;;;
++F8FE;<Apple Corporate deprecated symbols, Last>;So;0;ON;;;;;N;;;;;
++F8FF;Apple Corporate logo;So;0;ON;;;;;N;;;;;
+ F900;CJK COMPATIBILITY IDEOGRAPH-F900;Lo;0;L;8C48;;;;N;;;;;
+ F901;CJK COMPATIBILITY IDEOGRAPH-F901;Lo;0;L;66F4;;;;N;;;;;
+ F902;CJK COMPATIBILITY IDEOGRAPH-F902;Lo;0;L;8ECA;;;;N;;;;;

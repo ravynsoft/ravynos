@@ -2,6 +2,7 @@
 .PATH: ${.OBJDIR}
 
 MK_WERROR = no
+MK_OBJC_RUNTIME = no
 
 LIB = dispatch
 SRCS =	allocator.c \
@@ -45,7 +46,9 @@ LOBJS = ${SRCS:S/.cpp$/.o/:S/.m$/.o/:%.c=%.o}
 
 CFLAGS = -fvisibility=hidden -DTARGET_OS_BRIDGE=0 -DHAVE_CONFIG_H -DHAVE_MACH \
 	-DUSE_MACH_SEM -DUSE_OBJC -DOS_FIREHOSE_SPI -DDISPATCH_DEBUG \
-	-DPRIVATE --sysroot=${RAVYN_SDKROOT} -w -Wno-elaborated-enum-base \
+	-DHAVE_PTHREAD_WORKQUEUE_QOS -DVOUCHER_USE_MACH_VOUCHER -D__BLOCKS__ \
+	-DPRIVATE -DDISPATCH_COCOA_COMPAT -DDISPATCH_USE_KEVENT_WORKLOOP \
+	--sysroot=${RAVYN_SDKROOT} -w -Wno-elaborated-enum-base \
 	-fno-exceptions -fblocks -fdollars-in-identifiers \
 	-momit-leaf-frame-pointer -mmacos-version-min=${MACOS_VERSION_MIN} \
 	-I${RAVYN_SDKROOT}/usr/local/include/kernel \

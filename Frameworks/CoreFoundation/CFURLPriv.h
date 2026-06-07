@@ -35,7 +35,7 @@
 #include <CoreFoundation/CFDictionary.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFURL.h>
-#include <CoreFoundation/CFFileSecurity.h>
+//#include <CoreFoundation/CFFileSecurity.h>
 #include <CoreFoundation/CFURLEnumerator.h>
 #include <CoreFoundation/CFDate.h>
 #if TARGET_OS_MAC

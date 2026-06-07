@@ -56,7 +56,7 @@
 #include <pthread/private.h>
 #include <os/voucher_private.h>
 extern mach_port_t _dispatch_get_main_queue_port_4CF(void);
-extern void _dispatch_main_queue_callback_4CF(mach_msg_header_t *msg);
+extern void _dispatch_main_queue_callback_4CF(/*mach_msg_header_t*/ void *_Null_unspecified msg);
 #elif DEPLOYMENT_TARGET_WINDOWS
 #include <process.h>
 DISPATCH_EXPORT HANDLE _dispatch_get_main_queue_handle_4CF(void);

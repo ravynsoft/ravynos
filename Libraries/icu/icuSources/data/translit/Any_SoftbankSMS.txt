@@ -1,0 +1,676 @@
+﻿# ***************************************************************************
+# *
+# *  Copyright (C) 2010,2012 Apple Inc. All Rights Reserved.
+# *
+# ***************************************************************************
+# File: Any_SoftbankSMS.txt
+#
+
+####
+# Two-way mappings between Unicode 6.0 characters
+# and Softbank PUA characters (used in SMS messages)
+# Unicode 6.0 char or sequence ↔ Softbank PUA char ; # Softbank SJIS char
+####
+# Part 1 BMP
+\u0023\uFE0F\u20E3 ↔ \uE210 ; # xF7 xB0
+\u0023\u20E3 → \uE210 ; # xF7 xB0
+\u0030\uFE0F\u20E3 ↔ \uE225 ; # xF7 xC5
+\u0030\u20E3 → \uE225 ; # xF7 xC5
+\u0031\uFE0F\u20E3 ↔ \uE21C ; # xF7 xBC
+\u0031\u20E3 → \uE21C ; # xF7 xBC
+\u0032\uFE0F\u20E3 ↔ \uE21D ; # xF7 xBD
+\u0032\u20E3 → \uE21D ; # xF7 xBD
+\u0033\uFE0F\u20E3 ↔ \uE21E ; # xF7 xBE
+\u0033\u20E3 → \uE21E ; # xF7 xBE
+\u0034\uFE0F\u20E3 ↔ \uE21F ; # xF7 xBF
+\u0034\u20E3 → \uE21F ; # xF7 xBF
+\u0035\uFE0F\u20E3 ↔ \uE220 ; # xF7 xC0
+\u0035\u20E3 → \uE220 ; # xF7 xC0
+\u0036\uFE0F\u20E3 ↔ \uE221 ; # xF7 xC1
+\u0036\u20E3 → \uE221 ; # xF7 xC1
+\u0037\uFE0F\u20E3 ↔ \uE222 ; # xF7 xC2
+\u0037\u20E3 → \uE222 ; # xF7 xC2
+\u0038\uFE0F\u20E3 ↔ \uE223 ; # xF7 xC3
+\u0038\u20E3 → \uE223 ; # xF7 xC3
+\u0039\uFE0F\u20E3 ↔ \uE224 ; # xF7 xC4
+\u0039\u20E3 → \uE224 ; # xF7 xC4
+#
+\u2196\uFE0F ↔ \uE237 ; # xF7 xD7
+\u2196 → \uE237 ; # xF7 xD7
+\u2197\uFE0F ↔ \uE236 ; # xF7 xD6
+\u2197 → \uE236 ; # xF7 xD6
+\u2198\uFE0F ↔ \uE238 ; # xF7 xD8
+\u2198 → \uE238 ; # xF7 xD8
+\u2199\uFE0F ↔ \uE239 ; # xF7 xD9
+\u2199 → \uE239 ; # xF7 xD9
+\u23E9 ↔ \uE23C ; # xF7 xDC
+\u23EA ↔ \uE23D ; # xF7 xDD
+\u25B6\uFE0F ↔ \uE23A ; # xF7 xDA
+\u25B6 → \uE23A ; # xF7 xDA
+\u25C0\uFE0F ↔ \uE23B ; # xF7 xDB
+\u25C0 → \uE23B ; # xF7 xDB
+\u2600\uFE0F ↔ \uE04A ; # xF9 x8B
+\u2600 → \uE04A ; # xF9 x8B
+\u2601\uFE0F ↔ \uE049 ; # xF9 x8A
+\u2601 → \uE049 ; # xF9 x8A
+\u260E\uFE0F ↔ \uE009 ; # xF9 x49
+\u260E → \uE009 ; # xF9 x49
+\u2614\uFE0F ↔ \uE04B ; # xF9 x8C
+\u2614 → \uE04B ; # xF9 x8C
+\u2615\uFE0F ↔ \uE045 ; # xF9 x86
+\u2615 → \uE045 ; # xF9 x86
+\u261D\uFE0F ↔ \uE00F ; # xF9 x4F
+\u261D → \uE00F ; # xF9 x4F
+\u263A\uFE0F ↔ \uE414 ; # xFB x54
+\u263A → \uE414 ; # xFB x54
+\u2648\uFE0F ↔ \uE23F ; # xF7 xDF
+\u2648 → \uE23F ; # xF7 xDF
+\u2649\uFE0F ↔ \uE240 ; # xF7 xE0
+\u2649 → \uE240 ; # xF7 xE0
+\u264A\uFE0F ↔ \uE241 ; # xF7 xE1
+\u264A → \uE241 ; # xF7 xE1
+\u264B\uFE0F ↔ \uE242 ; # xF7 xE2
+\u264B → \uE242 ; # xF7 xE2
+\u264C\uFE0F ↔ \uE243 ; # xF7 xE3
+\u264C → \uE243 ; # xF7 xE3
+\u264D\uFE0F ↔ \uE244 ; # xF7 xE4
+\u264D → \uE244 ; # xF7 xE4
+\u264E\uFE0F ↔ \uE245 ; # xF7 xE5
+\u264E → \uE245 ; # xF7 xE5
+\u264F\uFE0F ↔ \uE246 ; # xF7 xE6
+\u264F → \uE246 ; # xF7 xE6
+\u2650\uFE0F ↔ \uE247 ; # xF7 xE7
+\u2650 → \uE247 ; # xF7 xE7
+\u2651\uFE0F ↔ \uE248 ; # xF7 xE8
+\u2651 → \uE248 ; # xF7 xE8
+\u2652\uFE0F ↔ \uE249 ; # xF7 xE9
+\u2652 → \uE249 ; # xF7 xE9
+\u2653\uFE0F ↔ \uE24A ; # xF7 xEA
+\u2653 → \uE24A ; # xF7 xEA
+\u2660\uFE0F ↔ \uE20E ; # xF7 xAE
+\u2660 → \uE20E ; # xF7 xAE
+\u2663\uFE0F ↔ \uE20F ; # xF7 xAF
+\u2663 → \uE20F ; # xF7 xAF
+\u2665\uFE0F ↔ \uE20C ; # xF7 xAC
+\u2665 → \uE20C ; # xF7 xAC
+\u2666\uFE0F ↔ \uE20D ; # xF7 xAD
+\u2666 → \uE20D ; # xF7 xAD
+\u2668\uFE0F ↔ \uE123 ; # xF7 x63
+\u2668 → \uE123 ; # xF7 x63
+\u267F\uFE0F ↔ \uE20A ; # xF7 xAA
+\u267F → \uE20A ; # xF7 xAA
+\u26A0\uFE0F ↔ \uE252 ; # xF7 xF2
+\u26A0 → \uE252 ; # xF7 xF2
+\u26A1\uFE0F ↔ \uE13D ; # xF7 x7D
+\u26A1 → \uE13D ; # xF7 x7D
+\u26BD\uFE0F ↔ \uE018 ; # xF9 x58
+\u26BD → \uE018 ; # xF9 x58
+\u26BE\uFE0F ↔ \uE016 ; # xF9 x56
+\u26BE → \uE016 ; # xF9 x56
+\u26C4\uFE0F ↔ \uE048 ; # xF9 x89
+\u26C4 → \uE048 ; # xF9 x89
+\u26CE ↔ \uE24B ; # xF7 xEB
+\u26EA\uFE0F ↔ \uE037 ; # xF9 x77
+\u26EA → \uE037 ; # xF9 x77
+\u26F2\uFE0F ↔ \uE121 ; # xF7 x61
+\u26F2 → \uE121 ; # xF7 x61
+\u26F3\uFE0F ↔ \uE014 ; # xF9 x54
+\u26F3 → \uE014 ; # xF9 x54
+\u26F5\uFE0F ↔ \uE01C ; # xF9 x5C
+\u26F5 → \uE01C ; # xF9 x5C
+\u26FA\uFE0F ↔ \uE122 ; # xF7 x62
+\u26FA → \uE122 ; # xF7 x62
+\u26FD\uFE0F ↔ \uE03A ; # xF9 x7A
+\u26FD → \uE03A ; # xF9 x7A
+\u2702\uFE0F ↔ \uE313 ; # xF9 xB3
+\u2702 → \uE313 ; # xF9 xB3
+\u2708\uFE0F ↔ \uE01D ; # xF9 x5D
+\u2708 → \uE01D ; # xF9 x5D
+\u270A ↔ \uE010 ; # xF9 x50
+\u270B ↔ \uE012 ; # xF9 x52
+\u270C\uFE0F ↔ \uE011 ; # xF9 x51
+\u270C → \uE011 ; # xF9 x51
+\u2728 ↔ \uE32E ; # xF9 xCE
+\u2733\uFE0F ↔ \uE206 ; # xF7 xA6
+\u2733 → \uE206 ; # xF7 xA6
+\u2734\uFE0F ↔ \uE205 ; # xF7 xA5
+\u2734 → \uE205 ; # xF7 xA5
+\u274C ↔ \uE333 ; # xF9 xD3
+\u2753 ↔ \uE020 ; # xF9 x60
+\u2754 ↔ \uE336 ; # xF9 xD6
+\u2755 ↔ \uE337 ; # xF9 xD7
+\u2757\uFE0F ↔ \uE021 ; # xF9 x61
+\u2757 → \uE021 ; # xF9 x61
+\u2764\uFE0F ↔ \uE022 ; # xF9 x62
+\u2764 → \uE022 ; # xF9 x62
+\u27A1\uFE0F ↔ \uE234 ; # xF7 xD4
+\u27A1 → \uE234 ; # xF7 xD4
+\u27BF ↔ \uE211 ; # xF7 xB1
+\u2B05\uFE0F ↔ \uE235 ; # xF7 xD5
+\u2B05 → \uE235 ; # xF7 xD5
+\u2B06\uFE0F ↔ \uE232 ; # xF7 xD2
+\u2B06 → \uE232 ; # xF7 xD2
+\u2B07\uFE0F ↔ \uE233 ; # xF7 xD3
+\u2B07 → \uE233 ; # xF7 xD3
+\u2B50\uFE0F ↔ \uE32F ; # xF9 xCF
+\u2B50 → \uE32F ; # xF9 xCF
+\u2B55\uFE0F ↔ \uE332 ; # xF9 xD2
+\u2B55 → \uE332 ; # xF9 xD2
+\u303D\uFE0F ↔ \uE12C ; # xF7 x6C
+\u303D → \uE12C ; # xF7 x6C
+\u3297\uFE0F ↔ \uE30D ; # xF9 xAD
+\u3297 → \uE30D ; # xF9 xAD
+\u3299\uFE0F ↔ \uE315 ; # xF9 xB5
+\u3299 → \uE315 ; # xF9 xB5
+
+# Part 2 non-BMP
+\U0001F004\uFE0F ↔ \uE12D ; # xF7 x6D
+\U0001F004 → \uE12D ; # xF7 x6D
+\U0001F170 ↔ \uE532 ; # xFB xD2
+\U0001F171 ↔ \uE533 ; # xFB xD3
+\U0001F17E ↔ \uE535 ; # xFB xD5
+\U0001F17F\uFE0F ↔ \uE14F ; # xF7 x90
+\U0001F17F → \uE14F ; # xF7 x90
+\U0001F18E ↔ \uE534 ; # xFB xD4
+\U0001F192 ↔ \uE214 ; # xF7 xB4
+\U0001F194 ↔ \uE229 ; # xF7 xC9
+\U0001F195 ↔ \uE212 ; # xF7 xB2
+\U0001F197 ↔ \uE24D ; # xF7 xED
+\U0001F199 ↔ \uE213 ; # xF7 xB3
+\U0001F19A ↔ \uE12E ; # xF7 x6E
+\U0001F1E8\U0001F1F3 ↔ \uE513 ; # xFB xB3
+\U0001F1E9\U0001F1EA ↔ \uE50E ; # xFB xAE
+\U0001F1EA\U0001F1F8 ↔ \uE511 ; # xFB xB1
+\U0001F1EB\U0001F1F7 ↔ \uE50D ; # xFB xAD
+\U0001F1EC\U0001F1E7 ↔ \uE510 ; # xFB xB0
+\U0001F1EE\U0001F1F9 ↔ \uE50F ; # xFB xAF
+\U0001F1EF\U0001F1F5 ↔ \uE50B ; # xFB xAB
+\U0001F1F0\U0001F1F7 ↔ \uE514 ; # xFB xB4
+\U0001F1F7\U0001F1FA ↔ \uE512 ; # xFB xB2
+\U0001F1FA\U0001F1F8 ↔ \uE50C ; # xFB xAC
+\U0001F201 ↔ \uE203 ; # xF7 xA3
+\U0001F202 ↔ \uE228 ; # xF7 xC8
+\U0001F21A\uFE0F ↔ \uE216 ; # xF7 xB6
+\U0001F21A → \uE216 ; # xF7 xB6
+\U0001F22F\uFE0F ↔ \uE22C ; # xF7 xCC
+\U0001F22F → \uE22C ; # xF7 xCC
+\U0001F233 ↔ \uE22B ; # xF7 xCB
+\U0001F235 ↔ \uE22A ; # xF7 xCA
+\U0001F236 ↔ \uE215 ; # xF7 xB5
+\U0001F237 ↔ \uE217 ; # xF7 xB7
+\U0001F238 ↔ \uE218 ; # xF7 xB8
+\U0001F239 ↔ \uE227 ; # xF7 xC7
+\U0001F23A ↔ \uE22D ; # xF7 xCD
+\U0001F250 ↔ \uE226 ; # xF7 xC6
+\U0001F300 ↔ \uE443 ; # xFB x84
+\U0001F302 ↔ \uE43C ; # xFB x7C
+\U0001F303 ↔ \uE44B ; # xFB x8C
+\U0001F304 ↔ \uE04D ; # xF9 x8E
+\U0001F305 ↔ \uE449 ; # xFB x8A
+\U0001F306 ↔ \uE146 ; # xF7 x87
+\U0001F307 ↔ \uE44A ; # xFB x8B
+\U0001F308 ↔ \uE44C ; # xFB x8D
+\U0001F30A ↔ \uE43E ; # xFB x7E
+\U0001F319 ↔ \uE04C ; # xF9 x8D
+\U0001F31F ↔ \uE335 ; # xF9 xD5
+\U0001F334 ↔ \uE307 ; # xF9 xA7
+\U0001F335 ↔ \uE308 ; # xF9 xA8
+\U0001F337 ↔ \uE304 ; # xF9 xA4
+\U0001F338 ↔ \uE030 ; # xF9 x70
+\U0001F339 ↔ \uE032 ; # xF9 x72
+\U0001F33A ↔ \uE303 ; # xF9 xA3
+\U0001F33B ↔ \uE305 ; # xF9 xA5
+\U0001F33E ↔ \uE444 ; # xFB x85
+\U0001F340 ↔ \uE110 ; # xF7 x50
+\U0001F341 ↔ \uE118 ; # xF7 x58
+\U0001F342 ↔ \uE119 ; # xF7 x59
+\U0001F343 ↔ \uE447 ; # xFB x88
+\U0001F345 ↔ \uE349 ; # xF9 xE9
+\U0001F346 ↔ \uE34A ; # xF9 xEA
+\U0001F349 ↔ \uE348 ; # xF9 xE8
+\U0001F34A ↔ \uE346 ; # xF9 xE6
+\U0001F34E ↔ \uE345 ; # xF9 xE5
+\U0001F353 ↔ \uE347 ; # xF9 xE7
+\U0001F354 ↔ \uE120 ; # xF7 x60
+\U0001F358 ↔ \uE33D ; # xF9 xDD
+\U0001F359 ↔ \uE342 ; # xF9 xE2
+\U0001F35A ↔ \uE33E ; # xF9 xDE
+\U0001F35B ↔ \uE341 ; # xF9 xE1
+\U0001F35C ↔ \uE340 ; # xF9 xE0
+\U0001F35D ↔ \uE33F ; # xF9 xDF
+\U0001F35E ↔ \uE339 ; # xF9 xD9
+\U0001F35F ↔ \uE33B ; # xF9 xDB
+\U0001F361 ↔ \uE33C ; # xF9 xDC
+\U0001F362 ↔ \uE343 ; # xF9 xE3
+\U0001F363 ↔ \uE344 ; # xF9 xE4
+\U0001F366 ↔ \uE33A ; # xF9 xDA
+\U0001F367 ↔ \uE43F ; # xFB x80
+\U0001F370 ↔ \uE046 ; # xF9 x87
+\U0001F371 ↔ \uE34C ; # xF9 xEC
+\U0001F372 ↔ \uE34D ; # xF9 xED
+\U0001F373 ↔ \uE147 ; # xF7 x88
+\U0001F374 ↔ \uE043 ; # xF9 x84
+\U0001F375 ↔ \uE338 ; # xF9 xD8
+\U0001F376 ↔ \uE30B ; # xF9 xAB
+\U0001F378 ↔ \uE044 ; # xF9 x85
+\U0001F37A ↔ \uE047 ; # xF9 x88
+\U0001F37B ↔ \uE30C ; # xF9 xAC
+\U0001F380 ↔ \uE314 ; # xF9 xB4
+\U0001F381 ↔ \uE112 ; # xF7 x52
+\U0001F382 ↔ \uE34B ; # xF9 xEB
+\U0001F383 ↔ \uE445 ; # xFB x86
+\U0001F384 ↔ \uE033 ; # xF9 x73
+\U0001F385 ↔ \uE448 ; # xFB x89
+\U0001F386 ↔ \uE117 ; # xF7 x57
+\U0001F387 ↔ \uE440 ; # xFB x81
+\U0001F388 ↔ \uE310 ; # xF9 xB0
+\U0001F389 ↔ \uE312 ; # xF9 xB2
+\U0001F38C ↔ \uE143 ; # xF7 x84
+\U0001F38D ↔ \uE436 ; # xFB x76
+\U0001F38E ↔ \uE438 ; # xFB x78
+\U0001F38F ↔ \uE43B ; # xFB x7B
+\U0001F390 ↔ \uE442 ; # xFB x83
+\U0001F391 ↔ \uE446 ; # xFB x87
+\U0001F392 ↔ \uE43A ; # xFB x7A
+\U0001F393 ↔ \uE439 ; # xFB x79
+\U0001F3A1 ↔ \uE124 ; # xF7 x64
+\U0001F3A2 ↔ \uE433 ; # xFB x73
+\U0001F3A4 ↔ \uE03C ; # xF9 x7C
+\U0001F3A5 ↔ \uE03D ; # xF9 x7D
+\U0001F3A6 ↔ \uE507 ; # xFB xA7
+\U0001F3A7 ↔ \uE30A ; # xF9 xAA
+\U0001F3A8 ↔ \uE502 ; # xFB xA2
+\U0001F3A9 ↔ \uE503 ; # xFB xA3
+\U0001F3AB ↔ \uE125 ; # xF7 x65
+\U0001F3AC ↔ \uE324 ; # xF9 xC4
+\U0001F3AF ↔ \uE130 ; # xF7 x70
+\U0001F3B0 ↔ \uE133 ; # xF7 x73
+\U0001F3B1 ↔ \uE42C ; # xFB x6C
+\U0001F3B5 ↔ \uE03E ; # xF9 x7E
+\U0001F3B6 ↔ \uE326 ; # xF9 xC6
+\U0001F3B7 ↔ \uE040 ; # xF9 x81
+\U0001F3B8 ↔ \uE041 ; # xF9 x82
+\U0001F3BA ↔ \uE042 ; # xF9 x83
+\U0001F3BE ↔ \uE015 ; # xF9 x55
+\U0001F3BF ↔ \uE013 ; # xF9 x53
+\U0001F3C0 ↔ \uE42A ; # xFB x6A
+\U0001F3C1 ↔ \uE132 ; # xF7 x72
+\U0001F3C3 ↔ \uE115 ; # xF7 x55
+\U0001F3C4 ↔ \uE017 ; # xF9 x57
+\U0001F3C6 ↔ \uE131 ; # xF7 x71
+\U0001F3C8 ↔ \uE42B ; # xFB x6B
+\U0001F3CA ↔ \uE42D ; # xFB x6D
+\U0001F3E0 ↔ \uE036 ; # xF9 x76
+\U0001F3E2 ↔ \uE038 ; # xF9 x78
+\U0001F3E3 ↔ \uE153 ; # xF7 x94
+\U0001F3E5 ↔ \uE155 ; # xF7 x96
+\U0001F3E6 ↔ \uE14D ; # xF7 x8E
+\U0001F3E7 ↔ \uE154 ; # xF7 x95
+\U0001F3E8 ↔ \uE158 ; # xF7 x99
+\U0001F3E9 ↔ \uE501 ; # xFB xA1
+\U0001F3EA ↔ \uE156 ; # xF7 x97
+\U0001F3EB ↔ \uE157 ; # xF7 x98
+\U0001F3EC ↔ \uE504 ; # xFB xA4
+\U0001F3ED ↔ \uE508 ; # xFB xA8
+\U0001F3EF ↔ \uE505 ; # xFB xA5
+\U0001F3F0 ↔ \uE506 ; # xFB xA6
+\U0001F40D ↔ \uE52D ; # xFB xCD
+\U0001F40E ↔ \uE134 ; # xF7 x74
+\U0001F411 ↔ \uE529 ; # xFB xC9
+\U0001F412 ↔ \uE528 ; # xFB xC8
+\U0001F414 ↔ \uE52E ; # xFB xCE
+\U0001F417 ↔ \uE52F ; # xFB xCF
+\U0001F418 ↔ \uE526 ; # xFB xC6
+\U0001F419 ↔ \uE10A ; # xF7 x4A
+\U0001F41A ↔ \uE441 ; # xFB x82
+\U0001F41B ↔ \uE525 ; # xFB xC5
+\U0001F41F ↔ \uE019 ; # xF9 x59
+\U0001F420 ↔ \uE522 ; # xFB xC2
+\U0001F424 ↔ \uE523 ; # xFB xC3
+\U0001F426 ↔ \uE521 ; # xFB xC1
+\U0001F427 ↔ \uE055 ; # xF9 x96
+\U0001F428 ↔ \uE527 ; # xFB xC7
+\U0001F42B ↔ \uE530 ; # xFB xD0
+\U0001F42C ↔ \uE520 ; # xFB xC0
+\U0001F42D ↔ \uE053 ; # xF9 x94
+\U0001F42E ↔ \uE52B ; # xFB xCB
+\U0001F42F ↔ \uE050 ; # xF9 x91
+\U0001F430 ↔ \uE52C ; # xFB xCC
+\U0001F431 ↔ \uE04F ; # xF9 x90
+\U0001F433 ↔ \uE054 ; # xF9 x95
+\U0001F434 ↔ \uE01A ; # xF9 x5A
+\U0001F435 ↔ \uE109 ; # xF7 x49
+\U0001F436 ↔ \uE052 ; # xF9 x93
+\U0001F437 ↔ \uE10B ; # xF7 x4B
+\U0001F438 ↔ \uE531 ; # xFB xD1
+\U0001F439 ↔ \uE524 ; # xFB xC4
+\U0001F43A ↔ \uE52A ; # xFB xCA
+\U0001F43B ↔ \uE051 ; # xF9 x92
+\U0001F440 ↔ \uE419 ; # xFB x59
+\U0001F442 ↔ \uE41B ; # xFB x5B
+\U0001F443 ↔ \uE41A ; # xFB x5A
+\U0001F444 ↔ \uE41C ; # xFB x5C
+\U0001F446 ↔ \uE22E ; # xF7 xCE
+\U0001F447 ↔ \uE22F ; # xF7 xCF
+\U0001F448 ↔ \uE230 ; # xF7 xD0
+\U0001F449 ↔ \uE231 ; # xF7 xD1
+\U0001F44A ↔ \uE00D ; # xF9 x4D
+\U0001F44B ↔ \uE41E ; # xFB x5E
+\U0001F44C ↔ \uE420 ; # xFB x60
+\U0001F44D ↔ \uE00E ; # xF9 x4E
+\U0001F44E ↔ \uE421 ; # xFB x61
+\U0001F44F ↔ \uE41F ; # xFB x5F
+\U0001F450 ↔ \uE422 ; # xFB x62
+\U0001F451 ↔ \uE10E ; # xF7 x4E
+\U0001F452 ↔ \uE318 ; # xF9 xB8
+\U0001F454 ↔ \uE302 ; # xF9 xA2
+\U0001F455 ↔ \uE006 ; # xF9 x46
+\U0001F457 ↔ \uE319 ; # xF9 xB9
+\U0001F458 ↔ \uE321 ; # xF9 xC1
+\U0001F459 ↔ \uE322 ; # xF9 xC2
+\U0001F45C ↔ \uE323 ; # xF9 xC3
+\U0001F45F ↔ \uE007 ; # xF9 x47
+\U0001F460 ↔ \uE13E ; # xF7 x7E
+\U0001F461 ↔ \uE31A ; # xF9 xBA
+\U0001F462 ↔ \uE31B ; # xF9 xBB
+\U0001F463 ↔ \uE536 ; # xFB xD6
+\U0001F466 ↔ \uE001 ; # xF9 x41
+\U0001F467 ↔ \uE002 ; # xF9 x42
+\U0001F468 ↔ \uE004 ; # xF9 x44
+\U0001F469 ↔ \uE005 ; # xF9 x45
+\U0001F46B ↔ \uE428 ; # xFB x68
+\U0001F46E ↔ \uE152 ; # xF7 x93
+\U0001F46F ↔ \uE429 ; # xFB x69
+\U0001F471 ↔ \uE515 ; # xFB xB5
+\U0001F472 ↔ \uE516 ; # xFB xB6
+\U0001F473 ↔ \uE517 ; # xFB xB7
+\U0001F474 ↔ \uE518 ; # xFB xB8
+\U0001F475 ↔ \uE519 ; # xFB xB9
+\U0001F476 ↔ \uE51A ; # xFB xBA
+\U0001F477 ↔ \uE51B ; # xFB xBB
+\U0001F478 ↔ \uE51C ; # xFB xBC
+\U0001F47B ↔ \uE11B ; # xF7 x5B
+\U0001F47C ↔ \uE04E ; # xF9 x8F
+\U0001F47D ↔ \uE10C ; # xF7 x4C
+\U0001F47E ↔ \uE12B ; # xF7 x6B
+\U0001F47F ↔ \uE11A ; # xF7 x5A
+\U0001F480 ↔ \uE11C ; # xF7 x5C
+\U0001F481 ↔ \uE253 ; # xF7 xF3
+\U0001F482 ↔ \uE51E ; # xFB xBE
+\U0001F483 ↔ \uE51F ; # xFB xBF
+\U0001F484 ↔ \uE31C ; # xF9 xBC
+\U0001F485 ↔ \uE31D ; # xF9 xBD
+\U0001F486 ↔ \uE31E ; # xF9 xBE
+\U0001F487 ↔ \uE31F ; # xF9 xBF
+\U0001F488 ↔ \uE320 ; # xF9 xC0
+\U0001F489 ↔ \uE13B ; # xF7 x7B
+\U0001F48A ↔ \uE30F ; # xF9 xAF
+\U0001F48B ↔ \uE003 ; # xF9 x43
+\U0001F48D ↔ \uE034 ; # xF9 x74
+\U0001F48E ↔ \uE035 ; # xF9 x75
+\U0001F48F ↔ \uE111 ; # xF7 x51
+\U0001F490 ↔ \uE306 ; # xF9 xA6
+\U0001F491 ↔ \uE425 ; # xFB x65
+\U0001F492 ↔ \uE43D ; # xFB x7D
+\U0001F493 ↔ \uE327 ; # xF9 xC7
+\U0001F494 ↔ \uE023 ; # xF9 x63
+\U0001F497 ↔ \uE328 ; # xF9 xC8
+\U0001F498 ↔ \uE329 ; # xF9 xC9
+\U0001F499 ↔ \uE32A ; # xF9 xCA
+\U0001F49A ↔ \uE32B ; # xF9 xCB
+\U0001F49B ↔ \uE32C ; # xF9 xCC
+\U0001F49C ↔ \uE32D ; # xF9 xCD
+\U0001F49D ↔ \uE437 ; # xFB x77
+\U0001F49F ↔ \uE204 ; # xF7 xA4
+\U0001F4A1 ↔ \uE10F ; # xF7 x4F
+\U0001F4A2 ↔ \uE334 ; # xF9 xD4
+\U0001F4A3 ↔ \uE311 ; # xF9 xB1
+\U0001F4A4 ↔ \uE13C ; # xF7 x7C
+\U0001F4A6 ↔ \uE331 ; # xF9 xD1
+\U0001F4A8 ↔ \uE330 ; # xF9 xD0
+\U0001F4A9 ↔ \uE05A ; # xF9 x9B
+\U0001F4AA ↔ \uE14C ; # xF7 x8D
+\U0001F4B0 ↔ \uE12F ; # xF7 x6F
+\U0001F4B1 ↔ \uE149 ; # xF7 x8A
+\U0001F4B9 ↔ \uE14A ; # xF7 x8B
+\U0001F4BA ↔ \uE11F ; # xF7 x5F
+\U0001F4BB ↔ \uE00C ; # xF9 x4C
+\U0001F4BC ↔ \uE11E ; # xF7 x5E
+\U0001F4BD ↔ \uE316 ; # xF9 xB6
+\U0001F4BF ↔ \uE126 ; # xF7 x66
+\U0001F4C0 ↔ \uE127 ; # xF7 x67
+\U0001F4D6 ↔ \uE148 ; # xF7 x89
+\U0001F4DD ↔ \uE301 ; # xF9 xA1
+\U0001F4E0 ↔ \uE00B ; # xF9 x4B
+\U0001F4E1 ↔ \uE14B ; # xF7 x8C
+\U0001F4E2 ↔ \uE142 ; # xF7 x83
+\U0001F4E3 ↔ \uE317 ; # xF9 xB7
+\U0001F4E9 ↔ \uE103 ; # xF7 x43
+\U0001F4EB ↔ \uE101 ; # xF7 x41
+\U0001F4EE ↔ \uE102 ; # xF7 x42
+\U0001F4F1 ↔ \uE00A ; # xF9 x4A
+\U0001F4F2 ↔ \uE104 ; # xF7 x44
+\U0001F4F3 ↔ \uE250 ; # xF7 xF0
+\U0001F4F4 ↔ \uE251 ; # xF7 xF1
+\U0001F4F6 ↔ \uE20B ; # xF7 xAB
+\U0001F4F7 ↔ \uE008 ; # xF9 x48
+\U0001F4FA ↔ \uE12A ; # xF7 x6A
+\U0001F4FB ↔ \uE128 ; # xF7 x68
+\U0001F4FC ↔ \uE129 ; # xF7 x69
+\U0001F50A ↔ \uE141 ; # xF7 x82
+\U0001F50D ↔ \uE114 ; # xF7 x54
+\U0001F511 ↔ \uE03F ; # xF9 x80
+\U0001F512 ↔ \uE144 ; # xF7 x85
+\U0001F513 ↔ \uE145 ; # xF7 x86
+\U0001F514 ↔ \uE325 ; # xF9 xC5
+\U0001F51D ↔ \uE24C ; # xF7 xEC
+\U0001F51E ↔ \uE207 ; # xF7 xA7
+\U0001F525 ↔ \uE11D ; # xF7 x5D
+\U0001F528 ↔ \uE116 ; # xF7 x56
+\U0001F52B ↔ \uE113 ; # xF7 x53
+\U0001F52F ↔ \uE23E ; # xF7 xDE
+\U0001F530 ↔ \uE209 ; # xF7 xA9
+\U0001F531 ↔ \uE031 ; # xF9 x71
+\U0001F532 ↔ \uE21A ; # xF7 xBA
+\U0001F533 ↔ \uE21B ; # xF7 xBB
+\U0001F534 ↔ \uE219 ; # xF7 xB9
+\U0001F550 ↔ \uE024 ; # xF9 x64
+\U0001F551 ↔ \uE025 ; # xF9 x65
+\U0001F552 ↔ \uE026 ; # xF9 x66
+\U0001F553 ↔ \uE027 ; # xF9 x67
+\U0001F554 ↔ \uE028 ; # xF9 x68
+\U0001F555 ↔ \uE029 ; # xF9 x69
+\U0001F556 ↔ \uE02A ; # xF9 x6A
+\U0001F557 ↔ \uE02B ; # xF9 x6B
+\U0001F558 ↔ \uE02C ; # xF9 x6C
+\U0001F559 ↔ \uE02D ; # xF9 x6D
+\U0001F55A ↔ \uE02E ; # xF9 x6E
+\U0001F55B ↔ \uE02F ; # xF9 x6F
+\U0001F5FB ↔ \uE03B ; # xF9 x7B
+\U0001F5FC ↔ \uE509 ; # xFB xA9
+\U0001F5FD ↔ \uE51D ; # xFB xBD
+\U0001F601 ↔ \uE404 ; # xFB x44
+\U0001F602 ↔ \uE412 ; # xFB x52
+\U0001F603 ↔ \uE057 ; # xF9 x98
+\U0001F604 ↔ \uE415 ; # xFB x55
+\U0001F609 ↔ \uE405 ; # xFB x45
+\U0001F60A ↔ \uE056 ; # xF9 x97
+\U0001F60C ↔ \uE40A ; # xFB x4A
+\U0001F60D ↔ \uE106 ; # xF7 x46
+\U0001F60F ↔ \uE402 ; # xFB x42
+\U0001F612 ↔ \uE40E ; # xFB x4E
+\U0001F613 ↔ \uE108 ; # xF7 x48
+\U0001F614 ↔ \uE403 ; # xFB x43
+\U0001F616 ↔ \uE407 ; # xFB x47
+\U0001F618 ↔ \uE418 ; # xFB x58
+\U0001F61A ↔ \uE417 ; # xFB x57
+\U0001F61C ↔ \uE105 ; # xF7 x45
+\U0001F61D ↔ \uE409 ; # xFB x49
+\U0001F61E ↔ \uE058 ; # xF9 x99
+\U0001F620 ↔ \uE059 ; # xF9 x9A
+\U0001F621 ↔ \uE416 ; # xFB x56
+\U0001F622 ↔ \uE413 ; # xFB x53
+\U0001F623 ↔ \uE406 ; # xFB x46
+\U0001F625 ↔ \uE401 ; # xFB x41
+\U0001F628 ↔ \uE40B ; # xFB x4B
+\U0001F62A ↔ \uE408 ; # xFB x48
+\U0001F62D ↔ \uE411 ; # xFB x51
+\U0001F630 ↔ \uE40F ; # xFB x4F
+\U0001F631 ↔ \uE107 ; # xF7 x47
+\U0001F632 ↔ \uE410 ; # xFB x50
+\U0001F633 ↔ \uE40D ; # xFB x4D
+\U0001F637 ↔ \uE40C ; # xFB x4C
+\U0001F645 ↔ \uE423 ; # xFB x63
+\U0001F646 ↔ \uE424 ; # xFB x64
+\U0001F647 ↔ \uE426 ; # xFB x66
+\U0001F64C ↔ \uE427 ; # xFB x67
+\U0001F64F ↔ \uE41D ; # xFB x5D
+\U0001F680 ↔ \uE10D ; # xF7 x4D
+\U0001F683 ↔ \uE01E ; # xF9 x5E
+\U0001F684 ↔ \uE435 ; # xFB x75
+\U0001F685 ↔ \uE01F ; # xF9 x5F
+\U0001F687 ↔ \uE434 ; # xFB x74
+\U0001F689 ↔ \uE039 ; # xF9 x79
+\U0001F68C ↔ \uE159 ; # xF7 x9A
+\U0001F68F ↔ \uE150 ; # xF7 x91
+\U0001F691 ↔ \uE431 ; # xFB x71
+\U0001F692 ↔ \uE430 ; # xFB x70
+\U0001F693 ↔ \uE432 ; # xFB x72
+\U0001F695 ↔ \uE15A ; # xF7 x9B
+\U0001F697 ↔ \uE01B ; # xF9 x5B
+\U0001F699 ↔ \uE42E ; # xFB x6E
+\U0001F69A ↔ \uE42F ; # xFB x6F
+\U0001F6A2 ↔ \uE202 ; # xF7 xA2
+\U0001F6A4 ↔ \uE135 ; # xF7 x75
+\U0001F6A5 ↔ \uE14E ; # xF7 x8F
+\U0001F6A7 ↔ \uE137 ; # xF7 x77
+\U0001F6AC ↔ \uE30E ; # xF9 xAE
+\U0001F6AD ↔ \uE208 ; # xF7 xA8
+\U0001F6B2 ↔ \uE136 ; # xF7 x76
+\U0001F6B6 ↔ \uE201 ; # xF7 xA1
+\U0001F6B9 ↔ \uE138 ; # xF7 x78
+\U0001F6BA ↔ \uE139 ; # xF7 x79
+\U0001F6BB ↔ \uE151 ; # xF7 x92
+\U0001F6BC ↔ \uE13A ; # xF7 x7A
+\U0001F6BD ↔ \uE140 ; # xF7 x81
+\U0001F6BE ↔ \uE309 ; # xF9 xA9
+\U0001F6C0 ↔ \uE13F ; # xF7 x80
+
+####
+# Fallbacks from softbank PUA that were not used
+# since there were standard pre-6.0 Unicodes available
+# Unicode char ← unused Softbank PUA char ; # Softbank SJIS char
+####
+\u00A9 ← \uE24E ; # xF7 xEE
+\u00AE ← \uE24F ; # xF7 xEF
+\u2122 ← \uE537 ; # xFB xD7
+
+####
+# Fallbacks from other standard Han ideographs to JISX0208 Kanji
+# as in the softbank-sjis table
+# Unicode Han char → fallback Unicode Kanji char ; # Softbank SJIS char
+####
+\u4FE0 → \u4FA0 ; # x8B xA0
+\u525D → \u5265 ; # x94 x8D
+\u555E → \u5516 ; # x88 xA0
+\u5699 → \u565B ; # x8A x9A
+\u56CA → \u56A2 ; # x94 x58
+\u5861 → \u586B ; # x93 x55
+\u5C5B → \u5C4F ; # x9B xA0
+\u5C62 → \u5C61 ; # x8E xC6
+\u6414 → \u63BB ; # x91 x7E
+\u6451 → \u63B4 ; # x92 xCD
+\u6522 → \u6505 ; # x9D xB7
+\u6805 → \u67F5 ; # x8D xF2
+\u688E → \u688D ; # x9E x94
+\u6F51 → \u6E8C ; # x94 xAC
+\u7006 → \u6D9C ; # x93 xC0
+\u7130 → \u7114 ; # x89 x8B
+\u7626 → \u75E9 ; # x91 x89
+\u79B1 → \u7977 ; # x93 x98
+\u7C1E → \u7BAA ; # x92 x5C
+\u7E48 → \u7E66 ; # xE3 x79
+\u7E61 → \u7E4D ; # x8F x4A
+\u7E6B → \u7E4B ; # x8C x71
+\u8141 → \u80FC ; # xE4 x45
+\u8346 → \u834A ; # x8C x74
+\u840A → \u83B1 ; # x97 x89
+\u8523 → \u848B ; # x8F xD3
+\u87EC → \u8749 ; # x90 xE4
+\u881F → \u874B ; # x98 x58
+\u8EC0 → \u8EAF ; # x8B xEB
+\u91AC → \u91A4 ; # x8F xDD
+\u91B1 → \u9197 ; # x94 xAE
+\u9830 → \u982C ; # x96 x6A
+\u9839 → \u983D ; # xE8 xF6
+\u985A → \u985B ; # x93 x5E
+\u9A52 → \u9A28 ; # x91 xCB
+\u9DD7 → \u9D0E ; # x89 xA8
+\u9E7C → \u9E78 ; # x8C xB2
+\u9EB4 → \u9EB9 ; # x8D x8D
+\u9EB5 → \u9EBA ; # x96 xCB
+
+####
+# Use identity mappings for other softbank PUA, e.g.
+# (ranges shown using | )
+#
+#	\uE000 # xF0 x40
+#
+#	\uE05B # xF0 x9C
+#	|
+#	\uE0BB # xF0 xFC
+#	\uE0BC # xF1 x40
+#	|
+#	\uE100 # xF1 x85
+#
+#	\uE15B # xF1 xE0
+#	|
+#	\uE177 # xF1 xFC
+#	\uE178 # xF2 x40
+#	|
+#	\uE200 # xF2 xC9
+#
+#	\uE254 # xF3 x60
+#	|
+#	\uE2EF # xF3 xFC
+#	\uE2F0 # xF4 x40
+#	|
+#	\uE300 # xF4 x50
+#
+#	\uE34E # xF4 x9F
+#	|
+#	\uE3AB # xF4 xFC
+#	\uE3AC # xF5 x40
+#	|
+#	\uE400 # xF5 x95
+#
+#	\uE44D # xF5 xE2
+#	|
+#	\uE467 # xF5 xFC
+#	\uE468 # xF6 x40
+#	|
+#	\uE500 # xF6 xD9
+#
+#	\uE50A # xFB xAA
+#
+#	\uE57F # xF7 x9C
+#	|
+#	\uE583 # xF7 xA0
+#
+#	\uE5D7 # xF7 xF4
+#	|
+#	\uE5DF # xF7 xFC
+#	\uE5E0 # xF8 x40
+#	|
+#	\uE69B # xF8 xFC
+#	\uE69C # xF9 x40
+#
+#	\uE6F7 # xF9 x9C
+#	|
+#	\uE6FB # xF9 xA0
+#
+#	\uE749 # xF9 xEE
+#	|
+#	\uE757 # xF9 xFC
+#
+####

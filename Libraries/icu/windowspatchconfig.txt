@@ -1,0 +1,31 @@
+--- ./common/unicode/uconfig.h	2019-03-09 11:10:03.000000000 -0800
++++ ./common/unicode/uconfig.h	2019-03-10 17:11:24.000000000 -0700
+@@ -89,7 +89,7 @@
+  * @internal
+  */
+ #ifndef U_DISABLE_RENAMING
+-#define U_DISABLE_RENAMING 0
++#define U_DISABLE_RENAMING 1
+ #endif
+ 
+ /**
+@@ -430,7 +430,7 @@
+  * @stable ICU 3.2
+  */
+ #ifndef UCONFIG_NO_SERVICE
+-#   define UCONFIG_NO_SERVICE 0
++#   define UCONFIG_NO_SERVICE 1
+ #endif
+ 
+ /**
+--- ./common/unicode/utypes.h	2019-03-09 11:10:04.000000000 -0800
++++ ./common/unicode/utypes.h	2019-03-10 17:09:43.000000000 -0700
+@@ -63,7 +63,7 @@
+  */
+ #ifdef __cplusplus
+ #   ifndef U_SHOW_CPLUSPLUS_API
+-#       define U_SHOW_CPLUSPLUS_API 1
++#       define U_SHOW_CPLUSPLUS_API 0
+ #   endif
+ #else
+ #   undef U_SHOW_CPLUSPLUS_API

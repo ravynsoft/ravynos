@@ -2,6 +2,6 @@
 #  RAVYNOS BUILD SYSTEM - Frameworks
 # ------------------------------------------------------------------------
 
-SUBDIR = Foundation CoreFoundation
+SUBDIR = CoreFoundation Foundation
 
 .include <bsd.subdir.mk>

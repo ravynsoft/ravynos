@@ -1,0 +1,16 @@
+#******************************************************************************
+#
+#   Copyright (c) 2006-2008,2014,2016,2018 Apple Inc.
+#   All Rights Reserved.
+#
+#******************************************************************************
+## Makefile.local for Apple Inc.
+
+#ifeq "$(WINDOWS)" "YES"
+#else
+	OBJECTS += rbbi57.o rbbitblb57.o rbbistbl57.o rbbiscan57.o rbbidata57.o rbbirb57.o rbbisetb57.o rbtok.o urbtok.o aaplbfct.o ualoc.o
+	
+	STATIC_OBJECT += rbbi57.$(STATIC_O) rbbitblb57.$(STATIC_O) rbbistbl57.$(STATIC_O) rbbiscan57.$(STATIC_O) rbbidata57.$(STATIC_O) rbbirb57.$(STATIC_O) rbbisetb57.$(STATIC_O) rbtok.$(STATIC_O) urbtok.$(STATIC_O) aaplbfct.$(STATIC_O) ualoc.$(STATIC_O)
+	
+	DEPS += rbbi57.d rbbitblb57.d rbbistbl57.d rbbiscan57.d rbbidata57.d rbbirb57.d rbbisetb57.d rbtok.d urbtok.d aaplbfct.d ualoc.d
+#endif

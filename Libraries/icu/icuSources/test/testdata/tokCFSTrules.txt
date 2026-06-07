@@ -1,0 +1,120 @@
+## tokCFSTrules.txt
+## The following corresponds to source file from CoreNLP of 2018-Jan-24:
+##   toktextrules
+## and binary files in CoreNLP of 2018-Feb-03:
+##   CoreNLP.framework/Resources/tokruleLE.data       [for ICU before 60, including ICU 57]
+##   CoreNLP.framework/Resources/tokruleLE_icu60.data
+##############################################################################
+#    0:       Don't ignore
+#    1 = 2^0: Fail NFKC_QC
+#    2 = 2^1: Initial Caps
+#    4 = 2^2: Inner Caps
+#    8 = 2^3: Diacritics
+#   16       = 0x10       = 2^4: Numbers
+#   32       = 0x20       = 2^5: NonLetters
+#   64       = 0x40       = 2^6: Expansions
+#  256       = 0x100      = 2^8: Fail NFKD_QC
+# 2048       = 0x800      = 2^11: Emoji
+# 4096       = 0x1000     = 2^12: Hangul
+# 1073741824 = 0x40000000 = 2^30: CJ
+# 4294967295 = 0xFFFFFFFF : (ignorable?)
+
+# 1. New definitions added for emoji support
+$EmojiPre   = [👨 👩 \U0001F441\u26F9 \U0001F3C3-\U0001F3C4 \U0001F3CA-\U0001F3CC \U0001F3F3 \U0001F468-\U0001F469 \U0001F46E-\U0001F46F \U0001F471 \U0001F473 \U0001F477 \U0001F481-\U0001F482 \U0001F486-\U0001F487 \U0001F575 \U0001F645-\U0001F647 \U0001F64B \U0001F64D-\U0001F64E \U0001F6A3 \U0001F6B4-\U0001F6B6 \U0001F926 \U0001F937-\U0001F939 \U0001F93C-\U0001F93E \U0001F9D6-\U0001F9D8 \U0001F9D9-\U0001F9DF];
+$EmojiSuf   = [👨 👩 👦 👧 ❤️ 💋 \U0001F5E8 \u2640 \u2642 \U0001F308];
+$ZWJ        = [\u200D]; # ZERO-WIDTH JOINER
+$EmojiVar   = [\uFE0F]; # emoji-style variation selector
+$TextVar    = [\uFE0E]; # variation selector for text presentation
+$EmojiForMod = [\u261D \u26F9 \u270A-\u270D \U0001F385 \U0001F3C2-\U0001F3C4 \U0001F3C7 \U0001F3CA-\U0001F3CC \U0001F442-\U0001F443 \U0001F446-\U0001F450 \U0001F466-\U0001F469 \U0001F46A-\U0001F46F \U0001F470-\U0001F478 \U0001F47C \U0001F481-\U0001F483 \U0001F485-\U0001F487 \U0001F4AA \U0001F574-\U0001F575 \U0001F57A \U0001F590 \U0001F595-\U0001F596 \U0001F645-\U0001F647 \U0001F64B-\U0001F64F \U0001F6A3 \U0001F6B4-\U0001F6B6 \U0001F6C0 \U0001F6CC \U0001F918-\U0001F91F \U0001F926 \U0001F930 \U0001F931-\U0001F932 \U0001F933-\U0001F939 \U0001F93C-\U0001F93E \U0001F9D1-\U0001F9DD];
+$EmojiMod   = [\U0001F3FB-\U0001F3FF]; # modifiers
+$EmojiOther = [\u203C \u2049 \u2122 \u2139 \u2194-\u2199 \u21A9-\u21AA \u231A-\u231B \u2328 \u23CF \u23E9-\u23F3 \u23F8-\u23FA \u24C2 \u25AA-\u25AB \u25B6 \u25C0 \u25FB-\u25FE \u2600-\u2604 \u260E \u2611 \u2614-\u2615 \u2618 \u2620 \u2622-\u2623 \u2626 \u262A \u262E-\u262F \u2638-\u263A \u2648-\u2653 \u2660 \u2663 \u2665-\u2666 \u2668 \u267B \u267F \u2692-\u2694 \u2696-\u2697 \u2699 \u269B-\u269C \u26A0-\u26A1 \u26AA-\u26AB \u26B0-\u26B1 \u26BD-\u26BE \u26C4-\u26C5 \u26C8 \u26CE-\u26CF \u26D1 \u26D3-\u26D4 \u26E9-\u26EA \u26F0-\u26F5 \u26F7-\u26F8 \u26FA \u26FD \u2702 \u2705 \u2708-\u2709 \u270F \u2712 \u2714 \u2716 \u271D \u2721 \u2728 \u2733-\u2734 \u2744 \u2747 \u274C \u274E \u2753-\u2755 \u2757 \u2763-\u2764 \u2795-\u2797 \u27A1 \u27B0 \u27BF \u2934-\u2935 \u2B05-\u2B07 \u2B1B-\u2B1C \u2B50 \u2B55 \u3030 \u303D \u3297 \u3299 \U0001F004 \U0001F0CF \U0001F170-\U0001F171 \U0001F17E-\U0001F17F \U0001F18E \U0001F191-\U0001F19A \U0001F201-\U0001F202 \U0001F21A \U0001F22F \U0001F232-\U0001F23A \U0001F250-\U0001F251 \U0001F300-\U0001F321 \U0001F324-\U0001F386 \U0001F387-\U0001F393 \U0001F396-\U0001F397 \U0001F399-\U0001F39B \U0001F39E-\U0001F3C1 \U0001F3C5 \U0001F3C6 \U0001F3C8 \U0001F3C9 \U0001F3CD-\U0001F3F0 \U0001F3F3-\U0001F3F5 \U0001F3F7-\U0001F3FA \U0001F400-\U0001F441 \U0001F444-\U0001F445 \U0001F451-\U0001F465 \U0001F479 \U0001F47A \U0001F47B \U0001F47D-\U0001F480 \U0001F484 \U0001F488-\U0001F4FD \U0001F4FF-\U0001F53D \U0001F549-\U0001F54E \U0001F550-\U0001F567 \U0001F56F-\U0001F570 \U0001F573 \U0001F576-\U0001F579 \U0001F587 \U0001F58A-\U0001F58D \U0001F5A4 \U0001F5A5 \U0001F5A8 \U0001F5B1-\U0001F5B2 \U0001F5BC \U0001F5C2-\U0001F5C4 \U0001F5D1-\U0001F5D3 \U0001F5DC-\U0001F5DE \U0001F5E1 \U0001F5E3 \U0001F5EF \U0001F5F3 \U0001F5FA-\U0001F644 \U0001F648-\U0001F64A \U0001F680-\U0001F6A2 \U0001F6A4-\U0001F6B3 \U0001F6B7-\U0001F6C5 \U0001F6CB \U0001F6CD-\U0001F6D2 \U0001F6E0-\U0001F6E5 \U0001F6E9 \U0001F6EB-\U0001F6EC \U0001F6F0 \U0001F6F3-\U0001F6F8 \U0001F910-\U0001F917 \U0001F920-\U0001F925 \U0001F927 \U0001F928-\U0001F92F \U0001F93A \U0001F940-\U0001F945 \U0001F947-\U0001F94C \U0001F950-\U0001F95E \U0001F95F-\U0001F96B \U0001F980-\U0001F991 \U0001F992-\U0001F997 \U0001F9C0 \U0001F9D0-\U0001F9E6];
+
+# List of emoji variation sequences.
+# The list was automatically generated from http://www.unicode.org/draft/emoji/charts-beta/emoji-variants.html
+# and gen_icu_text_presentation_rules.py
+$EmojiVarSeq = [\u0023 \u002a \u0030-\u0039 \u00a9 \u00ae \u203c \u2049 \u2122 \u2139 \u2194-\u2199 \u21a9-\u21aa \u231a-\u231b \u2328 \u23cf \u23e9-\u23ea \u23ed-\u23ef \u23f1-\u23f3 \u23f8-\u23fa \u24c2 \u25aa-\u25ab \u25b6 \u25c0 \u25fb-\u25fe \u2600-\u2604 \u260e \u2611 \u2614-\u2615 \u2618 \u261d \u2620 \u2622-\u2623 \u2626 \u262a \u262e-\u262f \u2638-\u263a \u2648-\u2653 \u2660 \u2663 \u2665-\u2666 \u2668 \u267b \u267f \u2692-\u2694 \u2696-\u2697 \u2699 \u269b-\u269c \u26a0-\u26a1 \u26aa-\u26ab \u26b0-\u26b1 \u26bd-\u26be \u26c4-\u26c5 \u26c8 \u26cf \u26d1 \u26d3-\u26d4 \u26e9-\u26ea \u26f0-\u26f5 \u26f7-\u26fa \u26fd \u2702 \u2708-\u2709 \u270c-\u270d \u270f \u2712 \u2714 \u2716 \u271d \u2721 \u2733-\u2734 \u2744 \u2747 \u2753 \u2757 \u2763-\u2764 \u27a1 \u2934-\u2935 \u2b05-\u2b07 \u2b1b-\u2b1c \u2b50 \u2b55 \u3030 \u303d \u3297 \u3299 \U0001f004 \U0001f170-\U0001f171 \U0001f17e-\U0001f17f \U0001f202 \U0001f21a \U0001f22f \U0001f237 \U0001f30d-\U0001f30f \U0001f315 \U0001f31c \U0001f321 \U0001f324-\U0001f32c \U0001f336 \U0001f378 \U0001f37d \U0001f393 \U0001f396-\U0001f397 \U0001f399-\U0001f39b \U0001f39e-\U0001f39f \U0001f3a7 \U0001f3ac-\U0001f3ae \U0001f3c2 \U0001f3c4 \U0001f3c6 \U0001f3ca-\U0001f3ce \U0001f3d4-\U0001f3e0 \U0001f3ed \U0001f3f3 \U0001f3f5 \U0001f3f7 \U0001f408 \U0001f415 \U0001f41f \U0001f426 \U0001f43f \U0001f441-\U0001f442 \U0001f446-\U0001f449 \U0001f44d-\U0001f44e \U0001f453 \U0001f46a \U0001f47d \U0001f4a3 \U0001f4b0 \U0001f4b3 \U0001f4bb \U0001f4bf \U0001f4cb \U0001f4da \U0001f4df \U0001f4e4-\U0001f4e6 \U0001f4ea-\U0001f4ed \U0001f4f7 \U0001f4f9-\U0001f4fb \U0001f4fd \U0001f508 \U0001f50d \U0001f512-\U0001f513 \U0001f549-\U0001f54a \U0001f550-\U0001f567 \U0001f56f-\U0001f570 \U0001f573-\U0001f579 \U0001f587 \U0001f58a-\U0001f58d \U0001f590 \U0001f5a5 \U0001f5a8 \U0001f5b1-\U0001f5b2 \U0001f5bc \U0001f5c2-\U0001f5c4 \U0001f5d1-\U0001f5d3 \U0001f5dc-\U0001f5de \U0001f5e1 \U0001f5e3 \U0001f5e8 \U0001f5ef \U0001f5f3 \U0001f5fa \U0001f610 \U0001f687 \U0001f68d \U0001f691 \U0001f694 \U0001f698 \U0001f6ad \U0001f6b2 \U0001f6b9-\U0001f6ba \U0001f6bc \U0001f6cb \U0001f6cd-\U0001f6cf \U0001f6e0-\U0001f6e5 \U0001f6e9 \U0001f6f0 \U0001f6f3];
+
+# Emoji professions
+$EmojiProfPre = [\U0001F468 \U0001F469];
+$EmojiProfSuf = [\u2695 \u2696 \u2708 \U0001F33E \U0001F373 \U0001F393 \U0001F3A4 \U0001F3A8 \U0001F3EB \U0001F3ED \U0001F4BB \U0001F4BC \U0001F527 \U0001F52C \U0001F680 \U0001F692];
+
+# Flag Emoji Tag Sequence
+# http://www.unicode.org/reports/tr51/#flag-emoji-tag-sequences
+$EmojiTagBase = [\U0001F3F4];
+$EmojiTagSpec = [\U000E0030-\U000E0039 \U000E0061-\U000E007A];
+$EmojiTagTerm = [\U000E007F];
+
+$RegInd     = [\U0001F1E6-\U0001F1FF]; # regional indicator
+$ForKeys    = [\u0023 \u002A \u0030-\u0039]; # chars for keypad emoji
+$EncKeypad  = [\u20E3]; # combining enclosing keypad
+$Emoji      = [[$EmojiForMod][$EmojiMod][$EmojiOther][$RegInd][$EmojiVar]];
+
+# 2. Other definitions as before, except that
+#    $Emoji is subtracted from several categories
+$Ignore		= [[:Separator:][:Control:]];
+$NotIgnore	= [[^$Ignore] - $Emoji];
+$NonNorm	= [[[:^NFKC_QC=YES:][:^ccc=0:]] - $Ignore - $Emoji];
+$NotNFKD	= [[:^NFKD_QC=YES:] - $Ignore - $Emoji];
+$Caps		= [:Uppercase:];  # ??? or [[[:Sensitive:]-[:Lowercase:]-[:block=Spacing_Modifier_Letters:]-[:block=Combining_Diacritical_Marks:]]\\u00df\\u0149\\u017f\\u01f0\\u0390\\u03b0\\u03c2\\u0587\\u1e96-\\u1e9b\\u1f50\\u1f52\\u1f54\\u1f56\\u1f80-\\u1f87\\u1f90-\\u1f97\\u1fa0-\\u1fa7\\u1fb2-\\u1fb4\\u1fb6\\u1fb7\\u1fc2-\\u1fc4\\u1fc6\\u1fc7\\u1fd2\\u1fd3\\u1fd6\\u1fd7\\u1fe2-\\u1fe4\\u1fe7\\u1fe7\\u1ff2-\\u1ff4\\u1ff6\\u1ff7\\ufb00-\\ufb06\\ufb13-\\ufb17]
+$Diacritics = [[[:^NFD_QC=YES:]-[:Hiragana:]-[:Katakana:]-[:Hangul:]][[:^ccc=0:]-[:ccc=8:]]];
+$Numbers	= [:Word_Break=Numeric:]; #???
+$Expansions = [åäöøÅÄÖØ];  # ??? or pass in
+$CJ			= [[:Hiragana:][:Katakana:][:Ideographic:]];
+$Hangul     = [[:Hangul:]];
+# $NonLetters	= [$NotIgnore - [:L:]];	# ???
+$NonLetters	= [[$NotIgnore&[[:Other:][:Punctuation:][:Symbol:][:Enclosing_Mark:]]] - $Emoji];
+$dictionary = [:LineBreak = Complex_Context:];
+
+# 3. Rules are as before, except that
+#    they are re-ordered and emoji rules are added, and
+#    added rules for !!reverse, !!safe_reverse, !!safe_forward
+
+!!forward;
+
+
+# rules related to emoji
+$EmojiPre $EmojiVar? $EmojiMod? ($ZWJ $EmojiSuf $EmojiVar?)+ {2048};
+$EmojiProfPre $EmojiMod? $ZWJ $EmojiProfSuf $EmojiVar? {2048};
+$EmojiForMod $EmojiVar? $EmojiMod? {2048};
+$EmojiMod {2048};
+$EmojiVarSeq $TextVar {2048};
+$EmojiOther $EmojiVar? {2048};
+^$RegInd $RegInd {2048};
+$ForKeys $EmojiVar $EncKeypad {2048};
+# Flag Emoji Tag Sequence
+$EmojiTagBase $EmojiTagSpec+ $EmojiTagTerm {2048};
+# handle other stray emoji tail sequences
+$EmojiVar+ {4294967295};
+$RegInd {32};
+
+# strange rule to handle emoji keycaps midword
+[[$NotIgnore]-[$ForKeys]]+ $ForKeys $EmojiVar $EncKeypad {2048};
+
+# other rules
+$Ignore+ {4294967295};
+([$NotIgnore-$NonNorm]* $NonNorm)+ [$NotIgnore-$NonNorm]* {1};
+$Caps $NotIgnore* {2};
+[$NotIgnore]+ ([$NotIgnore-$Caps]* $Caps)+ [$NotIgnore]* {4};
+([$NotIgnore-$Diacritics]* $Diacritics)+ [$NotIgnore-$Diacritics]* {8};
+([$NotIgnore-$Numbers]* $Numbers)+ [$NotIgnore-$Numbers]* {16};
+([$NotIgnore-$Expansions]* $Expansions)+ [$NotIgnore-$Expansions]* {64};
+([$NotIgnore-$Hangul]* $Hangul)+ [$NotIgnore-$Hangul]* {4096};
+([$NotIgnore-$CJ]* $CJ)+ [$NotIgnore-$CJ]* {1073741824};
+
+# final cleanup rules
+([$NotIgnore-$NonLetters]* $NonLetters)+ [$NotIgnore-$NonLetters]* {32};
+([$NotIgnore-$NotNFKD]* $NotNFKD)+ [$NotIgnore-$NotNFKD]* {256};
+$NotIgnore+;
+
+!!reverse;
+
+$NotIgnore+;
+$Ignore+;
+
+!!safe_reverse;
+
+$RegInd*;
+
+!!safe_forward;
+
+$RegInd*;

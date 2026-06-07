@@ -1,81 +1,156 @@
+MK_WERROR = no
 
-include MakefileVersion
+FRAMEWORK = CoreFoundation
+FMWK_VERSION = A
+INFO_PLIST = Info.plist
 
-MIN_MACOSX_VERSION=10.10
-MAX_MACOSX_VERSION=MAC_OS_X_VERSION_10_10
+HEADERS = CFArray.h CFBag.h CFBase.h CFBinaryHeap.h CFBitVector.h CFBundle.h \
+	CFByteOrder.h CFCalendar.h CFCharacterSet.h CFData.h CFDate.h \
+	CFDateFormatter.h CFDictionary.h CFError.h CFLocale.h CFMessagePort.h \
+	CFNumber.h CFNumberFormatter.h CFPlugIn.h CFPlugInCOM.h \
+	CFPreferences.h CFPropertyList.h CFRunLoop.h CFSet.h CFSocket.h \
+	CFStream.h CFString.h CFStringEncodingExt.h CFTimeZone.h CFTree.h \
+	CFURL.h CFURLAccess.h CFUUID.h CFUserNotification.h CFXMLNode.h \
+	CFXMLParser.h CFAvailability.h CFUtilities.h CoreFoundation.h
 
-OBJECTS = $(patsubst %.c,%.o,$(wildcard *.c))
-OBJECTS += CFBasicHash.o
-HFILES = $(wildcard *.h)
-INTERMEDIATE_HFILES = $(addprefix $(OBJBASE)/CoreFoundation/,$(HFILES))
+PRIVATE_HEADERS = CFBundlePriv.h CFCharacterSetPriv.h CFError_Private.h \
+	CFLogUtilities.h CFPriv.h CFRuntime.h CFStorage.h CFStreamAbstract.h \
+	CFStreamPriv.h CFStreamInternal.h CFStringDefaultEncoding.h \
+	CFStringEncodingConverter.h CFStringEncodingConverterExt.h \
+	CFUniChar.h CFUnicodeDecomposition.h CFUnicodePrecomposition.h \
+	ForFoundationOnly.h CFBurstTrie.h CFICULogging.h
 
-PUBLIC_HEADERS=CFArray.h CFBag.h CFBase.h CFBinaryHeap.h CFBitVector.h CFBundle.h CFByteOrder.h CFCalendar.h CFCharacterSet.h CFData.h CFDate.h CFDateFormatter.h CFDictionary.h CFError.h CFLocale.h CFMessagePort.h CFNumber.h CFNumberFormatter.h CFPlugIn.h CFPlugInCOM.h CFPreferences.h CFPropertyList.h CFRunLoop.h CFSet.h CFSocket.h CFStream.h CFString.h CFStringEncodingExt.h CFTimeZone.h CFTree.h CFURL.h CFURLAccess.h CFUUID.h CFUserNotification.h CFXMLNode.h CFXMLParser.h CFAvailability.h CFUtilities.h CoreFoundation.h
+SLF = /System/Library/Frameworks
+INSTALL_NAME_DIR = ${SLF}/${FRAMEWORK}.framework/Versions/${FMWK_VERSION}
 
-PRIVATE_HEADERS=CFBundlePriv.h CFCharacterSetPriv.h CFError_Private.h CFLogUtilities.h CFPriv.h CFRuntime.h CFStorage.h CFStreamAbstract.h CFStreamPriv.h CFStreamInternal.h CFStringDefaultEncoding.h CFStringEncodingConverter.h CFStringEncodingConverterExt.h CFUniChar.h CFUnicodeDecomposition.h CFUnicodePrecomposition.h ForFoundationOnly.h CFBurstTrie.h CFICULogging.h
+.include "MakefileVersion"
 
-MACHINE_TYPE := $(shell uname -p)
-unicode_data_file_name = $(if $(or $(findstring i386,$(1)),$(findstring i686,$(1)),$(findstring x86_64,$(1))),CFUnicodeData-L.mapping,CFUnicodeData-B.mapping)
+SRCS = CFApplicationPreferences.c \
+	CFArray.c \
+	CFBag.c \
+	CFBase.c \
+	CFBasicHash.c \
+	CFBigNumber.c \
+	CFBinaryHeap.c \
+	CFBinaryPList.c \
+	CFBitVector.c \
+	CFBuiltinConverters.c \
+	CFBundle.c \
+	CFBundle_Binary.c \
+	CFBundle_Grok.c \
+	CFBundle_InfoPlist.c \
+	CFBundle_Locale.c \
+	CFBundle_Resources.c \
+	CFBundle_Strings.c \
+	CFBurstTrie.c \
+	CFCalendar.c \
+	CFCharacterSet.c \
+	CFConcreteStreams.c \
+	CFData.c \
+	CFDate.c \
+	CFDateFormatter.c \
+	CFDictionary.c \
+	CFError.c \
+	CFFileUtilities.c \
+	CFICUConverters.c \
+	CFLocale.c \
+	CFLocaleIdentifier.c \
+	CFLocaleKeys.c \
+	CFMachPort.c \
+	CFMessagePort.c \
+	CFNumber.c \
+	CFNumberFormatter.c \
+	CFOldStylePList.c \
+	CFPlatform.c \
+	CFPlatformConverters.c \
+	CFPlugIn.c \
+	CFPlugIn_Factory.c \
+	CFPlugIn_Instance.c \
+	CFPlugIn_PlugIn.c \
+	CFPreferences.c \
+	CFPropertyList.c \
+	CFRunLoop.c \
+	CFRuntime.c \
+	CFSet.c \
+	CFSocket.c \
+	CFSocketStream.c \
+	CFSortFunctions.c \
+	CFStorage.c \
+	CFStream.c \
+	CFString.c \
+	CFStringEncodingConverter.c \
+	CFStringEncodingDatabase.c \
+	CFStringEncodings.c \
+	CFStringScanner.c \
+	CFStringUtilities.c \
+	CFSystemDirectories.c \
+	CFTimeZone.c \
+	CFTree.c \
+	CFURL.c \
+	CFURLAccess.c \
+	CFUUID.c \
+	CFUniChar.c \
+	CFUnicodeDecomposition.c \
+	CFUnicodePrecomposition.c \
+	CFUserNotification.c \
+	CFUtilities.c \
+	CFVersion.c \
+	CFWindowsUtilities.c \
+	CFXMLInputStream.c \
+	CFXMLNode.c \
+	CFXMLParser.c \
+	CFXMLPreferencesDomain.c \
+	CFXMLTree.c
 
-OBJBASE_ROOT = CF-Objects
-OBJBASE = $(OBJBASE_ROOT)/$(STYLE)
-DSTBASE = $(if $(DSTROOT),$(DSTROOT)/System/Library/Frameworks,../CF-Root)
+#add_executable(plconvert RESOURCES plconvert.c)
+#add_dependencies(plconvert CoreFoundation)
 
-STYLE=normal
-STYLE_CFLAGS=-O2
-STYLE_LFLAGS=
-ARCHFLAGS=-arch i386 -arch x86_64
-INSTALLNAME=/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation_$(STYLE)
+# Apple used "x86" as shorthand for "little endian" here, so extend as needed
+.if "${CpuArch}" == "x86_64"
+unicode_data_file_name = CFUnicodeData-L.mapping
+.else
+unicode_data_file_name = CFUnicodeData-B.mapping
+.endif
 
-CC = /usr/bin/clang
+CFLAGS = -DCF_BUILDING_CF -DU_SHOW_CPLUSPLUS_API -DU_SHOW_DRAFT_API \
+	-DDEPLOYMENT_TARGET_MACOSX -D"MAC_OS_X_VERSION_MAX_ALLOWED=0x0D0100" \
+	-DVERSION=${VERSION} -DTARGET_OS_BRIDGE=0 -fconstant-cfstrings \
+	-fexceptions -Wno-implicit-function-declaration \
+	-I${ROOT_SOURCE_DIR}/Kernel/xnu/bsd \
+	-I${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk \
+	-I${ROOT_BINARY_DIR}${ROOT_SOURCE_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk \
+	-I${.OBJDIR} -I${ROOT_SOURCE_DIR}/Frameworks \
+	-I${ROOT_SOURCE_DIR}/Libraries/Libsystem/liblaunch \
+	-I${ROOT_SOURCE_DIR}/Libraries/Libsystem/libdispatch/private \
+	-I${ROOT_SOURCE_DIR}/Libraries/openbsm \
+	-I${ROOT_SOURCE_DIR}/Libraries/ICU/icuSources/i18n \
+	-I${ROOT_SOURCE_DIR}/Libraries/ICU/icuSources/common \
+	-I${ROOT_SOURCE_DIR}/Libraries/Libsystem/removefile \
+	-I${ROOT_SOURCE_DIR}/Libraries/Libsystem/private \
+	-I${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_blocks \
+	-I${RAVYN_SDKROOT}/usr/local/include/kernel ${CFLAGS.${.TARGET:T}} \
+	-include${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/mach/error.h \
+	-include${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach/mach/mach.h \
+	-include${.CURDIR}/CoreFoundation_Prefix.h
 
-CFLAGS=-c -x c -pipe -std=gnu99 -Wmost -Wno-trigraphs -Wno-deprecated -mmacosx-version-min=$(MIN_MACOSX_VERSION) -fconstant-cfstrings -fexceptions -DCF_BUILDING_CF=1 -DDEPLOYMENT_TARGET_MACOSX=1 -DMAC_OS_X_VERSION_MAX_ALLOWED=$(MAX_MACOSX_VERSION) -DU_SHOW_DRAFT_API=1 -DU_SHOW_CPLUSPLUS_API=0 -I$(OBJBASE) -DVERSION=$(VERSION) -include CoreFoundation_Prefix.h
+#-include${ROOT_SOURCE_DIR}/Libraries/Libsystem/liblaunch/bootstrap.h
 
-LFLAGS=-dynamiclib -mmacosx-version-min=$(MIN_MACOSX_VERSION) -twolevel_namespace -fexceptions -init ___CFInitialize -compatibility_version 150 -current_version $(VERSION) -Wl,-alias_list,SymbolAliases -sectcreate __UNICODE __csbitmaps CFCharacterSetBitmaps.bitmap -sectcreate __UNICODE __properties CFUniCharPropertyDatabase.data -sectcreate __UNICODE __data $(call unicode_data_file_name,$(MACHINE_TYPE)) -segprot __UNICODE r r
+LDFLAGS = -Wl,-dynamiclib -fexceptions -Wl,-init,___CFInitialize \
+	-Wl,-compatibility_version,150 -Wl,-current_version,${VERSION} \
+	-Wl,-alias_list,${.CURDIR}/SymbolAliases \
+	-Wl,-sectcreate,__UNICODE,__csbitmaps,CFCharacterSetBitmaps.bitmap \
+	-Wl,-sectcreate,__UNICODE,__properties,CFUniCharPropertyDatabase.data \
+	-Wl,-sectcreate,__UNICODE,__data,${unicode_data_file_name} \
+	-Wl,-segprot,__UNICODE,r,r
 
+${.OBJDIR}/mach-o/arch.h:
+	mkdir -p ${.OBJDIR}/mach-o
+	cp -f ${DEVEL}/Default.xctoolchain/include/mach-o/arch.h ${.TARGET}
 
-.PHONY: all install clean
-.PRECIOUS: $(OBJBASE)/CoreFoundation/%.h
+${FRAMEWORK}: ${.OBJDIR}/mach-o/arch.h
 
-all: install
+FRAMEWORK_LIB = ${.OBJDIR}/${FRAMEWORK}.framework/Versions/${FMWK_VERSION}/${FRAMEWORK}
+${FRAMEWORK}.framework.dSYM: ${FRAMEWORK}
+	${DSYMUTIL} ${FRAMEWORK_LIB} -o ${.TARGET}
 
-clean:
-	-/bin/rm -rf $(OBJBASE_ROOT)
-
-$(OBJBASE)/CoreFoundation:
-	/bin/mkdir -p $(OBJBASE)/CoreFoundation
-
-$(OBJBASE)/CoreFoundation/%.h: %.h $(OBJBASE)/CoreFoundation
-	/bin/cp $< $@
-
-$(OBJBASE)/%.o: %.c $(INTERMEDIATE_HFILES)
-	$(CC) $(STYLE_CFLAGS) $(ARCHFLAGS) $(CFLAGS) $< -o $@
-
-$(OBJBASE)/%.o: %.m $(INTERMEDIATE_HFILES)
-	$(CC) $(STYLE_CFLAGS) $(ARCHFLAGS) $(CFLAGS) $< -o $@
-
-$(OBJBASE)/CoreFoundation_$(STYLE): $(addprefix $(OBJBASE)/,$(OBJECTS))
-	$(CC) $(STYLE_LFLAGS) -install_name $(INSTALLNAME) $(ARCHFLAGS) $(LFLAGS) $^ -licucore.A -o $(OBJBASE)/CoreFoundation_$(STYLE)
-
-install: $(OBJBASE)/CoreFoundation_$(STYLE)
-	/bin/rm -rf $(DSTBASE)/CoreFoundation.framework
-	/bin/mkdir -p $(DSTBASE)/CoreFoundation.framework/Versions/A/Resources
-	/bin/mkdir -p $(DSTBASE)/CoreFoundation.framework/Versions/A/Headers
-	/bin/mkdir -p $(DSTBASE)/CoreFoundation.framework/Versions/A/PrivateHeaders
-	/bin/ln -sf A $(DSTBASE)/CoreFoundation.framework/Versions/Current
-	/bin/ln -sf Versions/Current/Resources $(DSTBASE)/CoreFoundation.framework/Resources
-	/bin/ln -sf Versions/Current/Headers $(DSTBASE)/CoreFoundation.framework/Headers
-	/bin/ln -sf Versions/Current/PrivateHeaders $(DSTBASE)/CoreFoundation.framework/PrivateHeaders
-	/bin/ln -sf Versions/Current/CoreFoundation $(DSTBASE)/CoreFoundation.framework/CoreFoundation
-	/bin/cp Info.plist $(DSTBASE)/CoreFoundation.framework/Versions/A/Resources
-	/bin/mkdir -p $(DSTBASE)/CoreFoundation.framework/Versions/A/Resources/en.lproj
-	/bin/cp $(PUBLIC_HEADERS) $(DSTBASE)/CoreFoundation.framework/Versions/A/Headers
-	/bin/cp $(PRIVATE_HEADERS) $(DSTBASE)/CoreFoundation.framework/Versions/A/PrivateHeaders
-	#/usr/bin/strip -S -o $(DSTBASE)/CoreFoundation.framework/Versions/A/CoreFoundation $(OBJBASE)/CoreFoundation_$(STYLE)
-	/bin/cp $(OBJBASE)/CoreFoundation_$(STYLE) $(DSTBASE)/CoreFoundation.framework/Versions/A/CoreFoundation
-	/usr/bin/dsymutil $(DSTBASE)/CoreFoundation.framework/Versions/A/CoreFoundation -o $(DSTBASE)/CoreFoundation.framework.dSYM
-	/usr/sbin/chown -RH -f root:wheel $(DSTBASE)/CoreFoundation.framework
-	/bin/chmod -RH a-w,a+rX $(DSTBASE)/CoreFoundation.framework
-	/bin/chmod -RH u+w $(DSTBASE)
-	install_name_tool -id /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation $(DSTBASE)/CoreFoundation.framework/Versions/A/CoreFoundation
-	@echo "Installing done.  The framework is in $(DSTBASE)"
-
+.include <rvn.framework.mk>

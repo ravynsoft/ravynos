@@ -9,6 +9,9 @@ RTLIB = ${RAVYN_SDKROOT}/usr/lib/system/libcompiler_rt.dylib
 
 SUBDIR = libfirehose_kernel CrashReporterClient MiscLibs objc4 dyld Libsystem
 
+# Don't try to link Foundation or System
+MK_OBJC_RUNTIME = no
+
 all: libcxx_dylib compiler_rt
 
 # ------------------------------------------------------------------------

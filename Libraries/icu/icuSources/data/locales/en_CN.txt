@@ -1,0 +1,136 @@
+﻿// ***************************************************************************
+// *
+// * Copyright (C) 2016 International Business Machines
+// * Corporation and others. All Rights Reserved.
+// *
+// ***************************************************************************
+en_CN{
+    Version{"2.1.19.14"}
+    calendar{
+        chinese{
+            DateTimePatterns{
+                "h:mm:ss a zzzz",
+                "h:mm:ss a z",
+                "h:mm:ss a",
+                "h:mm a",
+                "EEEE, MMMM d, r(U)",
+                "MMMM d, r(U)",
+                "MMM d, r",
+                "r/M/d",
+                "{1}, {0}",
+                "{1} 'at' {0}",
+                "{1} 'at' {0}",
+                "{1} 'at' {0}",
+                "{1}, {0}",
+            }
+            availableFormats{
+                UM{"U/M"}
+                UMd{"U/M/d"}
+                yMd{"r/M/d"}
+                yyyyM{"r/M"}
+                yyyyMEd{"E, r/M/d"}
+                yyyyMd{"r/M/d"}
+            }
+            intervalFormats{
+                yM{
+                    M{"r/M – r/M"}
+                    y{"r/M – r/M"}
+                }
+                yMEd{
+                    M{"E, r/M/d – E, r/M/d"}
+                    d{"E, r/M/d – E, r/M/d"}
+                    y{"E, r/M/d – E, r/M/d"}
+                }
+                yMd{
+                    M{"r/M/d – r/M/d"}
+                    d{"r/M/d – r/M/d"}
+                    y{"r/M/d – r/M/d"}
+                }
+            }
+        }
+        generic{
+            DateTimePatterns{
+                "h:mm:ss a zzzz",
+                "h:mm:ss a z",
+                "h:mm:ss a",
+                "h:mm a",
+                "EEEE, MMMM d, y G",
+                "MMMM d, y G",
+                "MMM d, y G",
+                "GGGGG y/M/d",
+                "{1}, {0}",
+                "{1} 'at' {0}",
+                "{1} 'at' {0}",
+                "{1} 'at' {0}",
+                "{1}, {0}",
+            }
+            availableFormats{
+                H{"HH"}
+                Hm{"HH:mm"}
+                Hms{"HH:mm:ss"}
+                h{"h a"}
+                hm{"h:mm a"}
+                hms{"h:mm:ss a"}
+                ms{"mm:ss"}
+                yyyyM{"GGGGG y/M"}
+                yyyyMEd{"GGGGG y/M/d, E"}
+                yyyyMd{"GGGGG y/M/d"}
+            }
+            intervalFormats{
+                fallback{"{0} – {1}"}
+                yM{
+                    M{"GGGGG y/M – y/M"}
+                    y{"GGGGG y/M – y/M"}
+                }
+                yMEd{
+                    M{"GGGGG y/M/d, E – y/M/d, E"}
+                    d{"GGGGG y/M/d, E – y/M/d, E"}
+                    y{"GGGGG y/M/d, E – y/M/d, E"}
+                }
+                yMd{
+                    M{"GGGGG y/M/d – y/M/d"}
+                    d{"GGGGG y/M/d – y/M/d"}
+                    y{"GGGGG y/M/d – y/M/d"}
+                }
+            }
+        }
+        gregorian{
+            DateTimePatterns{
+                "h:mm:ss a zzzz",
+                "h:mm:ss a z",
+                "h:mm:ss a",
+                "h:mm a",
+                "EEEE, MMMM d, y",
+                "MMMM d, y",
+                "MMM d, y",
+                "y/M/d",
+                "{1}, {0}",
+                "{1} 'at' {0}",
+                "{1} 'at' {0}",
+                "{1} 'at' {0}",
+                "{1}, {0}",
+            }
+            availableFormats{
+                yM{"y/M"}
+                yMEd{"y/M/d, E"}
+                yMd{"y/M/d"}
+            }
+            intervalFormats{
+                yM{
+                    M{"y/M – y/M"}
+                    y{"y/M – y/M"}
+                }
+                yMEd{
+                    M{"y/M/d, E – y/M/d, E"}
+                    d{"y/M/d, E – y/M/d, E"}
+                    y{"y/M/d, E – y/M/d, E"}
+                }
+                yMd{
+                    M{"y/M/d – y/M/d"}
+                    d{"y/M/d – y/M/d"}
+                    y{"y/M/d – y/M/d"}
+                }
+            }
+        }
+    }
+}

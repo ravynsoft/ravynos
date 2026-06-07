@@ -1,0 +1,15 @@
+--- ./common/unicode/udata.h	2019-03-10 17:15:29.000000000 -0700
++++ ./common/unicode/udata.h	2019-03-09 11:09:55.000000000 -0800
+@@ -401,10 +401,10 @@
+ typedef enum UDataFileAccess {
+     /** ICU looks for data in single files first, then in packages. (default) @stable ICU 3.4 */
+     UDATA_FILES_FIRST,
++    /** An alias for the default access mode. @stable ICU 3.4 */
++    UDATA_DEFAULT_ACCESS = UDATA_FILES_FIRST,
+     /** ICU only loads data from packages, not from single files. @stable ICU 3.4 */
+     UDATA_ONLY_PACKAGES,
+-    /** An alias for the default access mode. @stable ICU 3.4 */
+-    UDATA_DEFAULT_ACCESS = UDATA_ONLY_PACKAGES,
+     /** ICU loads data from packages first, and only from single files
+         if the data cannot be found in a package. @stable ICU 3.4 */
+     UDATA_PACKAGES_FIRST,
