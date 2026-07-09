@@ -24,7 +24,7 @@
     <string>1.0.0</string>
     <key>IOKitPersonalities</key>
     <dict>
-        <key>ICH9 AHCI</key>
+        <key>Generic AHCI</key>
         <dict>
             <key>CFBundleIdentifier</key>
             <string>com.ravynos.driver.RavynAHCIPort</string>
@@ -32,8 +32,6 @@
             <string>RavynAHCIPort</string>
             <key>IOPCIClassMatch</key>
             <string>0x01060100&amp;0xffffff00</string>
-            <key>IOPCIPrimaryMatch</key>
-            <string>0x29228086</string>
             <key>IOProbeScore</key>
             <integer>4000</integer>
             <key>IOProviderClass</key>
@@ -61,4 +59,3 @@
     <string>Local-Root</string>
 </dict>
 </plist>
-

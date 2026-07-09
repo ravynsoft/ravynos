@@ -82,7 +82,10 @@ private:
     IOMemoryMap         * fABARMap;
     volatile uint8_t    * fABAR;
     IOLock              * fCommandLock;  /* serializes slot-0 commands */
-    RavynAHCIDisk       * fDiskNub;
+    /* One nub per populated SATA port (indexed like fPorts), the storage
+     * stack (GPT scheme + AppleFileSystemDriver's boot-uuid match) picks the
+     * right one; we don't special-case a single "the disk" here. */
+    RavynAHCIDisk       * fDiskNubs[32];
     PortState             fPorts[32];
 
     inline uint32_t hbaRead32(uint32_t offset) const
@@ -118,7 +121,7 @@ private:
                      uint32_t    sectorCount,
                      void      * buffer,
                      uint32_t    bufferBytes);
-    
+
     bool writeDMAExt(PortState  &portState,
                      uint64_t    lba,
                      uint32_t    sectorCount,

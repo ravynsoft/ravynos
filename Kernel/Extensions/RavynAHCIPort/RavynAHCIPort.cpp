@@ -48,22 +48,37 @@ mapABARFromAssignedAddresses(IOPCIDevice         * provider,
     for (uint32_t off = 0; off + kEntrySize <= len; off += kEntrySize) {
         const IOPCIPhysicalAddress *a = (const IOPCIPhysicalAddress *)(bytes + off);
         const uint8_t reg = a->physHi.s.registerNum;
-        if (reg != kIOPCIConfigBaseAddress5 && reg != kIOPCIConfigBaseAddress4)
+        if (reg != kIOPCIConfigBaseAddress5)
             continue;
 
         uint64_t base = ((uint64_t)a->physMid << 32) | a->physLo;
         uint64_t size = ((uint64_t)a->lengthHi << 32) | a->lengthLo;
-        if (!base || !size) continue;
+
+        AHCI_Log("assigned-addresses BAR%u space=%u base=%p size=%llu",
+                 (reg - kIOPCIConfigBaseAddress0) / 4,
+                 a->physHi.s.space,
+                 (void *)(uintptr_t)base,
+                 (uint64_t)size);
+
+        if (a->physHi.s.space == 1) {
+            AHCI_Log("assigned-addresses BAR%u is I/O space; ignoring for ABAR",
+                     (reg - kIOPCIConfigBaseAddress0) / 4);
+            continue;
+        }
+
+        if (!base || !size)
+            continue;
 
         if (size < 0x1000) {
-            size = 0x1000; /* align */
+            size = 0x1000;
         }
 
         IOMemoryDescriptor *desc = IOMemoryDescriptor::withPhysicalAddress(
             (IOPhysicalAddress)base,
             (IOByteCount)size,
             kIODirectionNone | kIOMemoryMapperNone);
-        if (!desc) continue;
+        if (!desc)
+            continue;
 
         IOMemoryMap *map = desc->map(kIOMapAnywhere);
         if (!map) {
@@ -79,6 +94,75 @@ mapABARFromAssignedAddresses(IOPCIDevice         * provider,
 
     assigned->release();
     return false;
+}
+
+static IOMemoryMap *
+mapUsableBAR(IOPCIDevice *provider, UInt8 reg)
+{
+    if (!provider) return NULL;
+
+    IODeviceMemory *range = provider->getDeviceMemoryWithRegister(reg);
+    if (!range) {
+        AHCI_Log("BAR%u has no IODeviceMemory range", (reg - kIOPCIConfigBaseAddress0) / 4);
+        return NULL;
+    }
+
+    IOByteCount length = range->getLength();
+    IOPhysicalAddress phys = range->getPhysicalAddress();
+    AHCI_Log("BAR%u IODeviceMemory phys=%p len=%llu tag=%08x",
+             (reg - kIOPCIConfigBaseAddress0) / 4,
+             (void *)(uintptr_t)phys,
+             (uint64_t)length,
+             (uint32_t)range->getTag());
+
+    if (!length) {
+        AHCI_Log("BAR%u IODeviceMemory has zero length; skipping provider map",
+                 (reg - kIOPCIConfigBaseAddress0) / 4);
+        return NULL;
+    }
+
+    return range->map(kIOMapAnywhere);
+}
+
+static bool
+mapABARFromConfigBAR(IOPCIDevice         * provider,
+                     IOMemoryDescriptor ** outDesc,
+                     IOMemoryMap        ** outMap)
+{
+    if (!provider || !outDesc || !outMap) return false;
+
+    const uint32_t bar4 = provider->configRead32(kIOPCIConfigBaseAddress4);
+    const uint32_t bar5 = provider->configRead32(kIOPCIConfigBaseAddress5);
+    uint64_t abarPhys = 0;
+
+    if (!(bar5 & 0x1) && (bar5 != 0xffffffffU) && (bar5 & ~0x0fU)) {
+        abarPhys = (uint64_t)(bar5 & ~0x0fU);
+    } else if (!(bar4 & 0x1) && (bar4 != 0xffffffffU) && (bar4 & ~0x0fU)) {
+        abarPhys = (uint64_t)(bar4 & ~0x0fU);
+        if ((bar4 & 0x6) == 0x4) {
+            abarPhys |= ((uint64_t)bar5 << 32);
+        }
+    }
+
+    if (!abarPhys) return false;
+
+    IOMemoryDescriptor *desc = IOMemoryDescriptor::withPhysicalAddress(
+        (IOPhysicalAddress)abarPhys,
+        0x2000,
+        kIODirectionNone | kIOMemoryMapperNone);
+    if (!desc) return false;
+
+    IOMemoryMap *map = desc->map(kIOMapAnywhere);
+    if (!map) {
+        desc->release();
+        return false;
+    }
+
+    *outDesc = desc;
+    *outMap = map;
+    AHCI_Log("Mapped ABAR via config BAR fallback phys=%p",
+             (void *)(uintptr_t)abarPhys);
+    return true;
 }
 
 
@@ -135,36 +219,15 @@ bool RavynAHCIPort::start(IOService *provider)
     const uint32_t bar4 = fProvider->configRead32(kIOPCIConfigBaseAddress4);
     const uint32_t bar5 = fProvider->configRead32(kIOPCIConfigBaseAddress5);
     const uint16_t cmd  = fProvider->configRead16(kIOPCIConfigCommand);
-//    AHCI_Log("PCI CMD=%04x BAR4=%08x BAR5=%08x", cmd, bar4, bar5);
+    AHCI_Log("PCI CMD=%04x BAR4=%08x BAR5=%08x", cmd, bar4, bar5);
 
-    fABARMap = fProvider->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress5);
+    fABARMap = mapUsableBAR(fProvider, kIOPCIConfigBaseAddress5);
 
-    if (!fABARMap) /* try BAR4 fallback */
-        fABARMap = fProvider->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress4);
+    if (!fABARMap)
+        mapABARFromAssignedAddresses(fProvider, &fABARDesc, &fABARMap);
 
-    if (!fABARMap) { /* not good - try mapping it directly */
-        uint64_t abarPhys = 0;
-
-        if (!(bar5 & 0x1) && (bar5 != 0xffffffffU) && (bar5 & ~0x0fU))
-            abarPhys = (uint64_t)(bar5 & ~0x0fU);
-        else if (!(bar4 & 0x1) && (bar4 != 0xffffffffU) && (bar4 & ~0x0fU))
-            abarPhys = (uint64_t)(bar4 & ~0x0fU);
-
-        if (abarPhys) {
-            /* AHCI register space is typically 4K.
-               Map 8K to cover vendor quirks safely. */
-            fABARDesc = IOMemoryDescriptor::withPhysicalAddress(
-                (IOPhysicalAddress)abarPhys,
-                0x2000,
-                kIODirectionNone | kIOMemoryMapperNone);
-            
-            if (fABARDesc) {
-                fABARMap = fABARDesc->map(kIOMapAnywhere);
-                if (fABARMap)
-                    AHCI_Log("Mapped ABAR via physical fallback");
-            }
-        }
-    }
+    if (!fABARMap)
+        mapABARFromConfigBAR(fProvider, &fABARDesc, &fABARMap);
 
     if (!fABARMap) {
         AHCI_Log("Failed to map ABAR!");
@@ -184,8 +247,16 @@ bool RavynAHCIPort::start(IOService *provider)
     uint32_t pi  = hbaRead32(AHCI_PI);
     uint32_t vs  = hbaRead32(AHCI_VS);
 
-    /* Enumerate ports */
-    int firstDisk = -1;
+    /* Enumerate ports. Publish a nub for EVERY populated SATA port, do not
+     * stop at the first one. AHCI port order has no relationship to which
+     * disk is "the" boot disk (e.g. under QEMU, an if=ide-defaulted drive
+     * silently reassigned onto AHCI can land on an earlier port than the
+     * intended root disk). Publishing every disk and letting the storage
+     * stack's GPT scheme + AppleFileSystemDriver boot-uuid match sort it out
+     * is both correct and matches how the real IOAHCIBlockStorage works. */
+    bzero(fDiskNubs, sizeof(fDiskNubs));
+    int disksPublished = 0;
+
     for (int p = 0; p < 32; p++) {
         if (!(pi & (1U << p))) continue;
 
@@ -199,84 +270,82 @@ bool RavynAHCIPort::start(IOService *provider)
                 det == PORT_SSTS_DET_PRESENT
                  ? "<<DEVICE PRESENT>>" : "(no device)");
 
-        /* We're only going to handle device 0 for now */
-        if (det == PORT_SSTS_DET_PRESENT && sig == PORT_SIG_SATA && firstDisk < 0)
-            firstDisk = p;
+        if (det != PORT_SSTS_DET_PRESENT || sig != PORT_SIG_SATA)
+            continue;   /* no device, or an ATAPI/other non-disk signature */
+
+        PortState &portState = fPorts[p];
+        bzero(&portState, sizeof(portState));
+        portState.valid = true;
+        portState.port = (uint32_t)p;
+
+        uint16_t identifyData[256];
+        if (!identifyDevice(portState, identifyData)) {
+            AHCI_Log("IDENTIFY failed on port %d, skipping", p);
+            continue;
+        }
+
+        /* Sanity check: read LBA 0 (PMBR) and LBA 1 (Pri GPT) */
+        uint8_t sector0[512];
+        if (!readDMAExt(portState, 0, 1, sector0, sizeof(sector0)))
+            AHCI_Log("READ LBA0 failed for port %d", p);
+        else {
+            const uint16_t mbrSig = (uint16_t)sector0[510] | ((uint16_t)sector0[511] << 8);
+            const uint8_t partType = sector0[446 + 4];
+            const uint32_t partLBA = (uint32_t)sector0[446 + 8] |
+                                   ((uint32_t)sector0[446 + 9] << 8) |
+                                   ((uint32_t)sector0[446 + 10] << 16) |
+                                   ((uint32_t)sector0[446 + 11] << 24);
+            AHCI_Log("Port %d LBA0 MBR sig=0x%04x part0 type=0x%02x lba=%u",
+                    p, mbrSig, partType, partLBA);
+        }
+
+        uint8_t sector1[512];
+        if (!readDMAExt(portState, 1, 1, sector1, sizeof(sector1))) {
+            AHCI_Log("READ LBA1 failed for port %d", p);
+        } else {
+            char gptSig[9];
+            bcopy(sector1, gptSig, 8);
+            gptSig[8] = '\0';
+            AHCI_Log("Port %d LBA1 signature='%.8s'", p, gptSig);
+        }
+
+        RavynAHCIDisk *diskNub = new RavynAHCIDisk();
+        if (!diskNub) {
+            AHCI_Log("Failed to allocate disk nub for port %d", p);
+            continue;
+        }
+
+        if (!diskNub->initWithPort(this, (uint32_t)p)) {
+            AHCI_Log("Disk nub init failed for port %d", p);
+            diskNub->release();
+            continue;
+        }
+
+        if (!diskNub->attach(this)) {
+            AHCI_Log("Disk nub attach failed for port %d", p);
+            diskNub->release();
+            continue;
+        }
+
+        if (!diskNub->start(this)) {
+            AHCI_Log("Disk nub start failed for port %d", p);
+            diskNub->detach(this);
+            diskNub->release();
+            continue;
+        }
+
+        fDiskNubs[p] = diskNub;
+        diskNub->registerService();
+        disksPublished++;
     }
 
+    /* We return true past here regardless, driver is attached even if no
+       (or only some) disks came up; upper layers see whichever nubs matched. */
+    if (disksPublished == 0)
+        AHCI_Log("No usable SATA disk found on any port");
+    else
+        AHCI_Log("Published %d disk nub(s)", disksPublished);
 
-    /* We return true past here after failures.
-       Driver is attached, just no device right now. */
-    
-    if (firstDisk < 0) {
-        AHCI_Log("No SATA device found on any port");
-        return true;
-    }
-
-    /* Publish a RavynAHCIDisk nub so IOBlockStorageDriver can attach */
-    RavynAHCIDisk *diskNub = new RavynAHCIDisk();
-    if (!diskNub) {
-        AHCI_Log("Failed to allocate disk nub");
-        return true;
-    }
-
-    PortState &portState = fPorts[firstDisk];
-    bzero(&portState, sizeof(portState));
-    portState.valid = true;
-    portState.port = (uint32_t)firstDisk;
-
-    uint16_t identifyData[256];
-    if (!identifyDevice(portState, identifyData)) {
-        AHCI_Log("IDENTIFY failed on port %d", firstDisk);
-        diskNub->release();
-        return true;
-    }
-
-    /* Sanity check: read LBA 0 (PMBR) and LBA 1 (Pri GPT) */
-    uint8_t sector0[512];
-    if (!readDMAExt(portState, 0, 1, sector0, sizeof(sector0)))
-        AHCI_Log("READ LBA0 failed for port %d", firstDisk);
-    else {
-        const uint16_t mbrSig = (uint16_t)sector0[510] | ((uint16_t)sector0[511] << 8);
-        const uint8_t partType = sector0[446 + 4];
-        const uint32_t partLBA = (uint32_t)sector0[446 + 8] |
-                               ((uint32_t)sector0[446 + 9] << 8) |
-                               ((uint32_t)sector0[446 + 10] << 16) |
-                               ((uint32_t)sector0[446 + 11] << 24);
-        AHCI_Log("LBA0 MBR sig=0x%04x part0 type=0x%02x lba=%u", mbrSig, partType, partLBA);
-    }
-
-    uint8_t sector1[512];
-    if (!readDMAExt(portState, 1, 1, sector1, sizeof(sector1))) {
-        AHCI_Log("READ LBA1 failed for port %d", firstDisk);
-    } else {
-        char gptSig[9];
-        bcopy(sector1, gptSig, 8);
-        gptSig[8] = '\0';
-        AHCI_Log("LBA1 signature='%.8s'", gptSig);
-    }
-
-    if (!diskNub->initWithPort(this, (uint32_t)firstDisk)) {
-        AHCI_Log("Disk nub init failed for port %d", firstDisk);
-        diskNub->release();
-        return true;
-    }
-
-    if (!diskNub->attach(this)) {
-        AHCI_Log("Disk nub attach failed for port %d", firstDisk);
-        diskNub->release();
-        return true;
-    }
-
-    if (!diskNub->start(this)) {
-        AHCI_Log("Disk nub start failed for port %d", firstDisk);
-        diskNub->detach(this);
-        diskNub->release();
-        return true;
-    }
-
-    fDiskNub = diskNub;
-    fDiskNub->registerService();
     return true;
 }
 
@@ -284,11 +353,13 @@ void
 RavynAHCIPort::stop(IOService *provider)
 {
     kprintf("RavynAHCIPort::stop(%p) called\n", provider);
-    if (fDiskNub) {
-        fDiskNub->stop(this);
-        fDiskNub->detach(this);
-        fDiskNub->release();
-        fDiskNub = NULL;
+    for (int p = 0; p < 32; p++) {
+        RavynAHCIDisk *diskNub = fDiskNubs[p];
+        if (!diskNub) continue;
+        diskNub->stop(this);
+        diskNub->detach(this);
+        diskNub->release();
+        fDiskNubs[p] = NULL;
     }
 
     if (fCommandLock) {
@@ -326,7 +397,7 @@ RavynAHCIPort::free()
     fABARDesc = NULL;
     fABARMap  = NULL;
     fABAR     = NULL;
-    fDiskNub  = NULL;
+    bzero(fDiskNubs, sizeof(fDiskNubs));
     super::free();
 }
 
@@ -717,11 +788,9 @@ RavynAHCIPort::flushCache(PortState &portState)
 }
 
 
-/*
- * Perform a read from 'lba' for 'sectors' sectors, writing the data into
- * 'buffer' starting at byte offset 'bufOff'.
- * Uses a stack-allocated bounce buffer for chunks ≤ 128 KiB.
- */
+/* Transfers larger than the 128 KiB port DMA area are split into multiple
+ * commands through a heap bounce buffer (IOMemoryDescriptor may not be
+ * physically contiguous, so we can't hand its pages to the HBA directly). */
 IOReturn
 RavynAHCIPort::doRead(uint32_t               portIndex,
                       uint64_t               lba,
@@ -738,7 +807,7 @@ RavynAHCIPort::doRead(uint32_t               portIndex,
     uint64_t curLBA    = lba;
     uint64_t curOff    = bufOff;
 
-    /* Temporary heap bounce chunk (maxSectors × 512) */
+    /* Temporary heap bounce chunk (maxSectors * 512) */
     uint32_t chunkBytes = maxSectors * 512u;
     uint8_t *bounce = (uint8_t *)IOMalloc(chunkBytes);
     if (!bounce) return kIOReturnNoMemory;
