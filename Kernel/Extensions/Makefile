@@ -1,6 +1,6 @@
 SUBDIR = AppleAPIC IOACPIFamily IOPCIFamily IOStorageFamily IOATAFamily \
 	 AppleIntelPIIXATA msdosfs hfs AppleFileSystemDriver RavynAHCIPort \
-	 IOGraphics corecrypto pthread IOHIDFamily
+	 RavynXHCIPort IOGraphics corecrypto pthread IOHIDFamily
 
 all: kernelcache
 .for target_dir in ${RAVYN_SDKROOT}/System/Library/Extensions \
@@ -28,6 +28,7 @@ kernelcache: ${SUBDIR}
 	${EXTENSIONS}/IOATAFamily/IOATAFamily.kext \
 	${EXTENSIONS}/IOStorageFamily/IOStorageFamily.kext \
 	${EXTENSIONS}/RavynAHCIPort/RavynAHCIPort.kext \
+	${EXTENSIONS}/RavynXHCIPort/RavynXHCIPort.kext \
 	${EXTENSIONS}/AppleFileSystemDriver/AppleFileSystemDriver.kext \
 	${EXTENSIONS}/hfs/hfs_encodings/hfs_encodings.kext \
 	${EXTENSIONS}/hfs/hfs.kext \

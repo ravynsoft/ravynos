@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>English</string>
+    <key>CFBundleExecutable</key>
+    <string>RavynXHCIPort</string>
+    <key>CFBundleGetInfoString</key>
+    <string>1.0.0, Copyright (C) 2026 ravynOS Project. All rights reserved.</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.ravynos.driver.RavynXHCIPort</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>RavynXHCIPort</string>
+    <key>CFBundlePackageType</key>
+    <string>KEXT</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    <key>IOKitPersonalities</key>
+    <dict>
+        <key>Generic XHCI</key>
+        <dict>
+            <key>CFBundleIdentifier</key>
+            <string>com.ravynos.driver.RavynXHCIPort</string>
+            <key>IOClass</key>
+            <string>RavynXHCIPort</string>
+            <key>IOPCIClassMatch</key>
+            <string>0x0C033000&amp;0xffffff00</string>
+            <key>IOProbeScore</key>
+            <integer>4000</integer>
+            <key>IOProviderClass</key>
+            <string>IOPCIDevice</string>
+        </dict>
+    </dict>
+    <key>OSBundleLibraries</key>
+    <dict>
+        <key>com.apple.iokit.IOStorageFamily</key>
+        <string>2.1</string>
+        <key>com.apple.iokit.IOPCIFamily</key>
+        <string>2.9</string>
+        <key>com.apple.kpi.iokit</key>
+        <string>8.0.0</string>
+        <key>com.apple.kpi.libkern</key>
+        <string>8.0.0</string>
+        <key>com.apple.kpi.mach</key>
+        <string>8.0.0</string>
+        <key>com.apple.kpi.bsd</key>
+        <string>8.0.0</string>
+    </dict>
+    <key>OSBundleCompatibleVersion</key>
+    <string>1.0.0</string>
+    <key>OSBundleRequired</key>
+    <string>Local-Root</string>
+</dict>
+</plist>
