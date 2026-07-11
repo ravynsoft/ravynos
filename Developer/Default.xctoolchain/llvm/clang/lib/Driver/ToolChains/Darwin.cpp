@@ -3402,7 +3402,7 @@ static const char *getPlatformName(Darwin::DarwinPlatformKind Platform,
     return "tvos";
   case Darwin::WatchOS:
     return "watchos";
-  case Darwin::BridgeOS;
+  case Darwin::BridgeOS:
     return "bridgeos";
   case Darwin::XROS:
     return "xros";
