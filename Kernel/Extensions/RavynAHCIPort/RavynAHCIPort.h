@@ -29,13 +29,15 @@
 #include <IOKit/IOBufferMemoryDescriptor.h>
 #include <IOKit/IOMemoryDescriptor.h>
 #include <IOKit/IOLocks.h>
+#include <IOKit/IOWorkLoop.h>
+#include <IOKit/IOInterruptEventSource.h>
 #include <IOKit/pci/IOPCIDevice.h>
 #include "AHCI.h"
 
 #define kAssignedAddrKey "assigned-addresses"
 extern void AHCI_Log(const char *fmt, ...);
 
-class RavynAHCIDisk;   /* forward declaration */
+class RavynAHCIDisk;
 
 class RavynAHCIPort : public IOService
 {
@@ -55,10 +57,8 @@ public:
                      IOMemoryDescriptor *buffer, uint64_t bufOff);
     IOReturn doFlush(uint32_t portIndex);
 
-    /* Sector count reported by IDENTIFY */
     uint64_t sectorCount(uint32_t portIndex) const;
 
-    /* Strings from IDENTIFY */
     const char *modelString   (uint32_t portIndex) const;
     const char *serialString  (uint32_t portIndex) const;
     const char *firmwareString(uint32_t portIndex) const;
@@ -82,7 +82,11 @@ private:
     IOMemoryMap         * fABARMap;
     volatile uint8_t    * fABAR;
     IOLock              * fCommandLock;  /* serializes slot-0 commands */
-    /* One nub per populated SATA port (indexed like fPorts), the storage
+    IOWorkLoop          * fWorkLoop;
+    IOInterruptEventSource * fInterruptSource;
+    bool                  fInterruptsEnabled;  /* false => issueCommand falls back to pure polling */
+    uint32_t              fWaitChannel;        /* IOLockSleep/Wakeup event address, no real content */
+    /* One nub per populated SATA port (indexed like fPorts) -- the storage
      * stack (GPT scheme + AppleFileSystemDriver's boot-uuid match) picks the
      * right one; we don't special-case a single "the disk" here. */
     RavynAHCIDisk       * fDiskNubs[32];
@@ -138,6 +142,9 @@ private:
      */
     OSString *copyGPTPartitionContentHint(PortState &portState,
                                           uint32_t   partitionIndex);
+
+    void interruptOccurred(IOInterruptEventSource *sender, int count);
+    static void interruptOccurredStatic(OSObject *owner, IOInterruptEventSource *sender, int count);
 
     void parseIdentifyData(PortState &portState, const uint16_t *id);
     static void ataSwapString(char           * dst,

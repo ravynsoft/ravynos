@@ -31,17 +31,21 @@
 #include <IOKit/IOBufferMemoryDescriptor.h>
 #include <IOKit/IOMemoryDescriptor.h>
 #include <IOKit/IOLocks.h>
+#include <IOKit/IOWorkLoop.h>
+#include <IOKit/IOInterruptEventSource.h>
 #include <IOKit/pci/IOPCIDevice.h>
 #include "XHCI.h"
 
 extern void XHCI_Log(const char *fmt, ...);
 
 class RavynXHCIMassStorageDisk;
+class RavynXHCIUSBBus;
 
 class RavynXHCIPort : public IOService
 {
     OSDeclareDefaultStructors(RavynXHCIPort);
     friend class RavynXHCIMassStorageDisk;
+    friend class RavynXHCIUSBBus;
 
 public:
     IOService *probe(IOService *provider, SInt32 *score) override;
@@ -70,6 +74,25 @@ private:
         char     product[17];
     };
 
+    /* One tracked interrupt-IN endpoint. A boot HID device often leaves an
+     * interrupt transfer pending until the next state change, so the generic
+     * IOUSB synchronous read path needs a persistent TD/buffer across idle
+     * poll calls rather than stack-allocating a bounce buffer and freeing it
+     * after every timeout. */
+    struct InterruptInEndpoint {
+        bool                       valid;
+        UInt32                     slotId;
+        UInt8                      rootPort;     /* 0-based root hub port */
+        UInt8                      intrEp;       /* interrupt IN endpoint number */
+        UInt16                     intrMaxPkt;
+        bool                       tdOutstanding; /* an interrupt-IN TD is armed */
+        bool                       loggedPollArm;
+        bool                       loggedFirstCompletion;
+        IOBufferMemoryDescriptor * reportMem;
+        volatile UInt8           * reportVirt;
+        UInt64                     reportPhys;
+    };
+
     IOPCIDevice        * fProvider;
     IOMemoryDescriptor * fBARDesc;
     IOMemoryMap         * fBARMap;
@@ -82,6 +105,23 @@ private:
     UInt32                fContextSize; /* 32 or 64 bytes/context */
     IOLock              * fCmdLock;
 
+    /* MSI-driven event ring servicing. doCommand()/waitTransferEvent() still
+     * poll serviceEventRing() + IOSleep(1) themselves either way (identical
+     * to before), but when this is up the ISR also drains the ring and
+     * broadcasts fEventWaitChannel, so those waits usually resolve on the
+     * first iteration instead of a full 1ms tick. Falls back to pure polling
+     * (fInterruptsEnabled == false) if MSI registration fails. */
+    IOWorkLoop            * fWorkLoop;
+    IOInterruptEventSource * fInterruptSource;
+    bool                   fInterruptsEnabled;
+    IOLock               * fEventWaitLock;
+    UInt32                 fEventWaitChannel;
+
+    /* IOUSBController-shaped view of this port, backing IOUSBDevice/
+     * IOUSBInterface for any slot enumerateSlotDevice() doesn't already
+     * special-case as hub/mass-storage - see RavynXHCIUSBBus. */
+    RavynXHCIUSBBus      * fUSBBus;
+
     /* USB2/USB3 root hub port pairing, from the xHCI Extended Capabilities'
      * Supported Protocol structures (index by 0-based port number). A
      * combo connector typically shows up as two distinct xHCI port
@@ -92,6 +132,19 @@ private:
      * view's link successfully training). 0xFF = no pairing found. */
     UInt8                  fPortMajorRev[64];   /* 2, 3, or 0 if unknown */
     UInt8                  fPairedPort[64];     /* 0xFF if none */
+
+    /* Hotplug: true once a root port has an enumerated (or enumeration-
+     * attempted) device on it, so the background poll thread doesn't keep
+     * re-issuing Enable Slot/Address Device for the same connect event on
+     * every pass. Cleared when CCS drops so a later replug on that port is
+     * picked up again. Note: this only detects *new* connects; a device
+     * physically removed tears down the controller-owned transfer state;
+     * higher-level nubs are owned by IOUSBFamily or the mass-storage path. */
+    bool                   fPortOccupied[64];
+    volatile bool          fHotplugRunning;
+    static void hotplugThread(void *arg, wait_result_t);
+    void hotplugLoop();
+    void handleRootPortDisconnect(UInt32 port0based, UInt32 portsc);
 
     /* DCBAA: array of 64-bit device-context pointers, index by slot ID (0 unused). */
     IOBufferMemoryDescriptor * fDCBAAMem;
@@ -116,6 +169,29 @@ private:
     UInt32                      fEventRingDequeue;
     UInt8                       fEventRingCycle;
 
+    /* Single-consumer event-ring dispatch. With a background keyboard poll
+     * thread running concurrently with disk I/O, multiple waiters share one
+     * event ring; letting each waiter consume the ring head directly would
+     * make one waiter discard another's completion (they matched by slot and
+     * dropped the rest). Instead serviceEventRing() is the sole consumer
+     * (under fEventLock) and records each completion here for the specific
+     * waiter to pick up. This is also the shape a real interrupt handler
+     * would take. */
+    IOLock              * fEventLock;
+    struct XferCompletion {
+        volatile bool pending;
+        UInt8         cc;
+        UInt64        param;
+        UInt32        status;
+        UInt32        control;
+    };
+    XferCompletion fXferDone[64][32]; /* [slotId][DCI] */
+    /* Last command completion (commands are serialized under fCmdLock). */
+    volatile UInt64 fCmdDoneParam;
+    volatile bool   fCmdDonePending;
+    UInt8           fCmdDoneCC;
+    UInt32          fCmdDoneSlot;
+
     /* Per-slot device context + input context + transfer rings (EP0, bulk IN/OUT). */
     struct SlotResources {
         IOBufferMemoryDescriptor * deviceCtxMem;
@@ -134,9 +210,12 @@ private:
         UInt8                       bulkOutCycle;
     };
     SlotResources fSlots[64]; /* index by slot ID, 0 unused */
+    UInt8 fSlotRootPort[64];  /* 0-based root hub port for each slot */
 
     MSCDevice fMSC[16];
     RavynXHCIMassStorageDisk * fDiskNubs[16];
+
+    InterruptInEndpoint fIntrIn[64][16]; /* [slotId][endpoint number] */
 
     inline UInt32 capRead32(UInt32 off) const
         { return *(volatile UInt32 *)(fCapRegs + off); }
@@ -203,8 +282,23 @@ private:
     /* Poll the event ring for a Transfer Event on the given slot/endpoint. */
     bool waitTransferEvent(UInt32 slotId, UInt32 epDCI, UInt8 *outCC, UInt32 timeoutMs = 1000);
 
+    /* Sole consumer of the event ring: drain all currently-available events
+     * under fEventLock, recording each into fXferDone[][]/fCmdDone* for the
+     * waiter that's looking for it. Safe to call from multiple threads. */
+    void serviceEventRing();
+
+    void interruptOccurred(IOInterruptEventSource *sender, int count);
+    static void interruptOccurredStatic(OSObject *owner, IOInterruptEventSource *sender, int count);
+
+    /* Configure a single interrupt IN endpoint, reusing the slot's bulk-IN
+     * ring fields for the current reconstructed IOUSBController path. */
+    bool configureInterruptInEndpoint(UInt32 slotId, UInt8 epNum, UInt16 maxPkt, UInt8 interval);
+    IOReturn interruptTransfer(UInt32 slotId, UInt8 epNum, IOMemoryDescriptor *buffer,
+                               UInt32 len, UInt32 timeoutMs);
+
     bool enableSlot(UInt32 *outSlotId);
     void disableSlot(UInt32 slotId);
+    void freeSlotResources(UInt32 slotId);
     bool addressDevice(UInt32 slotId, UInt32 port0based, UInt32 routeString,
                        UInt32 speed, UInt16 &maxPacket0,
                        UInt32 parentHubSlot = 0, UInt32 parentPortNum = 0);
@@ -226,6 +320,7 @@ private:
 
     /* Hub class control requests (recipient = other/port). */
     bool hubGetDescriptor(UInt32 slotId, bool superSpeed, void *buf, UInt16 len);
+    bool hubSetDepth(UInt32 slotId, UInt16 depth);
     bool hubSetPortFeature(UInt32 slotId, UInt8 port1based, UInt16 feature);
     bool hubClearPortFeature(UInt32 slotId, UInt8 port1based, UInt16 feature);
     bool hubGetPortStatus(UInt32 slotId, UInt8 port1based, UInt32 *outStatus);

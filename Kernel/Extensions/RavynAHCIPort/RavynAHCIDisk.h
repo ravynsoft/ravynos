@@ -33,10 +33,6 @@ class RavynAHCIDisk: public IOBlockStorageDevice
     OSDeclareDefaultStructors(RavynAHCIDisk);
 
 public:
-    /*
-     * Called by RavynAHCIPort::start() immediately after allocation.
-     * Takes a retained reference to 'parent'.
-     */
     bool initWithPort(RavynAHCIPort * parent, UInt32 portIndex);
 
     /* IOService overrides */

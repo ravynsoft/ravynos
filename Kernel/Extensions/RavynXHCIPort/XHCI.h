@@ -328,6 +328,9 @@ typedef struct {
 #define USB_IF_SUBCLASS_SCSI        0x06
 #define USB_IF_PROTOCOL_BULK_ONLY   0x50
 
+/* xHCI Endpoint Context Type for an interrupt IN endpoint (Table 6-9). */
+#define EP_TYPE_INTERRUPT_IN        7
+
 /* USB Hub class (device class 0x09): downstream port traversal so devices
  * behind an internal/onboard hub (very common on real hardware - the actual
  * boot USB stick usually isn't wired straight to a root xHCI port) can be
@@ -348,6 +351,8 @@ typedef struct {
 #define USB_HUB_REQTYPE_SET_PORT_FEAT  0x23
 #define USB_HUB_REQTYPE_CLEAR_PORT_FEAT 0x23
 #define USB_HUB_REQTYPE_GET_PORT_STATUS 0xA3
+#define USB_HUB_REQTYPE_SET_HUB_DEPTH  0x20 /* host-to-device, class, device */
+#define USB_REQ_SET_HUB_DEPTH          12   /* SS-hub-only class request */
 
 #define USB_HUB_FEAT_PORT_CONNECTION   0
 #define USB_HUB_FEAT_PORT_RESET        4

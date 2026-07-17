@@ -50,9 +50,6 @@ RavynAHCIDisk::initWithPort(RavynAHCIPort *parent, UInt32 portIndex)
     setLocation(loc);
     snprintf(buf, sizeof(buf) - 1, "disk%u", portIndex);
     setName(buf);
-    AHCI_Log("%s init port=%u model=%s fw=%s sectors=0x%llx",
-             buf, portIndex, fProductStr, fRevisionStr,
-             parent->sectorCount(portIndex));
     return true;
 }
 
@@ -101,15 +98,10 @@ RavynAHCIDisk::doAsyncReadWrite(IOMemoryDescriptor  * buffer,
         IOStorage::complete(completion, ioret, 0);
         return ioret;
     }
-    
+
     const bool isWrite  = ((buffer->getDirection() & kIODirectionOut) != 0);
     UInt64     totBytes = nblks * 512ULL;
     IOReturn   ret;
-
-    if (block < 64) {
-        AHCI_Log("disk%u %s block=%llu nblks=%llu bytes=%llu",
-                 fPortIndex, isWrite ? "write" : "read", block, nblks, totBytes);
-    }
 
     if (isWrite)
         ret = fParent->doWrite(fPortIndex, block, (UInt32)nblks, buffer, 0);

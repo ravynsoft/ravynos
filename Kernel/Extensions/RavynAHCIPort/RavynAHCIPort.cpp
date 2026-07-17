@@ -24,11 +24,28 @@
 
 #include <IOKit/IOLib.h>
 #include <IOKit/storage/IOMedia.h>
+#include <pexpert/pexpert.h>
 #include "RavynAHCIPort.h"
 #include "RavynAHCIDisk.h"
 
 #define super IOService
 OSDefineMetaClassAndStructors(RavynAHCIPort, IOService);
+
+static bool gAHCIDebug = false;
+
+static void
+AHCI_Debug(const char *fmt, ...)
+{
+    if (!gAHCIDebug)
+        return;
+
+    char buf[1024];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf) - 1, fmt, args);
+    va_end(args);
+    kprintf("[RavynAHCIPort] %s\n", buf);
+}
 
 static bool
 mapABARFromAssignedAddresses(IOPCIDevice         * provider,
@@ -54,20 +71,19 @@ mapABARFromAssignedAddresses(IOPCIDevice         * provider,
         uint64_t base = ((uint64_t)a->physMid << 32) | a->physLo;
         uint64_t size = ((uint64_t)a->lengthHi << 32) | a->lengthLo;
 
-        AHCI_Log("assigned-addresses BAR%u space=%u base=%p size=%llu",
+        AHCI_Debug("assigned-addresses BAR%u space=%u base=%p size=%llu",
                  (reg - kIOPCIConfigBaseAddress0) / 4,
                  a->physHi.s.space,
                  (void *)(uintptr_t)base,
                  (uint64_t)size);
 
         if (a->physHi.s.space == 1) {
-            AHCI_Log("assigned-addresses BAR%u is I/O space; ignoring for ABAR",
+            AHCI_Debug("assigned-addresses BAR%u is I/O space; ignoring for ABAR",
                      (reg - kIOPCIConfigBaseAddress0) / 4);
             continue;
         }
 
-        if (!base || !size)
-            continue;
+        if (!base || !size) continue;
 
         if (size < 0x1000) {
             size = 0x1000;
@@ -77,8 +93,7 @@ mapABARFromAssignedAddresses(IOPCIDevice         * provider,
             (IOPhysicalAddress)base,
             (IOByteCount)size,
             kIODirectionNone | kIOMemoryMapperNone);
-        if (!desc)
-            continue;
+        if (!desc) continue;
 
         IOMemoryMap *map = desc->map(kIOMapAnywhere);
         if (!map) {
@@ -103,25 +118,91 @@ mapUsableBAR(IOPCIDevice *provider, UInt8 reg)
 
     IODeviceMemory *range = provider->getDeviceMemoryWithRegister(reg);
     if (!range) {
-        AHCI_Log("BAR%u has no IODeviceMemory range", (reg - kIOPCIConfigBaseAddress0) / 4);
+        AHCI_Debug("BAR%u has no IODeviceMemory range", (reg - kIOPCIConfigBaseAddress0) / 4);
         return NULL;
     }
 
     IOByteCount length = range->getLength();
     IOPhysicalAddress phys = range->getPhysicalAddress();
-    AHCI_Log("BAR%u IODeviceMemory phys=%p len=%llu tag=%08x",
+    AHCI_Debug("BAR%u IODeviceMemory phys=%p len=%llu tag=%08x",
              (reg - kIOPCIConfigBaseAddress0) / 4,
              (void *)(uintptr_t)phys,
              (uint64_t)length,
              (uint32_t)range->getTag());
 
     if (!length) {
-        AHCI_Log("BAR%u IODeviceMemory has zero length; skipping provider map",
+        AHCI_Debug("BAR%u IODeviceMemory has zero length; skipping provider map",
                  (reg - kIOPCIConfigBaseAddress0) / 4);
         return NULL;
     }
 
     return range->map(kIOMapAnywhere);
+}
+
+static bool
+readMemoryBARBaseAndSize(IOPCIDevice *provider,
+                         UInt8        reg,
+                         uint64_t   * outBase,
+                         uint64_t   * outSize)
+{
+    if (!provider || !outBase || !outSize) return false;
+
+    const uint16_t savedCmd = provider->configRead16(kIOPCIConfigCommand);
+    const uint32_t savedLo  = provider->configRead32(reg);
+    uint32_t savedHi = 0;
+
+    if (savedLo & 0x1) {
+        AHCI_Debug("BAR%u is I/O space; not usable as ABAR",
+                 (reg - kIOPCIConfigBaseAddress0) / 4);
+        return false;
+    }
+
+    const bool is64 = ((savedLo & 0x6) == 0x4);
+    if (is64) {
+        if (reg > kIOPCIConfigBaseAddress4) {
+            AHCI_Debug("BAR%u reports 64-bit but has no high BAR",
+                     (reg - kIOPCIConfigBaseAddress0) / 4);
+            return false;
+        }
+        savedHi = provider->configRead32(reg + 4);
+    }
+
+    provider->configWrite16(kIOPCIConfigCommand, savedCmd & ~(uint16_t)0x3);
+    provider->configWrite32(reg, 0xffffffffU);
+    if (is64) provider->configWrite32(reg + 4, 0xffffffffU);
+
+    const uint32_t maskLo = provider->configRead32(reg);
+    const uint32_t maskHi = is64 ? provider->configRead32(reg + 4) : 0xffffffffU;
+
+    provider->configWrite32(reg, savedLo);
+    if (is64) provider->configWrite32(reg + 4, savedHi);
+    provider->configWrite16(kIOPCIConfigCommand, savedCmd);
+
+    uint64_t base = savedLo & ~0x0fULL;
+    uint64_t sizeMask = maskLo & ~0x0fULL;
+    if (is64) {
+        base |= ((uint64_t)savedHi << 32);
+        sizeMask |= ((uint64_t)maskHi << 32);
+    }
+
+    if (!base || !sizeMask) return false;
+
+    uint64_t size = (~sizeMask) + 1;
+    if (!is64) size &= 0xffffffffULL;
+    if (size < 0x1000) size = 0x1000;
+    if (size > 0x1000000ULL) {
+        AHCI_Debug("BAR%u sizing produced implausible size=0x%llx, ignoring",
+                 (reg - kIOPCIConfigBaseAddress0) / 4, size);
+        return false;
+    }
+
+    AHCI_Debug("BAR%u sizing: is64=%d sizeMaskLo=%08x sizeMaskHi=%08x -> base=0x%llx size=0x%llx",
+             (reg - kIOPCIConfigBaseAddress0) / 4,
+             is64, maskLo, maskHi, base, size);
+
+    *outBase = base;
+    *outSize = size;
+    return true;
 }
 
 static bool
@@ -131,24 +212,20 @@ mapABARFromConfigBAR(IOPCIDevice         * provider,
 {
     if (!provider || !outDesc || !outMap) return false;
 
-    const uint32_t bar4 = provider->configRead32(kIOPCIConfigBaseAddress4);
-    const uint32_t bar5 = provider->configRead32(kIOPCIConfigBaseAddress5);
     uint64_t abarPhys = 0;
+    uint64_t abarSize = 0;
 
-    if (!(bar5 & 0x1) && (bar5 != 0xffffffffU) && (bar5 & ~0x0fU)) {
-        abarPhys = (uint64_t)(bar5 & ~0x0fU);
-    } else if (!(bar4 & 0x1) && (bar4 != 0xffffffffU) && (bar4 & ~0x0fU)) {
-        abarPhys = (uint64_t)(bar4 & ~0x0fU);
-        if ((bar4 & 0x6) == 0x4) {
-            abarPhys |= ((uint64_t)bar5 << 32);
-        }
-    }
+    if (!readMemoryBARBaseAndSize(provider, kIOPCIConfigBaseAddress5,
+                                  &abarPhys, &abarSize) &&
+        !readMemoryBARBaseAndSize(provider, kIOPCIConfigBaseAddress4,
+                                  &abarPhys, &abarSize))
+        return false;
 
-    if (!abarPhys) return false;
+    if (!abarPhys || !abarSize) return false;
 
     IOMemoryDescriptor *desc = IOMemoryDescriptor::withPhysicalAddress(
         (IOPhysicalAddress)abarPhys,
-        0x2000,
+        (IOByteCount)abarSize,
         kIODirectionNone | kIOMemoryMapperNone);
     if (!desc) return false;
 
@@ -160,8 +237,8 @@ mapABARFromConfigBAR(IOPCIDevice         * provider,
 
     *outDesc = desc;
     *outMap = map;
-    AHCI_Log("Mapped ABAR via config BAR fallback phys=%p",
-             (void *)(uintptr_t)abarPhys);
+    AHCI_Debug("Mapped ABAR via config BAR fallback phys=%p size=0x%llx",
+             (void *)(uintptr_t)abarPhys, abarSize);
     return true;
 }
 
@@ -179,7 +256,7 @@ IOService *
 RavynAHCIPort::probe(IOService *provider, SInt32 *score)
 {
     IOPCIDevice *pci = OSDynamicCast(IOPCIDevice, provider);
-    kprintf("RavynAHCIPort::probe(%p) called, pci = %p\n", provider, pci);
+    AHCI_Debug("probe provider=%p pci=%p", provider, pci);
     if (!pci)
         return NULL;
 
@@ -188,13 +265,14 @@ RavynAHCIPort::probe(IOService *provider, SInt32 *score)
     }
 
     IOService * result = super::probe(provider, score);
-    kprintf("RavynAHCIPort::probe result=%p score=%d\n", result, score ? *score : -1);
+    AHCI_Debug("probe result=%p score=%d", result, score ? *score : -1);
     return result;
 }
 
 bool RavynAHCIPort::start(IOService *provider)
 {
-    kprintf("RavynAHCIPort::start(%p) called\n", provider);
+    PE_parse_boot_argn("ahci_debug", &gAHCIDebug, sizeof(gAHCIDebug));
+    AHCI_Debug("start provider=%p", provider);
     fProvider = OSDynamicCast(IOPCIDevice, provider);
     if (!fProvider || !super::start(provider)) return false;
 
@@ -207,19 +285,22 @@ bool RavynAHCIPort::start(IOService *provider)
         AHCI_Log("Failed to get command lock");
         return false;
     }
+    fWorkLoop = NULL;
+    fInterruptSource = NULL;
+    fInterruptsEnabled = false;
+    fWaitChannel = 0;
 
     uint16_t vendor    = fProvider->configRead16(kIOPCIConfigVendorID);
     uint16_t device    = fProvider->configRead16(kIOPCIConfigDeviceID);
     uint32_t classCode = fProvider->configRead32(kIOPCIConfigRevisionID) >> 8;
 
-    AHCI_Log("start provider=%p pci%x,%x pciclass,%06x",
+    AHCI_Debug("start provider=%p pci%x,%x pciclass,%06x",
              provider, vendor, device, classCode);
 
-    /* Map AHCI BAR5 = ABAR */
     const uint32_t bar4 = fProvider->configRead32(kIOPCIConfigBaseAddress4);
     const uint32_t bar5 = fProvider->configRead32(kIOPCIConfigBaseAddress5);
     const uint16_t cmd  = fProvider->configRead16(kIOPCIConfigCommand);
-    AHCI_Log("PCI CMD=%04x BAR4=%08x BAR5=%08x", cmd, bar4, bar5);
+    AHCI_Debug("PCI CMD=%04x BAR4=%08x BAR5=%08x", cmd, bar4, bar5);
 
     fABARMap = mapUsableBAR(fProvider, kIOPCIConfigBaseAddress5);
 
@@ -243,11 +324,32 @@ bool RavynAHCIPort::start(IOService *provider)
         ghc = hbaRead32(AHCI_GHC);
     }
 
+    /* Try to set up MSI-driven command completion: IOPCIFamily's
+     * resolveMSIInterrupts() already ran at nub publish and, if MSI
+     * allocation succeeded, wired an interrupt source at index 0 to the
+     * family's messaged-interrupt controller. If this fails for any reason
+     * (no MSI available), issueCommand()'s wait loop falls back to pure
+     * IOSleep(1) polling exactly as before - fInterruptsEnabled gates that. */
+    fWorkLoop = IOWorkLoop::workLoop();
+    if (fWorkLoop) {
+        fInterruptSource = IOInterruptEventSource::interruptEventSource(
+            this, &RavynAHCIPort::interruptOccurredStatic, fProvider, 0);
+        if (fInterruptSource && fWorkLoop->addEventSource(fInterruptSource) == kIOReturnSuccess) {
+            fInterruptSource->enable();
+            hbaWrite32(AHCI_GHC, hbaRead32(AHCI_GHC) | AHCI_GHC_IE);
+            fInterruptsEnabled = true;
+            AHCI_Debug("using MSI interrupt (source 0)");
+        } else {
+            if (fInterruptSource) { fInterruptSource->release(); fInterruptSource = NULL; }
+            AHCI_Debug("MSI registration failed, falling back to polling");
+        }
+    }
+
     uint32_t cap = hbaRead32(AHCI_CAP);
     uint32_t pi  = hbaRead32(AHCI_PI);
     uint32_t vs  = hbaRead32(AHCI_VS);
 
-    /* Enumerate ports. Publish a nub for EVERY populated SATA port, do not
+    /* Enumerate ports. Publish a nub for EVERY populated SATA port -- do not
      * stop at the first one. AHCI port order has no relationship to which
      * disk is "the" boot disk (e.g. under QEMU, an if=ide-defaulted drive
      * silently reassigned onto AHCI can land on an earlier port than the
@@ -265,7 +367,7 @@ bool RavynAHCIPort::start(IOService *provider)
         uint32_t tfd  = portRead32(p, PORT_TFD);
         uint32_t det  = PORT_SSTS_DET(ssts);
 
-        AHCI_Log("Port %d  SSTS=%08x SIG=%08x TFD=%08x  DET=%d %s",
+        AHCI_Debug("Port %d  SSTS=%08x SIG=%08x TFD=%08x  DET=%d %s",
                 p, ssts, sig, tfd, det,
                 det == PORT_SSTS_DET_PRESENT
                  ? "<<DEVICE PRESENT>>" : "(no device)");
@@ -277,6 +379,9 @@ bool RavynAHCIPort::start(IOService *provider)
         bzero(&portState, sizeof(portState));
         portState.valid = true;
         portState.port = (uint32_t)p;
+
+        if (fInterruptsEnabled)
+            portWrite32(p, PORT_IE, 0xFFFFFFFFU);
 
         uint16_t identifyData[256];
         if (!identifyDevice(portState, identifyData)) {
@@ -295,7 +400,7 @@ bool RavynAHCIPort::start(IOService *provider)
                                    ((uint32_t)sector0[446 + 9] << 8) |
                                    ((uint32_t)sector0[446 + 10] << 16) |
                                    ((uint32_t)sector0[446 + 11] << 24);
-            AHCI_Log("Port %d LBA0 MBR sig=0x%04x part0 type=0x%02x lba=%u",
+            AHCI_Debug("Port %d LBA0 MBR sig=0x%04x part0 type=0x%02x lba=%u",
                     p, mbrSig, partType, partLBA);
         }
 
@@ -306,7 +411,7 @@ bool RavynAHCIPort::start(IOService *provider)
             char gptSig[9];
             bcopy(sector1, gptSig, 8);
             gptSig[8] = '\0';
-            AHCI_Log("Port %d LBA1 signature='%.8s'", p, gptSig);
+            AHCI_Debug("Port %d LBA1 signature='%.8s'", p, gptSig);
         }
 
         RavynAHCIDisk *diskNub = new RavynAHCIDisk();
@@ -339,12 +444,12 @@ bool RavynAHCIPort::start(IOService *provider)
         disksPublished++;
     }
 
-    /* We return true past here regardless, driver is attached even if no
+    /* We return true past here regardless -- driver is attached even if no
        (or only some) disks came up; upper layers see whichever nubs matched. */
     if (disksPublished == 0)
-        AHCI_Log("No usable SATA disk found on any port");
+        AHCI_Debug("No usable SATA disk found on any port");
     else
-        AHCI_Log("Published %d disk nub(s)", disksPublished);
+        AHCI_Debug("Published %d disk nub(s)", disksPublished);
 
     return true;
 }
@@ -352,7 +457,7 @@ bool RavynAHCIPort::start(IOService *provider)
 void
 RavynAHCIPort::stop(IOService *provider)
 {
-    kprintf("RavynAHCIPort::stop(%p) called\n", provider);
+    AHCI_Debug("stop provider=%p", provider);
     for (int p = 0; p < 32; p++) {
         RavynAHCIDisk *diskNub = fDiskNubs[p];
         if (!diskNub) continue;
@@ -360,6 +465,17 @@ RavynAHCIPort::stop(IOService *provider)
         diskNub->detach(this);
         diskNub->release();
         fDiskNubs[p] = NULL;
+    }
+
+    if (fWorkLoop && fInterruptSource)
+        fWorkLoop->removeEventSource(fInterruptSource);
+    if (fInterruptSource) {
+        fInterruptSource->release();
+        fInterruptSource = NULL;
+    }
+    if (fWorkLoop) {
+        fWorkLoop->release();
+        fWorkLoop = NULL;
     }
 
     if (fCommandLock) {
@@ -527,6 +643,29 @@ bool
 RavynAHCIPort::rebasePort(PortState &portState)
 {
     if (!allocPortMemory(portState)) return false;
+
+    /*
+     * Spin up / power on the device before anything else touches this port.
+     * QEMU's virtual AHCI disks are always "ready" so this was never needed
+     * there, but real hardware supporting staggered spin-up (CAP.SSS) or
+     * cold-presence power switching (PxCMD.CPD) leaves the device
+     * unpowered until software explicitly asks for it - without this,
+     * COMRESET/IDENTIFY on real hardware gets stuck with the busy (BSY)
+     * bit set forever (observed as "Waiting for port N timed out - still
+     * busy TFD=00000080").
+     */
+    {
+        uint32_t cap = hbaRead32(AHCI_CAP);
+        uint32_t cmd = portRead32(portState.port, PORT_CMD);
+        if (cap & AHCI_CAP_SSS)
+            cmd |= PORT_CMD_SUD;
+        if (cmd & PORT_CMD_CPD)
+            cmd |= PORT_CMD_POD;
+        portWrite32(portState.port, PORT_CMD, cmd);
+        if (cap & AHCI_CAP_SSS)
+            IOSleep(10); /* let the device begin spinning up before COMRESET */
+    }
+
     if (!stopPortEngine(portState.port)) return false;
 
     portWrite32(portState.port, PORT_CLB,
@@ -548,6 +687,35 @@ RavynAHCIPort::rebasePort(PortState &portState)
         return false;
 
     return startPortEngine(portState.port);
+}
+
+void
+RavynAHCIPort::interruptOccurredStatic(OSObject *owner, IOInterruptEventSource *sender, int count)
+{
+    RavynAHCIPort *self = OSDynamicCast(RavynAHCIPort, owner);
+    if (!self)
+        return;
+    self->interruptOccurred(sender, count);
+}
+
+void
+RavynAHCIPort::interruptOccurred(IOInterruptEventSource *sender, int count)
+{
+    uint32_t is = hbaRead32(AHCI_IS);
+    if (!is)
+        return;
+
+    /* Ack each port that fired (write-1-to-clear), then the global bits. */
+    for (int p = 0; p < 32; p++) {
+        if (!(is & (1U << p))) continue;
+        portWrite32(p, PORT_IS, portRead32(p, PORT_IS));
+    }
+    hbaWrite32(AHCI_IS, is);
+
+    /* issueCommand() re-checks CI/IS itself on wake, so a plain broadcast
+     * (no lock held here) is sufficient - this only ever shortens the
+     * existing 1ms polling cadence, never changes correctness. */
+    IOLockWakeup(fCommandLock, &fWaitChannel, true);
 }
 
 bool
@@ -655,7 +823,16 @@ RavynAHCIPort::issueCommand(PortState &portState,
             return true;
         }
 
-        IOSleep(1);
+        if (fInterruptsEnabled) {
+            AbsoluteTime deadline;
+            clock_interval_to_deadline(1, kMillisecondScale, &deadline);
+            // Lock is already held (see IOLockLock() above); this releases
+            // it while waiting and reacquires before returning, same as the
+            // IOSleep(1) it replaces - just wakeable early by the ISR.
+            IOLockSleepDeadline(fCommandLock, &fWaitChannel, deadline, THREAD_UNINT);
+        } else {
+            IOSleep(1);
+        }
     }
 
     AHCI_Log("Command 0x%02x timeout port=%u CI=%08x IS=%08x TFD=%08x",
@@ -807,7 +984,6 @@ RavynAHCIPort::doRead(uint32_t               portIndex,
     uint64_t curLBA    = lba;
     uint64_t curOff    = bufOff;
 
-    /* Temporary heap bounce chunk (maxSectors * 512) */
     uint32_t chunkBytes = maxSectors * 512u;
     uint8_t *bounce = (uint8_t *)IOMalloc(chunkBytes);
     if (!bounce) return kIOReturnNoMemory;
@@ -845,10 +1021,6 @@ RavynAHCIPort::doRead(uint32_t               portIndex,
     return ret;
 }
 
-/*
- * Perform a write of 'sectors' sectors to 'lba', reading data from
- * 'buffer' starting at byte offset 'bufOff'.
- */
 IOReturn
 RavynAHCIPort::doWrite(uint32_t               portIndex,
                        uint64_t               lba,
@@ -989,12 +1161,12 @@ RavynAHCIPort::parseIdentifyData(PortState &portState, const uint16_t *id)
             ((uint64_t)id[60] <<  0);
     }
 
-    AHCI_Log("port %u IDENTIFY ok", portState.port);
-    AHCI_Log("  model    : %s", portState.model);
-    AHCI_Log("  serial   : %s", portState.serial);
-    AHCI_Log("  firmware : %s", portState.firmware);
-    AHCI_Log("  lba48    : %d", portState.lba48 ? 1 : 0);
-    AHCI_Log("  sectors  : 0x%llx (%llu)",
+    AHCI_Debug("port %u IDENTIFY ok", portState.port);
+    AHCI_Debug("  model    : %s", portState.model);
+    AHCI_Debug("  serial   : %s", portState.serial);
+    AHCI_Debug("  firmware : %s", portState.firmware);
+    AHCI_Debug("  lba48    : %d", portState.lba48 ? 1 : 0);
+    AHCI_Debug("  sectors  : 0x%llx (%llu)",
              portState.sectorCount,
              portState.sectorCount);
 }

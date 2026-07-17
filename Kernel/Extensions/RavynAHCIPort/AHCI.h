@@ -40,6 +40,7 @@
 #define AHCI_GHC_HR     (1U<<0)   /* HBA Reset */
 
 #define AHCI_CAP_S64A   (1U<<31)  /* Supports 64-bit Addressing */
+#define AHCI_CAP_SSS    (1U<<27)  /* Supports Staggered Spin-up */
 #define AHCI_CAP_NCS(c) (((c)>>8)&0x1f) /* Number of Command Slots (0-based) */
 #define AHCI_CAP_NP(c)  ((c)&0x1f)      /* Number of Ports (0-based) */
 
@@ -100,6 +101,7 @@
 #define PORT_CMD_SUD    (1U << 1)
 #define PORT_CMD_POD    (1U << 2)
 #define PORT_CMD_CLO    (1U << 3)
+#define PORT_CMD_CPD    (1U << 20)  /* Cold Presence Detection (per-port capability, RO) */
 
 #define PORT_SCTL_DET_MASK    0x0f
 #define PORT_SCTL_DET_NONE    0x00
