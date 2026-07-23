@@ -429,8 +429,23 @@ void ApplePS2Controller::installInterruptAction(PS2DeviceType      deviceType,
     target->retain();
     _interruptTargetKeyboard = target;
     _interruptActionKeyboard = action;
-    _workLoop->addEventSource(_interruptSourceKeyboard);
-    getProvider()->registerInterrupt(kIRQ_Keyboard,0, interruptHandlerKeyboard);
+    if (_workLoop->addEventSource(_interruptSourceKeyboard) != kIOReturnSuccess)
+    {
+      _interruptTargetKeyboard->release();
+      _interruptTargetKeyboard = 0;
+      _interruptActionKeyboard = 0;
+      return;
+    }
+    if (getProvider()->registerInterrupt(kIRQ_Keyboard, this,
+                                         interruptHandlerKeyboard) != kIOReturnSuccess)
+    {
+      _workLoop->removeEventSource(_interruptSourceKeyboard);
+      _interruptTargetKeyboard->release();
+      _interruptTargetKeyboard = 0;
+      _interruptActionKeyboard = 0;
+      return;
+    }
+
     getProvider()->enableInterrupt(kIRQ_Keyboard);
     _interruptInstalledKeyboard = true;
   }
@@ -440,8 +455,22 @@ void ApplePS2Controller::installInterruptAction(PS2DeviceType      deviceType,
     target->retain();
     _interruptTargetMouse = target;
     _interruptActionMouse = action;
-    _workLoop->addEventSource(_interruptSourceMouse);
-    getProvider()->registerInterrupt(kIRQ_Mouse, 0, interruptHandlerMouse);
+    if (_workLoop->addEventSource(_interruptSourceMouse) != kIOReturnSuccess)
+    {
+      _interruptTargetMouse->release();
+      _interruptTargetMouse = 0;
+      _interruptActionMouse = 0;
+      return;
+    }
+    if (getProvider()->registerInterrupt(kIRQ_Mouse, this,
+                                         interruptHandlerMouse) != kIOReturnSuccess)
+    {
+      _workLoop->removeEventSource(_interruptSourceMouse);
+      _interruptTargetMouse->release();
+      _interruptTargetMouse = 0;
+      _interruptActionMouse = 0;
+      return;
+    }
     getProvider()->enableInterrupt(kIRQ_Mouse);
     _interruptInstalledMouse = true;
   }
@@ -587,7 +616,6 @@ void ApplePS2Controller::interruptOccurred(OSObject *, IOInterruptEventSource *,
   //
   // This method should only be called from our single-threaded work loop.
   //
-
   if (_hardwareOffline)
   {
     // Toss any asynchronous data received. The interrupt event source may
@@ -779,7 +807,6 @@ void ApplePS2Controller::processRequestQueue(IOInterruptEventSource *, int)
   queue_head_t localQueue;
 
   // Transfer queued (async) requests to a local queue.
-
   IOSimpleLockLock(_requestQueueLock);
 
   if (!queue_empty(&_requestQueue))
@@ -1491,3 +1518,4 @@ void ApplePS2Controller::uninstallPowerControlAction( PS2DeviceType deviceType )
     _powerControlTargetMouse = 0;
   }
 }
+

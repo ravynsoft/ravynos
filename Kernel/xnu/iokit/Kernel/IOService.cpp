@@ -64,8 +64,7 @@
 
 #include <machine/pal_routines.h>
 
-#define LOG kprintf
-//#define LOG IOLog
+#define LOG IOLog
 #define MATCH_DEBUG     1
 #define IOSERVICE_OBFUSCATE(x) ((void *)(VM_KERNEL_ADDRPERM(x)))
 
@@ -7538,7 +7537,6 @@ IOService::resolveInterrupt(IOService *nub, int source)
 	interruptSources = nub->_interruptSources;
 	interruptSources[source].interruptController = interruptController;
 	interruptSources[source].vectorData = data;
-
 	return kIOReturnSuccess;
 }
 

@@ -2,7 +2,7 @@ MK_WERROR = no
 KEXT = IOUSBFamily
 KERNEL_PRIVATE = yes
 INFO_PLIST = Info.plist
-BUNDLE_IDENTIFIER = com.ravynos.driver.IOUSBFamily
+BUNDLE_IDENTIFIER = com.ravynos.iokit.IOUSBFamily
 BUNDLE_VERSION = 1.0.0
 
 .PATH: ${.CURDIR}/src

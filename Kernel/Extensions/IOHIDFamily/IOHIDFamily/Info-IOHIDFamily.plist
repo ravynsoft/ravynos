@@ -7,7 +7,7 @@
 	<key>CFBundleIconFile</key>
 	<string></string>
 	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<string>@BUNDLE_IDENTIFIER@</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -15,13 +15,26 @@
 	<key>CFBundlePackageType</key>
 	<string>KEXT</string>
 	<key>CFBundleShortVersionString</key>
-	<string>$(IOHIDFAMILY_VERSION)</string>
+	<string>@BUNDLE_VERSION@</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>$(IOHIDFAMILY_VERSION)</string>
+	<string>@BUNDLE_VERSION@</string>
 	<key>IOKitPersonalities</key>
 	<dict>
+                <key>BSD Console</key>
+                <dict>
+                        <key>CFBundleIdentifier</key>
+                        <string>com.apple.iokit.IOHIDFamily</string>
+                        <key>IOClass</key>
+                        <string>IOBSDConsole</string>
+                        <key>IOMatchCategory</key>
+                        <string>IOBSDConsole</string>
+			<key>IOProviderClass</key>
+			<string>IOResources</string>
+			<key>IOResourceMatch</key>
+			<string>IOBSD</string>
+                </dict>
 		<key>HID Game Controller Pointing Driver</key>
 		<dict>
 			<key>CFBundleIdentifier</key>
@@ -413,8 +426,8 @@
 		<string>11.0</string>
 		<key>com.apple.kpi.unsupported</key>
 		<string>11.0</string>
-		<key>com.apple.iokit.IOReportFamily</key>
-		<string>1.0</string>
+		<!-- <key>com.apple.iokit.IOReportFamily</key>
+		<string>1.0</string> -->
 	</dict>
 	<key>OSBundleRequired</key>
 	<string>Root</string>

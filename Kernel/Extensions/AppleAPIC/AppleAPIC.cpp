@@ -44,7 +44,7 @@ OSDefineMetaClassAndStructors( AppleAPICInterruptController,
 
 bool AppleAPIC::start( IOService * provider )
 {
-    kprintf("AppleAPIC::start()\n");
+    IOLog("AppleAPIC::start()\n");
     OSNumber *        num;
     const OSSymbol *  sym;
 
@@ -407,7 +407,6 @@ IOReturn AppleAPIC::registerInterrupt( IOService *        nub,
 
     // Check that the vectorNumber is within bounds.
     // Proceed to the superclass method if valid.
-
     if ( vectorNumber >= (UInt32) _vectorCount )
         return kIOReturnBadArgument;
 
@@ -509,7 +508,6 @@ void AppleAPIC::enableVector( IOInterruptVectorNumber vectorNumber,
 //---------------------------------------------------------------------------
 
 extern "C" void lapic_end_of_interrupt( void );
-    
 IOReturn AppleAPIC::handleInterrupt( void *      savedState,
                                      IOService * nub,
                                      int         source )
@@ -609,8 +607,8 @@ IOReturn AppleAPIC::setVectorPhysicalDestination( UInt32 vectorNumber,
 {
 	VectorEntry * entry;
 
-    kprintf("IOAPIC-%d: %s( %d, %d )\n", (uint32_t) _vectorBase, __FUNCTION__,
-		(uint32_t) vectorNumber, (uint32_t) apicID);
+    //kprintf("IOAPIC-%d: %s( %d, %d )\n", (uint32_t) _vectorBase, __FUNCTION__,
+	//	(uint32_t) vectorNumber, (uint32_t) apicID);
 
 	if (vectorNumber >= (UInt32)_vectorCount)
 		return kIOReturnBadArgument;

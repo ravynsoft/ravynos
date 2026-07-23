@@ -1,6 +1,4 @@
 /*-
- * SPDX-License-Identifier: BSD-3-Clause
- *
  * Copyright (c) 1991, 1993
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -12,7 +10,11 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the University nor the names of its contributors
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  *
@@ -27,51 +29,40 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ *	from: @(#)extern.h	8.1 (Berkeley) 5/31/93
+ * $FreeBSD: src/bin/ls/extern.h,v 1.19 2002/05/19 02:51:36 tjr Exp $
  */
-
-#include <stdbool.h>
 
 int	 acccmp(const FTSENT *, const FTSENT *);
 int	 revacccmp(const FTSENT *, const FTSENT *);
-int	 birthcmp(const FTSENT *, const FTSENT *);
-int	 revbirthcmp(const FTSENT *, const FTSENT *);
 int	 modcmp(const FTSENT *, const FTSENT *);
 int	 revmodcmp(const FTSENT *, const FTSENT *);
 int	 namecmp(const FTSENT *, const FTSENT *);
 int	 revnamecmp(const FTSENT *, const FTSENT *);
-int	 verscmp(const FTSENT *, const FTSENT *);
-int	 revverscmp(const FTSENT *, const FTSENT *);
 int	 statcmp(const FTSENT *, const FTSENT *);
 int	 revstatcmp(const FTSENT *, const FTSENT *);
-int	 sizecmp(const FTSENT *, const FTSENT *);
-int	 revsizecmp(const FTSENT *, const FTSENT *);
+int	 sizecmp (const FTSENT *, const FTSENT *);
+int	 revsizecmp (const FTSENT *, const FTSENT *);
+int	 birthcmp(const FTSENT *, const FTSENT *);
+int	 revbirthcmp(const FTSENT *, const FTSENT *);
 
-void	 printcol(const DISPLAY *);
-void	 printlong(const DISPLAY *);
-int	 printname(const char *);
-void	 printscol(const DISPLAY *);
-void	 printstream(const DISPLAY *);
+void	 printcol(DISPLAY *);
+void	 printlong(DISPLAY *);
+void	 printscol(DISPLAY *);
+void	 printstream(DISPLAY *);
 void	 usage(void);
-int	 prn_normal(const char *);
+int      prn_normal(const char *);
 size_t	 len_octal(const char *, int);
 int	 prn_octal(const char *);
 int	 prn_printable(const char *);
 #ifdef COLORLS
 void	 parsecolors(const char *cs);
-void	 colorquit(int);
+void     colorquit(int);
 
-extern	char	*ansi_fgcol;
-extern	char	*ansi_bgcol;
-extern	char	*ansi_coloff;
-extern	char	*attrs_off;
-extern	char	*enter_bold;
-extern	char	*enter_underline;
-
-extern int	 colorflag;
-extern bool	 explicitansi;
-
-#define	COLORFLAG_NEVER		0
-#define	COLORFLAG_AUTO		1
-#define	COLORFLAG_ALWAYS	2
+extern  char    *ansi_fgcol;
+extern  char    *ansi_bgcol;
+extern  char    *ansi_coloff;
+extern  char    *attrs_off;
+extern  char    *enter_bold;
 #endif
-extern int	termwidth;

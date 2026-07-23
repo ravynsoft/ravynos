@@ -26,6 +26,7 @@ ${.OBJDIR}/lib${LIB}.dylib: lib${LIB}.a
 	mkdir -p ${SYSROOT_DIR}/usr/lib/system ${RAVYN_SDKROOT}/usr/lib/system
 	cp -f ${.TARGET} ${RAVYN_SDKROOT}/usr/lib/system/
 	cp -f ${.TARGET} ${SYSROOT_DIR}/usr/lib/system/
+	cp -f ${.CURDIR}/removefile.h ${RAVYN_SDKROOT}/usr/include/
 	cd ${.CURDIR} && env PLATFORM=MacOSX DSTROOT=${RAVYN_SDKROOT} \
           sh ${.CURDIR}/xcodescripts/install_files.sh
 

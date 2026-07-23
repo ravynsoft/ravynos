@@ -22,6 +22,7 @@
  */
 
 #include "ACPICPU.h"
+#include "ACPIPlatformExpert.h"
 
 #undef super
 #define super IOCPU
@@ -37,12 +38,12 @@ IOService *ACPICPU::probe(IOService *provider, SInt32 *score) {
 bool ACPICPU::startCommon() {
 	if (startCommonCompleted) return true;
 
-	cpuIC = new ACPICPUInterruptController;
+        cpuIC = new ACPICPUInterruptController;
 	if (cpuIC == 0) return false;
-	if (cpuIC->initCPUInterruptController(ncpus) != kIOReturnSuccess) return false;
+	if (cpuIC->initCPUInterruptController(1) != kIOReturnSuccess) return false;
 
 	cpuIC->attach(this);
-	cpuIC->registerCPUInterruptController();
+        cpuIC->registerCPUInterruptController();
 
 	setCPUState(kIOCPUStateUninitalized);
 	initCPU(true);
@@ -53,7 +54,7 @@ bool ACPICPU::startCommon() {
 }
 
 bool ACPICPU::start(IOService *provider) {
-        kprintf("ACPICPU::start(%p)\n", provider);
+        IOLog("ACPICPU::start(%p)\n", provider);
         const OSSymbol * cpuNumSym = OSSymbol::withCStringNoCopy("cpu-number");
         OSNumber *cpuNum = OSDynamicCast(OSNumber, getProperty(cpuNumSym));
         cpuNumSym->release();
@@ -96,14 +97,7 @@ const OSSymbol *ACPICPU::getCPUName() {
 
 OSDefineMetaClassAndStructors(ACPICPUInterruptController, IOCPUInterruptController);
 
-IOReturn ACPICPUInterruptController::handleInterrupt(void *refCon, IOService *nub, int source) {
-	// Override the implementation in IOCPUInterruptController to
-	// dispatch interrupts the old way. The source argument is ignored;
-	// the first IOCPUInterruptController in the vector array is always used.
-
-	IOInterruptVector *vector = &vectors[0];
-	if (!vector->interruptRegistered) return kIOReturnInvalid;
-
-	vector->handler(vector->target, refCon, vector->nub, source);
-	return kIOReturnSuccess;
+IOReturn ACPICPUInterruptController::handleInterrupt(void *refCon,
+        IOService *nub, int source) {
+    return ((ACPIPlatformExpert *)getPlatform())->handleInterrupt(refCon, nub, source);
 }

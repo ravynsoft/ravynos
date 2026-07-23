@@ -13,7 +13,7 @@
 .\" 2. Redistributions in binary form must reproduce the above copyright
 .\"    notice, this list of conditions and the following disclaimer in the
 .\"    documentation and/or other materials provided with the distribution.
-.\" 3. Neither the name of the University nor the names of its contributors
+.\" 4. Neither the name of the University nor the names of its contributors
 .\"    may be used to endorse or promote products derived from this software
 .\"    without specific prior written permission.
 .\"
@@ -29,7 +29,10 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd January 29, 2013
+.\"     @(#)cat.1	8.3 (Berkeley) 5/2/95
+.\" $FreeBSD: src/bin/cat/cat.1,v 1.25 2005/01/16 16:41:55 ru Exp $
+.\"
+.Dd March 21, 2004
 .Dt CAT 1
 .Os
 .Sh NAME
@@ -37,7 +40,7 @@
 .Nd concatenate and print files
 .Sh SYNOPSIS
 .Nm
-.Op Fl belnstuv
+.Op Fl benstuv
 .Op Ar
 .Sh DESCRIPTION
 The
@@ -49,7 +52,7 @@ operands are processed in command-line order.
 If
 .Ar file
 is a single dash
-.Pq Sq Fl
+.Pq Sq \&-
 or absent,
 .Nm
 reads from the standard input.
@@ -76,16 +79,6 @@ Display non-printing characters (see the
 option), and display a dollar sign
 .Pq Ql \&$
 at the end of each line.
-.It Fl l
-Set an exclusive advisory lock on the standard output file descriptor.
-This lock is set using
-.Xr fcntl 2
-with the
-.Dv F_SETLKW
-command.
-If the output file is already locked,
-.Nm
-will block until the lock is acquired.
 .It Fl n
 Number the output lines, starting at 1.
 .It Fl s
@@ -118,7 +111,7 @@ The command:
 .Dl "cat file1"
 .Pp
 will print the contents of
-.Pa file1
+.Ar file1
 to the standard output.
 .Pp
 The command:
@@ -126,15 +119,15 @@ The command:
 .Dl "cat file1 file2 > file3"
 .Pp
 will sequentially print the contents of
-.Pa file1
+.Ar file1
 and
-.Pa file2
+.Ar file2
 to the file
-.Pa file3 ,
+.Ar file3 ,
 truncating
-.Pa file3
+.Ar file3
 if it already exists.
-See the manual page for your shell (e.g.,
+See the manual page for your shell (i.e.,
 .Xr sh 1 )
 for more information on redirection.
 .Pp
@@ -143,21 +136,21 @@ The command:
 .Dl "cat file1 - file2 - file3"
 .Pp
 will print the contents of
-.Pa file1 ,
+.Ar file1 ,
 print data it receives from the standard input until it receives an
 .Dv EOF
 .Pq Sq ^D
 character, print the contents of
-.Pa file2 ,
+.Ar file2 ,
 read and output contents of the standard input again, then finally output
 the contents of
-.Pa file3 .
-Note that if the standard input refers to a file, the second dash
+.Ar file3 .
+Note that if the standard input referred to a file, the second dash
 on the command-line would have no effect, since the entire contents of the file
 would have already been read and printed by
 .Nm
 when it encountered the first
-.Sq Fl
+.Ql \&-
 operand.
 .Sh SEE ALSO
 .Xr head 1 ,
@@ -167,7 +160,6 @@ operand.
 .Xr tail 1 ,
 .Xr vis 1 ,
 .Xr zcat 1 ,
-.Xr fcntl 2 ,
 .Xr setbuf 3
 .Rs
 .%A Rob Pike
@@ -183,7 +175,7 @@ utility is compliant with the
 specification.
 .Pp
 The flags
-.Op Fl belnstv
+.Op Fl benstv
 are extensions to the specification.
 .Sh HISTORY
 A
@@ -192,15 +184,13 @@ utility appeared in
 .At v1 .
 .An Dennis Ritchie
 designed and wrote the first man page.
-It appears to have been for
-.Nm .
+It appears to have been
+.Xr cat 1 .
 .Sh BUGS
 Because of the shell language mechanism used to perform output
 redirection, the command
 .Dq Li cat file1 file2 > file1
-will cause the original data in
-.Pa file1
-to be destroyed!
+will cause the original data in file1 to be destroyed!
 .Pp
 The
 .Nm

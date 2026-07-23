@@ -34,7 +34,7 @@
 #include <objc/NSObjCRuntime.h>
 #include <objc/runtime.h>
 #include <objc/objc.h>
-#include <objc_size_alignment.h>
+#include "objc_size_alignment.h"
 
 #ifdef __cplusplus
 #define FOUNDATION_EXPORT extern "C"

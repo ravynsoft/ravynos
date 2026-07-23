@@ -46,7 +46,9 @@
 #include <IOKit/hidsystem/IOHIDParameter.h>
 #include <IOKit/hidsystem/IOHIDSystem.h>
 #include <libkern/OSByteOrder.h>
+#ifdef NEW_HID
 #include "IOHIDKeyboardDevice.h"
+#endif
 #include "IOHIDevicePrivateKeys.h"
 #include "IOHIDFamilyPrivate.h"
 

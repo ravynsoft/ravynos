@@ -25,7 +25,11 @@
 
 #ifdef KERNEL
 #include "IOHIDKeys.h"
+#ifdef NEW_HID
 #include "IOHIDDevice.h"
+#else
+#include <IOKit/IOService.h>
+#endif
 #endif
 
 #include "IOHIDDebug.h"

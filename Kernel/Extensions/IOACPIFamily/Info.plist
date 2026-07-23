@@ -30,8 +30,6 @@
 			<string>ACPI</string>
 			<key>IOProviderClass</key>
 			<string>IOPlatformExpertDevice</string>
-			<key>IOProbeScore</key>
-            <integer>10000</integer>
 		</dict>
 		<key>ACPI X86 CPU</key>
 		<dict>
@@ -41,10 +39,10 @@
 			<string>ACPICPU</string>
 			<key>IONameMatch</key>
 			<string>processor</string>
-			<key>IOProbeScore</key>
-			<integer>10000</integer>
 			<key>IOProviderClass</key>
 			<string>IOCPU</string>
+                        <key>IOProbeScore</key>
+                        <integer>9001</integer>
 		</dict>
 		<key>ACPI RTC</key>
 		<dict>
@@ -52,10 +50,10 @@
 			<string>com.apple.iokit.IOACPIFamily</string>
 			<key>IOClass</key>
 			<string>ACPIRTC</string>
+                        <key>IONameMatch</key>
+                        <string>rtc</string>
 			<key>IOProviderClass</key>
-			<string>ACPIPlatformExpert</string>
-			<key>IOProbeScore</key>
-			<integer>9001</integer>
+			<string>IOPlatformDevice</string>
 		</dict>
 		<key>EFI NVRAM</key>
 		<dict>
@@ -63,10 +61,10 @@
 			<string>com.apple.iokit.IOACPIFamily</string>
 			<key>IOClass</key>
 			<string>EFINVRAM</string>
+                        <key>IONameMatch</key>
+                        <string>nvram</string>
 			<key>IOProviderClass</key>
-			<string>ACPIPlatformExpert</string>
-			<key>IOProbeScore</key>
-			<integer>9001</integer>
+			<string>IOPlatformDevice</string>
 		</dict>
 	</dict>
 	<key>NSHumanReadableCopyright</key>
@@ -84,7 +82,9 @@
 		<key>com.apple.iokit.IOPCIFamily</key>
 		<string>2.9</string>
 		<key>com.apple.driver.AppleAPIC</key>
-        <string>1.4</string>
+                <string>1.4</string>
+                <key>com.apple.driver.ApplePS2Controller</key>
+                <string>1.1.0</string>
 	</dict>
 	<key>OSBundleRequired</key>
 	<string>Root</string>

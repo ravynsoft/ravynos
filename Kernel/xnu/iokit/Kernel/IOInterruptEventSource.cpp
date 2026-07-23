@@ -447,7 +447,6 @@ IOInterruptEventSource::normalInterruptOccurred
 (void */*refcon*/, IOService */*prov*/, int /*source*/)
 {
 	bool trace = (gIOKitTrace & kIOTraceIntEventSource) ? true : false;
-
 	IOStatisticsInterrupt();
 	producerCount++;
 

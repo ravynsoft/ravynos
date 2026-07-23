@@ -53,7 +53,7 @@ class ACPICPUInterruptController : public IOCPUInterruptController {
 	OSDeclareDefaultStructors(ACPICPUInterruptController);
 
 public:
-	virtual IOReturn handleInterrupt(void *refCon, IOService *nub, int source) APPLE_KEXT_OVERRIDE;
+        virtual IOReturn handleInterrupt(void *refCon, IOService *nub, int source) APPLE_KEXT_OVERRIDE;
 };
 
 #endif

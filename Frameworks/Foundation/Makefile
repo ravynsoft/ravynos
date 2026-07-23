@@ -7,7 +7,7 @@ FMWK_VERSION = C
 INFO_PLIST = Info.plist
 RESOURCES_DIRS = English.lproj
 RESOURCES_FILES != cd ${.CURDIR}; echo NSCharacterSet/*.bitmap
-HEADERS != cd ${.CURDIR}; echo Headers/Foundation/*
+HEADERS != cd ${.CURDIR}; echo Headers/Foundation/* Headers/*.h
 SLF = /System/Library/Frameworks
 INSTALL_NAME_DIR = ${SLF}/${FRAMEWORK}.framework/Versions/${FMWK_VERSION}
 

@@ -111,7 +111,8 @@ class __deprecated_msg("Use DriverKit") IOHIDEventService : public IOService
 class IOHIDEventService : public IOService
 #endif
 {
-    OSDeclareDefaultStructorsWithDispatch( IOHIDEventService )
+    //OSDeclareDefaultStructorsWithDispatch( IOHIDEventService )
+    OSDeclareDefaultStructors( IOHIDEventService )
     
     friend class IOHIDPointing;
     friend class IOHIDKeyboard;

@@ -1,0 +1,6 @@
+#ifndef _HIDDRIVERKIT_IOHIDDEVICE_H
+#define _HIDDRIVERKIT_IOHIDDEVICE_H
+
+#include <HIDDriverKit/IOHIDDeviceTypes.h>
+
+#endif /* _HIDDRIVERKIT_IOHIDDEVICE_H */

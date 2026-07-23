@@ -27,7 +27,7 @@
 #include <IOKit/hidsystem/IOHIDevice.h>
 #include <IOKit/hidsystem/IOHIDParameter.h>
 #include "IOHIDevicePrivateKeys.h"
-#include "IOHIDEventService.h"
+//#include "IOHIDEventService.h"
 
 #define super IOService
 OSDefineMetaClassAndStructors(IOHIDevice, IOService);
@@ -119,7 +119,7 @@ UInt64 IOHIDevice::getGUID()
 SInt32 IOHIDevice::GenerateKey(OSObject *object)
 {
     if ( !object )
-        return NULL;
+        return 0;
     IORegistryEntry* temp = (IORegistryEntry*)(object);
     return (SInt32)temp->getRegistryEntryID(); // Get unique key for this object;
 }
@@ -163,6 +163,7 @@ IOReturn IOHIDevice::setProperties( OSObject * properties )
 
 IOReturn IOHIDevice::setParamProperties( OSDictionary * dict )
 {
+#ifdef NEW_HID
     IOHIDEventService * eventService = NULL;
     
     if ( dict->getObject(kIOHIDEventServicePropertiesKey) == NULL ) {
@@ -170,6 +171,7 @@ IOReturn IOHIDevice::setParamProperties( OSDictionary * dict )
         if ( service )
             eventService = OSDynamicCast(IOHIDEventService, service);
     }
+#endif
 
     if ( dict->getObject(kIOHIDDeviceParametersKey) == kOSBooleanTrue ) {
         OSDictionary * deviceParameters = OSDynamicCast(OSDictionary, copyProperty(kIOHIDParametersKey));
@@ -222,10 +224,11 @@ IOReturn IOHIDevice::setParamProperties( OSDictionary * dict )
             setProperty(kIOHIDParametersKey, deviceParameters);
             deviceParameters->release();
 
+#ifdef NEW_HID
             // RY: Propogate up to IOHIDEventService level
             if ( eventService )
                 eventService->setSystemProperties(dict);
-
+#endif
         }
         else {
             return kIOReturnNoMemory;

@@ -718,6 +718,28 @@ RavynAHCIPort::interruptOccurred(IOInterruptEventSource *sender, int count)
     IOLockWakeup(fCommandLock, &fWaitChannel, true);
 }
 
+/*
+ * A command that times out, faults (TFES), or finds CI already set on
+ * entry leaves the port's single command slot permanently occupied -
+ * nothing else ever clears it, since the HBA only clears CI on a
+ * completion that already isn't coming. Every later I/O to this port
+ * then hits "Slot 0 already active" forever, which cascades into a
+ * storm of I/O errors up through IOBlockStorageDriver. Recover the
+ * port (stop engine, COMRESET, restart engine) so the slot is clear
+ * again for the next command; the caller still fails the command that
+ * triggered this.
+ */
+void
+RavynAHCIPort::recoverWedgedPort(uint32_t port)
+{
+    stopPortEngine(port);
+    if (!resetPort(port))
+        AHCI_Log("warning: recovery reset did not complete on port %u", port);
+    startPortEngine(port);
+    portWrite32(port, PORT_SERR, 0xFFFFFFFFU);
+    portWrite32(port, PORT_IS,   0xFFFFFFFFU);
+}
+
 bool
 RavynAHCIPort::issueCommand(PortState &portState,
                             uint8_t      ataCommand,
@@ -798,6 +820,7 @@ RavynAHCIPort::issueCommand(PortState &portState,
     if (ci & 1U) {
         AHCI_Log("Slot 0 already active on port %u, CI=%08x",
                 portState.port, ci);
+        recoverWedgedPort(portState.port);
         unlock();
         return false;
     }
@@ -812,6 +835,7 @@ RavynAHCIPort::issueCommand(PortState &portState,
         if (is & PORT_IS_TFES) {
             AHCI_Log("Command 0x%02x failed port=%u IS=%08x TFD=%08x",
                     ataCommand, portState.port, is, tfd);
+            recoverWedgedPort(portState.port);
             unlock();
             return false;
         }
@@ -840,6 +864,7 @@ RavynAHCIPort::issueCommand(PortState &portState,
             portRead32(portState.port, PORT_CI),
             portRead32(portState.port, PORT_IS),
             portRead32(portState.port, PORT_TFD));
+    recoverWedgedPort(portState.port);
     unlock();
     return false;
 }

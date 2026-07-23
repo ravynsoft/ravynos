@@ -51,6 +51,7 @@ HID_KERNPRIV_DST = ${KERNEL_PRIVHDRS}/IOKit/hid
 
 HIDSYS = IOHIDSystem/IOKit/hidsystem/ev_private.h \
 	IOHIDSystem/IOHIDPrivate.h \
+        IOHIDFamily/IOHIDUsageTables.h \
 	IOHIDFamily/AppleHIDUsageTables.h
 HIDSYS_DST = ${KERNEL_PRIVHDRS}/IOKit/hidsystem
 
@@ -74,7 +75,7 @@ HID_IOKIT = IOHIDFamily/IOHIDEventServiceTypes.h \
 	IOHIDLib/IOHIDLibObsolete.h \
 	IOHIDFamily/IOHIDKeys.h \
 	IOHIDFamily/IOHIDUsageTables.h
-HID_IOKIT2 = IOHIDServicePrivate.h IOHIDEvent.h IOHIDEventSystemClient.h \
+HID_IOKIT2 = IOHIDServicePrivate.h IOHIDEvent.h \
 	IOHIDEventSystemClientPrivate.h IOHIDService.h IOHIDServiceClient.h \
 	IOHIDServiceClientPrivate.h IOHIDServiceConnectionCache.h \
 	IOHIDServiceFilter.h IOHIDServiceFilterPlugIn.h IOHIDServiceKeys.h \
@@ -159,6 +160,7 @@ copy_headers: .PHONY
   ${HID_SYS_DST} ${HID_DK_DST}
 	mkdir -p ${dir}
 .endfor
+	touch ${HID_IOKIT_DST}/IOHIDEventSystemClient.h
 .for file in ${HID_KERNSYS}
 	cp -f ${.CURDIR:H}/${file} ${HID_KERNSYS_DST}
 .endfor

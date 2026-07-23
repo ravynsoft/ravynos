@@ -524,7 +524,7 @@ IOReturn IOHIDEventSystemUserClient::createEventQueueGated(void*p1,void*p2,void*
     require_action(owner, exit, ret = kIOReturnOffline);
     require_action(!kernelQueue, exit, *pToken = kIOHIDEventSystemKernelQueueID; ret = kIOReturnSuccess);
     
-    kernelQueue = IOHIDEventServiceQueue::withCapacity(this, (UInt32)size);
+    kernelQueue = 0; //IOHIDEventServiceQueue::withCapacity(this, (UInt32)size);
     require_action(kernelQueue, exit, ret = kIOReturnNoMemory);
     
     kernelQueue->setState(true);

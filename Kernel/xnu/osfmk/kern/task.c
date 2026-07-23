@@ -2104,8 +2104,35 @@ task_deliver_crash_notification(
 		if (th_iter->corpse_dup == FALSE) {
 			ipc_thread_reset(th_iter);
 		}
-	}
-	task_unlock(task);
+
+                x86_saved_state64_t *ss = USER_REGS64(th_iter);
+
+                if (ss == NULL)
+                        continue;
+
+                printf("thread %lx on cpu%d - err=%016llx\n", th_iter->thread_id,
+                        ss->isf.cpu, ss->isf.err);
+                printf("  CR2=%016llx RSP=%016llx RBP=%016llx RFLAGS=%08lx\n",
+                        ss->cr2, ss->isf.rsp, ss->rbp, ss->isf.rflags);
+                printf("  RAX=%016llx RBX=%016llx RCX=%016llx RDX=%016llx\n",
+                        ss->rax, ss->rbx, ss->rcx, ss->rdx);
+                printf("  RDI=%016llx RSI=%016llx R10=%016llx R8=%016llx\n",
+                        ss->rdi, ss->rsi, ss->r10, ss->r11);
+                printf("  R9=%016llx R15=%016llx R14=%016llx R13=%016llx\n",
+                        ss->r9, ss->r15, ss->r14, ss->r13);
+                printf("  R12=%016llx R11=%016llx RIP=%016llx\n",
+                        ss->r12, ss->r11, ss->isf.rip);
+                printf("  CS:%08x DS:%08x ES:%08x FS:%08x GS:%08x\n",
+                        ss->isf.cs, ss->ds, ss->es, ss->fs, ss->gs);
+
+                printf("Stack:\n");
+                uint64_t* frame = (uint64_t *)(ss->rbp);
+                for (int i = 0; i < 8; ++i) {
+                        printf("%016llx\n", *frame);
+                        frame = (uint64_t *)(*frame);
+                }
+        }
+        task_unlock(task);
 
 	/* Arm the no-sender notification for taskport */
 	task_reference(task);

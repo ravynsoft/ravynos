@@ -1,6 +1,4 @@
-/*-
- * SPDX-License-Identifier: BSD-3-Clause
- *
+/*
  * Copyright (c) 1989, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -15,7 +13,11 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the University nor the names of its contributors
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  *
@@ -32,23 +34,33 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/param.h>
+#include <sys/cdefs.h>
+#ifndef lint
+__used static const char copyright[] =
+"@(#) Copyright (c) 1989, 1993, 1994\n\
+	The Regents of the University of California.  All rights reserved.\n";
+#endif /* not lint */
+
+#if 0
+#ifndef lint
+static char sccsid[] = "@(#)ls.c	8.5 (Berkeley) 4/2/94";
+#endif /* not lint */
+#endif
+#include <sys/cdefs.h>
+__RCSID("$FreeBSD: src/bin/ls/ls.c,v 1.66 2002/09/21 01:28:36 wollman Exp $");
+
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <sys/mac.h>
 
-#include <ctype.h>
 #include <dirent.h>
 #include <err.h>
 #include <errno.h>
 #include <fts.h>
-#include <getopt.h>
 #include <grp.h>
-#include <inttypes.h>
 #include <limits.h>
 #include <locale.h>
 #include <pwd.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,7 +69,16 @@
 #include <termcap.h>
 #include <signal.h>
 #endif
-
+#ifdef __APPLE__
+#include <sys/acl.h>
+#include <sys/xattr.h>
+#include <sys/param.h>
+#include <get_compat.h>
+#include <sys/sysctl.h>
+#include <System/sys/fsctl.h>
+#else
+#define COMPAT_MODE(a,b) (1)
+#endif /* __APPLE__ */
 #include "ls.h"
 #include "extern.h"
 
@@ -68,46 +89,12 @@
  */
 #define	STRBUF_SIZEOF(t)	(1 + CHAR_BIT * sizeof(t) / 3 + 1)
 
-/*
- * MAKENINES(n) turns n into (10**n)-1.  This is useful for converting a width
- * into a number that wide in decimal.
- * XXX: Overflows are not considered.
- */
-#define MAKENINES(n)							\
-	do {								\
-		intmax_t __i;						\
-									\
-		/* Use a loop as all values of n are small. */		\
-		for (__i = 1; n > 0; __i *= 10)				\
-			n--;						\
-		n = __i - 1;						\
-	} while(0)
-
-static void	 display(const FTSENT *, FTSENT *, int);
-static int	 mastercmp(const FTSENT * const *, const FTSENT * const *);
+static void	 display(FTSENT *, FTSENT *);
+static u_quad_t	 makenines(u_quad_t);
+static int	 mastercmp(const FTSENT **, const FTSENT **);
 static void	 traverse(int, char **, int);
 
-enum {
-	GRP_NONE = 0,
-	GRP_DIR_FIRST = -1,
-	GRP_DIR_LAST = 1
-};
-
-enum {
-	BIN_OPT = CHAR_MAX,
-	COLOR_OPT,
-	GROUP_OPT
-};
-
-static const struct option long_opts[] =
-{
-        {"color",        optional_argument,      NULL, COLOR_OPT},
-        {"group-directories", optional_argument, NULL, GROUP_OPT},
-        {"group-directories-first", no_argument, NULL, GROUP_OPT},
-        {NULL,           no_argument,            NULL, 0}
-};
-
-static void (*printfcn)(const DISPLAY *);
+static void (*printfcn)(DISPLAY *);
 static int (*sortfcn)(const FTSENT *, const FTSENT *);
 
 long blocksize;			/* block size units */
@@ -115,117 +102,50 @@ int termwidth = 80;		/* default terminal width */
 
 /* flags */
        int f_accesstime;	/* use time of last access */
-       int f_birthtime;		/* use time of birth */
+       int f_birthtime;		/* use time of file birth */
        int f_flags;		/* show flags associated with a file */
-static int f_groupdir = GRP_NONE;/* group directories first/last */
        int f_humanval;		/* show human-readable file sizes */
        int f_inode;		/* print inode */
 static int f_kblocks;		/* print size in kilobytes */
-       int f_label;		/* show MAC label */
 static int f_listdir;		/* list actual directory, not contents */
 static int f_listdot;		/* list files beginning with . */
        int f_longform;		/* long listing format */
-static int f_noautodot;		/* do not automatically enable -A for root */
-static int f_nofollow;		/* don't follow symbolic link arguments */
        int f_nonprint;		/* show unprintables as ? */
 static int f_nosort;		/* don't sort output */
        int f_notabs;		/* don't use tab-separated multi-col output */
-static int f_numericonly;	/* don't convert uid/gid to name */
+       int f_numericonly;	/* don't convert uid/gid to name */
        int f_octal;		/* show unprintables as \xxx */
        int f_octal_escape;	/* like f_octal but use C escapes if possible */
 static int f_recursive;		/* ls subdirectories also */
 static int f_reversesort;	/* reverse whatever sort is used */
-static int f_verssort;		/* sort names using strverscmp(3) rather than strcoll(3) */
-       int f_samesort;		/* sort time and name in same direction */
-       int f_sectime;		/* print full time information */
+       int f_sectime;		/* print the real time for all files */
 static int f_singlecol;		/* use single column output */
        int f_size;		/* list size in short listing */
-static int f_sizesort;
        int f_slash;		/* similar to f_type, but only for dirs */
-       int f_sortacross;	/* sort across rows, not down columns */
-       int f_sowner;		/* disable showing owner's name */
+       int f_sortacross;	/* sort across rows, not down columns */ 
        int f_statustime;	/* use time of last mode change */
-static int f_stream;		/* stream the output, separate with commas */
-       int f_thousands;		/* show file sizes with thousands separators */
-       char *f_timeformat;	/* user-specified time format */
+       int f_stream;		/* stream the output, separate with commas */
 static int f_timesort;		/* sort by time vice name */
+static int f_sizesort;		/* sort by size */
        int f_type;		/* add type character for non-regular files */
 static int f_whiteout;		/* show whiteout entries */
+       int f_acl;		/* show ACLs in long listing */
+       int f_xattr;		/* show extended attributes in long listing */
+       int f_group;		/* show group */
+       int f_owner;		/* show owner */
+       int f_dataless;          /* distinguish dataless files in long listing,
+				   and don't materialize dataless directories. */
 #ifdef COLORLS
-       int colorflag = COLORFLAG_NEVER;		/* passed in colorflag */
        int f_color;		/* add type in color for non-regular files */
-       bool explicitansi;	/* Explicit ANSI sequences, no termcap(5) */
+
 char *ansi_bgcol;		/* ANSI sequence to set background colour */
 char *ansi_fgcol;		/* ANSI sequence to set foreground colour */
 char *ansi_coloff;		/* ANSI sequence to reset colours */
 char *attrs_off;		/* ANSI sequence to turn off attributes */
 char *enter_bold;		/* ANSI sequence to set color to bold mode */
-char *enter_underline;		/* ANSI sequence to enter underline mode */
 #endif
 
 static int rval;
-
-static bool
-do_color_from_env(void)
-{
-	const char *p;
-	bool doit;
-
-	doit = false;
-	p = getenv("CLICOLOR");
-	if (p == NULL) {
-		/*
-		 * COLORTERM is the more standard name for this variable.  We'll
-		 * honor it as long as it's both set and not empty.
-		 */
-		p = getenv("COLORTERM");
-		if (p != NULL && *p != '\0')
-			doit = true;
-	} else
-		doit = true;
-
-	return (doit &&
-	    (isatty(STDOUT_FILENO) || getenv("CLICOLOR_FORCE")));
-}
-
-static bool
-do_color(void)
-{
-
-#ifdef COLORLS
-	if (colorflag == COLORFLAG_NEVER)
-		return (false);
-	else if (colorflag == COLORFLAG_ALWAYS)
-		return (true);
-#endif
-	return (do_color_from_env());
-}
-
-#ifdef COLORLS
-static bool
-do_color_always(const char *term)
-{
-
-	return (strcmp(term, "always") == 0 || strcmp(term, "yes") == 0 ||
-	    strcmp(term, "force") == 0);
-}
-
-static bool
-do_color_never(const char *term)
-{
-
-	return (strcmp(term, "never") == 0 || strcmp(term, "no") == 0 ||
-	    strcmp(term, "none") == 0);
-}
-
-static bool
-do_color_auto(const char *term)
-{
-
-	return (strcmp(term, "auto") == 0 || strcmp(term, "tty") == 0 ||
-	    strcmp(term, "if-tty") == 0);
-}
-#endif	/* COLORLS */
 
 int
 main(int argc, char *argv[])
@@ -234,20 +154,21 @@ main(int argc, char *argv[])
 	struct winsize win;
 	int ch, fts_options, notused;
 	char *p;
-	const char *errstr = NULL;
 #ifdef COLORLS
 	char termcapbuf[1024];	/* termcap definition buffer */
 	char tcapbuf[512];	/* capability buffer */
-	char *bp = tcapbuf, *term;
+	char *bp = tcapbuf;
 #endif
 
+	if (argc < 1)
+		usage();
 	(void)setlocale(LC_ALL, "");
 
 	/* Terminal defaults to -Cq, non-terminal defaults to -1. */
 	if (isatty(STDOUT_FILENO)) {
 		termwidth = 80;
 		if ((p = getenv("COLUMNS")) != NULL && *p != '\0')
-			termwidth = strtonum(p, 0, INT_MAX, &errstr);
+			termwidth = atoi(p);
 		else if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &win) != -1 &&
 		    win.ws_col > 0)
 			termwidth = win.ws_col;
@@ -257,27 +178,16 @@ main(int argc, char *argv[])
 		/* retrieve environment variable, in case of explicit -C */
 		p = getenv("COLUMNS");
 		if (p)
-			termwidth = strtonum(p, 0, INT_MAX, &errstr);
+			termwidth = atoi(p);
 	}
 
-	if (errstr)
-		termwidth = 80;
+	/* Root is -A automatically. */
+	if (!getuid())
+		f_listdot = 1;
 
 	fts_options = FTS_PHYSICAL;
-	if (getenv("LS_SAMESORT"))
-		f_samesort = 1;
-
-	/*
-	 * For historical compatibility, we'll use our autodetection if CLICOLOR
-	 * is set.
-	 */
-#ifdef COLORLS
-	if (getenv("CLICOLOR"))
-		colorflag = COLORFLAG_AUTO;
-#endif
-	while ((ch = getopt_long(argc, argv,
-	    "+1ABCD:FGHILPRSTUWXZabcdfghiklmnopqrstuvwxy,", long_opts,
-	    NULL)) != -1) {
+	while ((ch = getopt(argc, argv, "1@ABCFGHLOPRSTUWabcdefghiklmnopqrstuvwx%"))
+	    != -1) {
 		switch (ch) {
 		/*
 		 * The -1, -C, -x and -l options all override each other so
@@ -287,6 +197,11 @@ main(int argc, char *argv[])
 			f_singlecol = 1;
 			f_longform = 0;
 			f_stream = 0;
+			break;
+		case 'B':
+			f_nonprint = 0;
+			f_octal = 1;
+			f_octal_escape = 0;
 			break;
 		case 'C':
 			f_sortacross = f_longform = f_singlecol = 0;
@@ -301,119 +216,74 @@ main(int argc, char *argv[])
 			f_longform = 0;
 			f_singlecol = 0;
 			break;
-		/* The -c, -u, and -U options override each other. */
+		/* The -c and -u options override each other. */
 		case 'c':
 			f_statustime = 1;
-			f_accesstime = 0;
-			f_birthtime = 0;
+			f_accesstime = f_birthtime = 0;
 			break;
 		case 'u':
 			f_accesstime = 1;
-			f_statustime = 0;
-			f_birthtime = 0;
+			f_statustime = f_birthtime = 0;
 			break;
 		case 'U':
 			f_birthtime = 1;
-			f_accesstime = 0;
-			f_statustime = 0;
+			f_statustime = f_accesstime = 0;
 			break;
-		case 'f':
-			f_nosort = 1;
-		       /* FALLTHROUGH */
+		case 'F':
+			f_type = 1;
+			f_slash = 0;
+			break;
+		case 'H':
+			if (COMPAT_MODE("bin/ls", "Unix2003")) {
+				fts_options &= ~FTS_LOGICAL;
+				fts_options |= FTS_PHYSICAL;
+				fts_options |= FTS_COMFOLLOWDIR;
+			} else
+				fts_options |= FTS_COMFOLLOW;
+			break;
+		case 'G':
+			setenv("CLICOLOR", "", 1);
+			break;
+		case 'L':
+			fts_options &= ~FTS_PHYSICAL;
+			fts_options |= FTS_LOGICAL;
+			if (COMPAT_MODE("bin/ls", "Unix2003")) {
+				fts_options &= ~(FTS_COMFOLLOW|FTS_COMFOLLOWDIR);
+			}
+			break;
+		case 'P':
+			fts_options &= ~(FTS_COMFOLLOW|FTS_COMFOLLOWDIR);
+			fts_options &= ~FTS_LOGICAL;
+			fts_options |= FTS_PHYSICAL;
+			break;
+		case 'R':
+			f_recursive = 1;
+			break;
 		case 'a':
 			fts_options |= FTS_SEEDOT;
 			/* FALLTHROUGH */
 		case 'A':
 			f_listdot = 1;
 			break;
-		/* The -S, -t and -v options override each other. */
-		case 'S':
-			f_sizesort = 1;
-			f_timesort = 0;
-			f_verssort = 0;
-			break;
-		case 't':
-			f_timesort = 1;
-			f_sizesort = 0;
-			f_verssort = 0;
-			break;
-		case 'v':
-			f_verssort = 1;
-			f_sizesort = 0;
-			f_timesort = 0;
-			break;
-		/* Other flags.  Please keep alphabetic. */
-		case ',':
-			f_thousands = 1;
-			break;
-		case 'B':
-			f_nonprint = 0;
-			f_octal = 1;
-			f_octal_escape = 0;
-			break;
-		case 'D':
-			f_timeformat = optarg;
-			break;
-		case 'F':
-			f_type = 1;
-			f_slash = 0;
-			break;
-		case 'G':
-			/*
-			 * We both set CLICOLOR here and set colorflag to
-			 * COLORFLAG_AUTO, because -G should not force color if
-			 * stdout isn't a tty.
-			 */
-			setenv("CLICOLOR", "", 1);
-#ifdef COLORLS
-			colorflag = COLORFLAG_AUTO;
-#endif
-			break;
-		case 'H':
-			fts_options |= FTS_COMFOLLOW;
-			f_nofollow = 0;
-			break;
-		case 'I':
-			f_noautodot = 1;
-			break;
-		case 'L':
-			fts_options &= ~FTS_PHYSICAL;
-			fts_options |= FTS_LOGICAL;
-			f_nofollow = 0;
-			break;
-		case 'P':
-			fts_options &= ~FTS_COMFOLLOW;
-			fts_options &= ~FTS_LOGICAL;
-			fts_options |= FTS_PHYSICAL;
-			f_nofollow = 1;
-			break;
-		case 'R':
-			f_recursive = 1;
-			break;
-		case 'T':
-			f_sectime = 1;
-			break;
-		case 'W':
-			f_whiteout = 1;
-			break;
-		case 'Z':
-			f_label = 1;
-			break;
-		case 'b':
-			f_nonprint = 0;
-			f_octal = 0;
-			f_octal_escape = 1;
-			break;
 		/* The -d option turns off the -R option. */
 		case 'd':
 			f_listdir = 1;
 			f_recursive = 0;
 			break;
-		case 'g':
-			f_longform = 1;
-			f_singlecol = 0;
-			f_stream = 0;
-			f_sowner = 1;
+		case 'f':
+			f_nosort = 1;
+			if (COMPAT_MODE("bin/ls", "Unix2003")) {
+				fts_options |= FTS_SEEDOT;
+				f_listdot = 1;
+			}
+			break;
+		case 'g':	/* Compatibility with Unix03 */
+			if (COMPAT_MODE("bin/ls", "Unix2003")) {
+				f_group = 1;
+				f_longform = 1;
+				f_singlecol = 0;
+				f_stream = 0;
+			}
 			break;
 		case 'h':
 			f_humanval = 1;
@@ -422,7 +292,6 @@ main(int argc, char *argv[])
 			f_inode = 1;
 			break;
 		case 'k':
-			f_humanval = 0;
 			f_kblocks = 1;
 			break;
 		case 'm':
@@ -432,12 +301,21 @@ main(int argc, char *argv[])
 			break;
 		case 'n':
 			f_numericonly = 1;
-			f_longform = 1;
-			f_singlecol = 0;
-			f_stream = 0;
+			if (COMPAT_MODE("bin/ls", "Unix2003")) {
+				f_longform = 1;
+				f_singlecol = 0;
+				f_stream = 0;
+			}
 			break;
 		case 'o':
-			f_flags = 1;
+			if (COMPAT_MODE("bin/ls", "Unix2003")) {
+				f_owner = 1;
+				f_longform = 1;
+				f_singlecol = 0;
+				f_stream = 0;
+			} else {
+				f_flags = 1;
+			}
 			break;
 		case 'p':
 			f_slash = 1;
@@ -451,41 +329,48 @@ main(int argc, char *argv[])
 		case 'r':
 			f_reversesort = 1;
 			break;
+		case 'S':
+			/* Darwin 1.4.1 compatibility */
+			f_sizesort = 1;
+			break;
 		case 's':
 			f_size = 1;
+			break;
+		case 'T':
+			f_sectime = 1;
+			break;
+		case 't':
+			f_timesort = 1;
+			break;
+		case 'W':
+			f_whiteout = 1;
+			break;
+		case 'v':
+			/* Darwin 1.4.1 compatibility */
+			f_nonprint = 0;
+			break;
+		case 'b':
+			f_nonprint = 0;
+			f_octal = 0;
+			f_octal_escape = 1;
 			break;
 		case 'w':
 			f_nonprint = 0;
 			f_octal = 0;
 			f_octal_escape = 0;
 			break;
-		case 'y':
-			f_samesort = 1;
+		case 'e':
+			f_acl = 1;
 			break;
-		case GROUP_OPT:
-			if (optarg == NULL || strcmp(optarg, "first") == 0)
-				f_groupdir = GRP_DIR_FIRST;
-			else if (strcmp(optarg, "last") == 0)
-				f_groupdir = GRP_DIR_LAST;
-			else
-				errx(2, "unsupported --group-directories value '%s' (must be first or last)",
-				    optarg);
+		case '@':
+			f_xattr = 1;
 			break;
-		case COLOR_OPT:
-#ifdef COLORLS
-			if (optarg == NULL || do_color_always(optarg))
-				colorflag = COLORFLAG_ALWAYS;
-			else if (do_color_auto(optarg))
-				colorflag = COLORFLAG_AUTO;
-			else if (do_color_never(optarg))
-				colorflag = COLORFLAG_NEVER;
-			else
-				errx(2, "unsupported --color value '%s' (must be always, auto, or never)",
-				    optarg);
+		case 'O':
+			f_flags = 1;
 			break;
-#else
-			warnx("color support not compiled in");
-#endif
+		case '%':
+			f_dataless = 1;
+			break;
 		default:
 		case '?':
 			usage();
@@ -494,23 +379,15 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
-	/* Root is -A automatically unless -I. */
-	if (!f_listdot && getuid() == (uid_t)0 && !f_noautodot)
-		f_listdot = 1;
-
-	/*
-	 * Enabling of colours is conditional on the environment in conjunction
-	 * with the --color and -G arguments, if supplied.
-	 */
-	if (do_color()) {
+	/* Enabling of colours is conditional on the environment. */
+	if (getenv("CLICOLOR") &&
+	    (isatty(STDOUT_FILENO) || getenv("CLICOLOR_FORCE")))
 #ifdef COLORLS
-		if ((term = getenv("TERM")) != NULL &&
-		    tgetent(termcapbuf, term) == 1) {
+		if (tgetent(termcapbuf, getenv("TERM")) == 1) {
 			ansi_fgcol = tgetstr("AF", &bp);
 			ansi_bgcol = tgetstr("AB", &bp);
 			attrs_off = tgetstr("me", &bp);
 			enter_bold = tgetstr("md", &bp);
-			enter_underline = tgetstr("us", &bp);
 
 			/* To switch colours off use 'op' if
 			 * available, otherwise use 'oc', or
@@ -520,17 +397,10 @@ main(int argc, char *argv[])
 				ansi_coloff = tgetstr("oc", &bp);
 			if (ansi_fgcol && ansi_bgcol && ansi_coloff)
 				f_color = 1;
-		} else if (colorflag == COLORFLAG_ALWAYS) {
-			/*
-			 * If we're *always* doing color but we don't have
-			 * a functional TERM supplied, we'll fallback to
-			 * outputting raw ANSI sequences.
-			 */
-			f_color = 1;
-			explicitansi = true;
 		}
+#else
+		(void)fprintf(stderr, "Color support not compiled in.\n");
 #endif /*COLORLS*/
-	}
 
 #ifdef COLORLS
 	if (f_color) {
@@ -547,12 +417,11 @@ main(int argc, char *argv[])
 #endif
 
 	/*
-	 * If not -F, -i, -l, -s, -S, -t or --group-directories options,
-	 * don't require stat information, unless in color mode in which case
-	 * we do need this to determine which colors to display.
+	 * If not -F, -i, -l, -s or -t options, don't require stat
+	 * information, unless in color mode in which case we do
+	 * need this to determine which colors to display.
 	 */
-	if (!f_inode && !f_longform && !f_size && !f_timesort &&
-	    !f_sizesort && !f_type && f_groupdir == GRP_NONE
+	if (!f_inode && !f_longform && !f_size && !f_timesort && !f_type && !f_sizesort
 #ifdef COLORLS
 	    && !f_color
 #endif
@@ -560,15 +429,10 @@ main(int argc, char *argv[])
 		fts_options |= FTS_NOSTAT;
 
 	/*
-	 * If not -F, -P, -d or -l options, follow any symbolic links listed on
-	 * the command line, unless in color mode in which case we need to
-	 * distinguish file type for a symbolic link itself and its target.
+	 * If not -F, -d or -l options, follow any symbolic links listed on
+	 * the command line.
 	 */
-	if (!f_nofollow && !f_longform && !f_listdir && (!f_type || f_slash)
-#ifdef COLORLS
-	    && !f_color
-#endif
-	    )
+	if (!f_longform && !f_listdir && !f_type && !f_inode)
 		fts_options |= FTS_COMFOLLOW;
 
 	/*
@@ -579,8 +443,8 @@ main(int argc, char *argv[])
 		fts_options |= FTS_WHITEOUT;
 #endif
 
-	/* If -i, -l or -s, figure out block size. */
-	if (f_inode || f_longform || f_size) {
+	/* If -l or -s, figure out block size. */
+	if (f_longform || f_size) {
 		if (f_kblocks)
 			blocksize = 2;
 		else {
@@ -588,36 +452,31 @@ main(int argc, char *argv[])
 			blocksize /= 512;
 		}
 	}
-
 	/* Select a sort function. */
 	if (f_reversesort) {
 		if (f_sizesort)
 			sortfcn = revsizecmp;
-		else if (f_verssort)
-			sortfcn = revverscmp;
 		else if (!f_timesort)
 			sortfcn = revnamecmp;
 		else if (f_accesstime)
 			sortfcn = revacccmp;
-		else if (f_birthtime)
-			sortfcn = revbirthcmp;
 		else if (f_statustime)
 			sortfcn = revstatcmp;
+		else if (f_birthtime)
+			sortfcn = revbirthcmp;
 		else		/* Use modification time. */
 			sortfcn = revmodcmp;
 	} else {
 		if (f_sizesort)
 			sortfcn = sizecmp;
-		else if (f_verssort)
-			sortfcn = verscmp;
 		else if (!f_timesort)
 			sortfcn = namecmp;
 		else if (f_accesstime)
 			sortfcn = acccmp;
-		else if (f_birthtime)
-			sortfcn = birthcmp;
 		else if (f_statustime)
 			sortfcn = statcmp;
+		else if (f_birthtime)
+			sortfcn = birthcmp;
 		else		/* Use modification time. */
 			sortfcn = modcmp;
 	}
@@ -631,6 +490,17 @@ main(int argc, char *argv[])
 		printfcn = printstream;
 	else
 		printfcn = printcol;
+
+#ifdef __APPLE__
+	if (f_dataless) {
+		// don't materialize dataless directories from the cloud
+		// (particularly usefull when listing recursively)
+		int state = 1;
+		if (sysctlbyname("vfs.nspace.prevent_materialization", NULL, NULL, &state, sizeof(state)) < 0) {
+			err(1, "prevent_materialization");
+		}
+	}
+#endif /* __APPLE__ */
 
 	if (argc)
 		traverse(argc, argv, fts_options);
@@ -652,19 +522,13 @@ traverse(int argc, char *argv[], int options)
 {
 	FTS *ftsp;
 	FTSENT *p, *chp;
-	int ch_options;
+	int ch_options, error;
 
 	if ((ftsp =
 	    fts_open(argv, options, f_nosort ? NULL : mastercmp)) == NULL)
 		err(1, "fts_open");
 
-	/*
-	 * We ignore errors from fts_children here since they will be
-	 * replicated and signalled on the next call to fts_read() below.
-	 */
-	chp = fts_children(ftsp, 0);
-	if (chp != NULL)
-		display(NULL, chp, options);
+	display(NULL, fts_children(ftsp, 0));
 	if (f_listdir) {
 		fts_close(ftsp);
 		return;
@@ -674,50 +538,69 @@ traverse(int argc, char *argv[], int options)
 	 * If not recursing down this tree and don't need stat info, just get
 	 * the names.
 	 */
-	ch_options = !f_recursive && !f_label &&
-	    options & FTS_NOSTAT ? FTS_NAMEONLY : 0;
+	ch_options = !f_recursive && options & FTS_NOSTAT ? FTS_NAMEONLY : 0;
 
-	while (errno = 0, (p = fts_read(ftsp)) != NULL)
+	while ((p = fts_read(ftsp)) != NULL)
 		switch (p->fts_info) {
 		case FTS_DC:
 			warnx("%s: directory causes a cycle", p->fts_name);
+			if (COMPAT_MODE("bin/ls", "Unix2003")) {
+				rval = 1;
+			}
 			break;
 		case FTS_DNR:
 		case FTS_ERR:
-			warnx("%s: %s", p->fts_path, strerror(p->fts_errno));
+			warnx("%s: %s", p->fts_name, strerror(p->fts_errno));
 			rval = 1;
 			break;
 		case FTS_D:
 			if (p->fts_level != FTS_ROOTLEVEL &&
-			    p->fts_name[0] == '.' && !f_listdot)
+			    p->fts_name[0] == '.' && !f_listdot) {
+				fts_set(ftsp, p, FTS_SKIP);
 				break;
+			}
 
 			/*
 			 * If already output something, put out a newline as
 			 * a separator.  If multiple arguments, precede each
 			 * directory with its name.
 			 */
-			if (output) {
-				putchar('\n');
-				(void)printname(p->fts_path);
-				puts(":");
-			} else if (argc > 1) {
-				(void)printname(p->fts_path);
-				puts(":");
+			if (output)
+				(void)printf("\n%s:\n", p->fts_path);
+			else if (argc > 1) {
+				(void)printf("%s:\n", p->fts_path);
 				output = 1;
 			}
 			chp = fts_children(ftsp, ch_options);
-			display(p, chp, options);
+			if (COMPAT_MODE("bin/ls", "Unix2003") && ((options & FTS_LOGICAL)!=0)) {
+				FTSENT *curr;
+				for (curr = chp; curr; curr = curr->fts_link) {
+					if (curr->fts_info == FTS_SLNONE)
+						curr->fts_number = NO_PRINT;
+				}
+			}
+			display(p, chp);
 
 			if (!f_recursive && chp != NULL)
 				(void)fts_set(ftsp, p, FTS_SKIP);
 			break;
+		case FTS_SLNONE:	/* Same as default unless Unix conformance */
+			if (COMPAT_MODE("bin/ls", "Unix2003")) {
+				if ((options & FTS_LOGICAL)!=0) {	/* -L was specified */
+					warnx("%s: %s", p->fts_name, strerror(p->fts_errno ?: ENOENT));
+					rval = 1;
+				}
+			}
+			break;
 		default:
 			break;
 		}
+	error = errno;
+	fts_close(ftsp);
+	errno = error;
+
 	if (errno)
 		err(1, "fts_read");
-	fts_close(ftsp);
 }
 
 /*
@@ -726,82 +609,125 @@ traverse(int argc, char *argv[], int options)
  * points to the parent directory of the display list.
  */
 static void
-display(const FTSENT *p, FTSENT *list, int options)
+display(FTSENT *p, FTSENT *list)
 {
 	struct stat *sp;
 	DISPLAY d;
 	FTSENT *cur;
 	NAMES *np;
 	off_t maxsize;
-	long maxblock;
-	uintmax_t maxinode;
-	u_long btotal, labelstrlen, maxlen, maxnlink;
-	u_long maxlabelstr;
-	u_int sizelen;
-	int maxflags;
+	u_int64_t btotal, maxblock;
+	u_long lattrlen, maxlen, maxnlink, maxlattr;
+	ino_t maxinode;
+	int bcfile, maxflags;
 	gid_t maxgroup;
 	uid_t maxuser;
 	size_t flen, ulen, glen;
 	char *initmax;
 	int entries, needstats;
 	const char *user, *group;
-	char *flags, *labelstr = NULL;
+	char *flags, *lattr = NULL;
+	char buf[STRBUF_SIZEOF(u_quad_t) + 1];
 	char ngroup[STRBUF_SIZEOF(uid_t) + 1];
 	char nuser[STRBUF_SIZEOF(gid_t) + 1];
-	u_long width[9];
-	int i;
+#ifdef __APPLE__
+	acl_entry_t dummy;
+	ssize_t xattr_size;
+	char *filename;
+	char path[MAXPATHLEN+1];
+#endif // __APPLE__
+	/*
+	 * If list is NULL there are two possibilities: that the parent
+	 * directory p has no children, or that fts_children() returned an
+	 * error.  We ignore the error case since it will be replicated
+	 * on the next call to fts_read() on the post-order visit to the
+	 * directory p, and will be signaled in traverse().
+	 */
+	if (list == NULL)
+		return;
 
 	needstats = f_inode || f_longform || f_size;
-	flen = 0;
 	btotal = 0;
-
-#define LS_COLWIDTHS_FIELDS	9
 	initmax = getenv("LS_COLWIDTHS");
+	/* Fields match -lios order.  New ones should be added at the end. */
+	maxlattr = maxblock = maxinode = maxlen = maxnlink =
+	    maxuser = maxgroup = maxflags = maxsize = 0;
+	if (initmax != NULL && *initmax != '\0') {
+		char *initmax2, *jinitmax;
+		int ninitmax;
 
-	for (i = 0 ; i < LS_COLWIDTHS_FIELDS; i++)
-		width[i] = 0;
-
-	if (initmax != NULL) {
-		char *endp;
-
-		for (i = 0; i < LS_COLWIDTHS_FIELDS && *initmax != '\0'; i++) {
-			if (*initmax == ':') {
-				width[i] = 0;
+		/* Fill-in "::" as "0:0:0" for the sake of scanf. */
+		jinitmax = initmax2 = malloc(strlen(initmax) * 2 + 2);
+		if (jinitmax == NULL)
+			err(1, "malloc");
+		if (*initmax == ':')
+			strcpy(initmax2, "0:"), initmax2 += 2;
+		else
+			*initmax2++ = *initmax, *initmax2 = '\0';
+		for (initmax++; *initmax != '\0'; initmax++) {
+			if (initmax[-1] == ':' && initmax[0] == ':') {
+				*initmax2++ = '0';
+				*initmax2++ = initmax[0];
+				initmax2[1] = '\0';
 			} else {
-				width[i] = strtoul(initmax, &endp, 10);
-				initmax = endp;
-				while (isspace(*initmax))
-					initmax++;
-				if (*initmax != ':')
-					break;
-				initmax++;
+				*initmax2++ = initmax[0];
+				initmax2[1] = '\0';
 			}
 		}
-		if (i < LS_COLWIDTHS_FIELDS)
+		if (initmax2[-1] == ':')
+			strcpy(initmax2, "0");
+
+		ninitmax = sscanf(jinitmax,
+#if _DARWIN_FEATURE_64_BIT_INODE
+		    " %llu : %qu : %lu : %i : %i : %i : %qu : %lu : %lu ",
+#else
+		    " %lu : %qu : %lu : %i : %i : %i : %qu : %lu : %lu ",
+#endif
+		    &maxinode, &maxblock, &maxnlink, &maxuser,
+		    &maxgroup, &maxflags, &maxsize, &maxlen, &maxlattr);
+		f_notabs = 1;
+		switch (ninitmax) {
+		case 0:
+			maxinode = 0;
+			/* FALLTHROUGH */
+		case 1:
+			maxblock = 0;
+			/* FALLTHROUGH */
+		case 2:
+			maxnlink = 0;
+			/* FALLTHROUGH */
+		case 3:
+			maxuser = 0;
+			/* FALLTHROUGH */
+		case 4:
+			maxgroup = 0;
+			/* FALLTHROUGH */
+		case 5:
+			maxflags = 0;
+			/* FALLTHROUGH */
+		case 6:
+			maxsize = 0;
+			/* FALLTHROUGH */
+		case 7:
+			maxlen = 0;
+			/* FALLTHROUGH */
+		case 8:
+			maxlattr = 0;
+			/* FALLTHROUGH */
 #ifdef COLORLS
 			if (!f_color)
 #endif
 				f_notabs = 0;
+			/* FALLTHROUGH */
+		default:
+			break;
+		}
+		maxinode = makenines(maxinode);
+		maxblock = makenines(maxblock);
+		maxnlink = makenines(maxnlink);
+		maxsize = makenines(maxsize);
 	}
-
-	/* Fields match -lios order.  New ones should be added at the end. */
-	maxinode = width[0];
-	maxblock = width[1];
-	maxnlink = width[2];
-	maxuser = width[3];
-	maxgroup = width[4];
-	maxflags = width[5];
-	maxsize = width[6];
-	maxlen = width[7];
-	maxlabelstr = width[8];
-
-	MAKENINES(maxinode);
-	MAKENINES(maxblock);
-	MAKENINES(maxnlink);
-	MAKENINES(maxsize);
-
-	d.s_size = 0;
-	sizelen = 0;
+	bcfile = 0;
 	flags = NULL;
 	for (cur = list, entries = 0; cur; cur = cur->fts_link) {
 		if (cur->fts_info == FTS_ERR || cur->fts_info == FTS_NS) {
@@ -858,21 +784,7 @@ display(const FTSENT *p, FTSENT *list, int options)
 					group = ngroup;
 				} else {
 					user = user_from_uid(sp->st_uid, 0);
-					/*
-					 * user_from_uid(..., 0) only returns
-					 * NULL in OOM conditions.  We could
-					 * format the uid here, but (1) in
-					 * general ls(1) exits on OOM, and (2)
-					 * there is another allocation/exit
-					 * path directly below, which will
-					 * likely exit anyway.
-					 */
-					if (user == NULL)
-						err(1, "user_from_uid");
 					group = group_from_gid(sp->st_gid, 0);
-					/* Ditto. */
-					if (group == NULL)
-						err(1, "group_from_gid");
 				}
 				if ((ulen = strlen(user)) > maxuser)
 					maxuser = ulen;
@@ -891,62 +803,10 @@ display(const FTSENT *p, FTSENT *list, int options)
 						maxflags = flen;
 				} else
 					flen = 0;
-				labelstr = NULL;
-				if (f_label) {
-					char name[PATH_MAX + 1];
-					mac_t label;
-					int error;
-
-					error = mac_prepare_file_label(&label);
-					if (error == -1) {
-						warn("MAC label for %s/%s",
-						    cur->fts_parent->fts_path,
-						    cur->fts_name);
-						goto label_out;
-					}
-
-					if (cur->fts_level == FTS_ROOTLEVEL)
-						snprintf(name, sizeof(name),
-						    "%s", cur->fts_name);
-					else
-						snprintf(name, sizeof(name),
-						    "%s/%s", cur->fts_parent->
-						    fts_accpath, cur->fts_name);
-
-					if (options & FTS_LOGICAL)
-						error = mac_get_file(name,
-						    label);
-					else
-						error = mac_get_link(name,
-						    label);
-					if (error == -1) {
-						warn("MAC label for %s/%s",
-						    cur->fts_parent->fts_path,
-						    cur->fts_name);
-						mac_free(label);
-						goto label_out;
-					}
-
-					error = mac_to_text(label,
-					    &labelstr);
-					if (error == -1) {
-						warn("MAC label for %s/%s",
-						    cur->fts_parent->fts_path,
-						    cur->fts_name);
-						mac_free(label);
-						goto label_out;
-					}
-					mac_free(label);
-label_out:
-					if (labelstr == NULL)
-						labelstr = strdup("-");
-					labelstrlen = strlen(labelstr);
-					if (labelstrlen > maxlabelstr)
-						maxlabelstr = labelstrlen;
-				} else
-					labelstrlen = 0;
-
-				if ((np = malloc(sizeof(NAMES) + labelstrlen +
+				lattr = NULL;
+				lattrlen = 0;
+				
+				if ((np = calloc(1, sizeof(NAMES) + lattrlen +
 				    ulen + glen + flen + 4)) == NULL)
 					err(1, "malloc");
 
@@ -954,25 +814,59 @@ label_out:
 				(void)strcpy(np->user, user);
 				np->group = &np->data[ulen + 1];
 				(void)strcpy(np->group, group);
-
-				if (S_ISCHR(sp->st_mode) ||
-				    S_ISBLK(sp->st_mode)) {
-					sizelen = snprintf(NULL, 0,
-					    "%#jx", (uintmax_t)sp->st_rdev);
-					if (d.s_size < sizelen)
-						d.s_size = sizelen;
+#ifdef __APPLE__
+				if (cur->fts_level == FTS_ROOTLEVEL) {
+					filename = cur->fts_name;
+				} else {
+					snprintf(path, sizeof(path), "%s/%s", cur->fts_parent->fts_accpath, cur->fts_name);
+					filename = path;
 				}
+				xattr_size = listxattr(filename, NULL, 0, XATTR_NOFOLLOW);
+				if (xattr_size < 0) {
+					xattr_size = 0;
+				}
+				if ((xattr_size > 0) && f_xattr) {
+					/* collect sizes */
+					np->xattr_names = malloc(xattr_size);
+					listxattr(filename, np->xattr_names, xattr_size, XATTR_NOFOLLOW);
+					for (char *name = np->xattr_names; name < np->xattr_names + xattr_size;
+					     name += strlen(name)+1) {
+						np->xattr_sizes = reallocf(np->xattr_sizes, (np->xattr_count+1) * sizeof(np->xattr_sizes[0]));
+						np->xattr_sizes[np->xattr_count] = getxattr(filename, name, 0, 0, 0, XATTR_NOFOLLOW);
+						np->xattr_count++;
+					}
+				}
+				/* symlinks can not have ACLs */
+				np->acl = acl_get_link_np(filename, ACL_TYPE_EXTENDED);
+				if (np->acl) {
+					if (acl_get_entry(np->acl, ACL_FIRST_ENTRY, &dummy) == -1) {
+						acl_free(np->acl);
+						np->acl = NULL;
+					}
+				}
+				if (xattr_size > 0) {
+					np->mode_suffix = '@';
+				} else if (np->acl) {
+					np->mode_suffix = '+';
+				} else {
+					np->mode_suffix = ' ';
+				}
+				if (f_dataless && (sp->st_flags & SF_DATALESS)) {
+					np->mode_suffix = '%';
+				}
+				if (!f_acl) {
+					acl_free(np->acl);
+					np->acl = NULL;
+				}
+#endif // __APPLE__
+				if (S_ISCHR(sp->st_mode) ||
+				    S_ISBLK(sp->st_mode))
+					bcfile = 1;
 
 				if (f_flags) {
 					np->flags = &np->data[ulen + glen + 2];
 					(void)strcpy(np->flags, flags);
 					free(flags);
-				}
-				if (f_label) {
-					np->label = &np->data[ulen + glen + 2
-					    + (f_flags ? flen + 1 : 0)];
-					(void)strcpy(np->label, labelstr);
-					free(labelstr);
 				}
 				cur->fts_pointer = np;
 			}
@@ -980,41 +874,49 @@ label_out:
 		++entries;
 	}
 
-	/*
-	 * If there are no entries to display, we normally stop right
-	 * here.  However, we must continue if we have to display the
-	 * total block count.  In this case, we display the total only
-	 * on the second (p != NULL) pass.
-	 */
-	if (!entries && (!(f_longform || f_size) || p == NULL))
+	if (!entries)
 		return;
 
 	d.list = list;
 	d.entries = entries;
 	d.maxlen = maxlen;
 	if (needstats) {
+		d.bcfile = bcfile;
 		d.btotal = btotal;
-		d.s_block = snprintf(NULL, 0, f_thousands ? "%'ld" : "%ld",
-		    howmany(maxblock, blocksize));
+		(void)snprintf(buf, sizeof(buf), "%qu", (u_int64_t)maxblock);
+		d.s_block = strlen(buf);
 		d.s_flags = maxflags;
-		d.s_label = maxlabelstr;
+		d.s_lattr = maxlattr;
 		d.s_group = maxgroup;
-		d.s_inode = snprintf(NULL, 0, "%ju", maxinode);
-		d.s_nlink = snprintf(NULL, 0, "%lu", maxnlink);
-		sizelen = f_humanval ? HUMANVALSTR_LEN :
-		    snprintf(NULL, 0, "%ju", maxsize);
-		if (d.s_size < sizelen)
-			d.s_size = sizelen;
+#if _DARWIN_FEATURE_64_BIT_INODE
+		(void)snprintf(buf, sizeof(buf), "%llu", maxinode);
+#else
+		(void)snprintf(buf, sizeof(buf), "%lu", maxinode);
+#endif
+		d.s_inode = strlen(buf);
+		(void)snprintf(buf, sizeof(buf), "%lu", maxnlink);
+		d.s_nlink = strlen(buf);
+		(void)snprintf(buf, sizeof(buf), "%qu", (u_int64_t)maxsize);
+		d.s_size = strlen(buf);
 		d.s_user = maxuser;
 	}
-	if (f_thousands)			/* make space for commas */
-		d.s_size += (d.s_size - 1) / 3;
 	printfcn(&d);
 	output = 1;
 
-	if (f_longform)
-		for (cur = list; cur; cur = cur->fts_link)
-			free(cur->fts_pointer);
+	if (f_longform) {
+		for (cur = list; cur; cur = cur->fts_link) {
+			np = cur->fts_pointer;
+			if (np) {
+				if (np->acl) {
+					acl_free(np->acl);
+				}
+				free(np->xattr_names);
+				free(np->xattr_sizes);
+				free(np);
+				cur->fts_pointer = NULL;
+			}
+		}
+	}
 }
 
 /*
@@ -1024,9 +926,9 @@ label_out:
  * All other levels use the sort function.  Error entries remain unsorted.
  */
 static int
-mastercmp(const FTSENT * const *a, const FTSENT * const *b)
+mastercmp(const FTSENT **a, const FTSENT **b)
 {
-	int a_info, b_info, dir;
+	int a_info, b_info;
 
 	a_info = (*a)->fts_info;
 	if (a_info == FTS_ERR)
@@ -1045,10 +947,24 @@ mastercmp(const FTSENT * const *a, const FTSENT * const *b)
 		if (b_info == FTS_D)
 			return (-1);
 	}
-
-	if (f_groupdir != GRP_NONE)
-		if ((dir = (a_info == FTS_D) - (b_info == FTS_D)) != 0)
-			return (f_groupdir * dir);
-
 	return (sortfcn(*a, *b));
+}
+
+/*
+ * Makenines() returns (10**n)-1.  This is useful for converting a width
+ * into a number that wide in decimal.
+ */
+static u_quad_t
+makenines(u_quad_t n)
+{
+	u_long i;
+	u_quad_t reg;
+
+	reg = 1;
+	/* Use a loop instead of pow(), since all values of n are small. */
+	for (i = 0; i < n; i++)
+		reg *= 10;
+	reg--;
+
+	return reg;
 }

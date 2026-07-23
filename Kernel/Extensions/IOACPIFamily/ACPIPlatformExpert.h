@@ -32,6 +32,8 @@
 
 #include "ACPICPU.h"
 #include "ACPIPCIBridge.h"
+#include "PICShared.h"
+#include "AppleAPIC.h"
 
 #define PE_VERBOSE 1
 
@@ -90,7 +92,7 @@ enum {
 	kIRQAvailable   = 0,
 	kIRQExclusive   = 1,
 	kIRQSharable    = 2,
-	kSystemIRQCount = 16
+	kSystemIRQCount = 128
 };
 
 class IOACPIPlatformExpertGlobals {
@@ -101,7 +103,7 @@ public:
     inline bool isValid() const;
 };
 
-class ACPIPlatformExpert : public IODTPlatformExpert {
+class ACPIPlatformExpert : public IOPlatformExpert {
     OSDeclareDefaultStructors(ACPIPlatformExpert)
     friend class IOACPIPlatformDevice;
 
@@ -109,7 +111,8 @@ class ACPIPlatformExpert : public IODTPlatformExpert {
     const char *RSDP_SIGNATURE = "RSD PTR";
     
     const OSSymbol *_interruptControllerName;
-    OSSet * topLevel;
+    OSArray * cpuArray = NULL;
+    AppleAPIC * _apic = NULL;
 
     void PE_Log(const char *fmt, ...);
     bool parseACPI(IOService *provider);
@@ -117,8 +120,8 @@ class ACPIPlatformExpert : public IODTPlatformExpert {
     void parseFADT(void * table, IOService * nub);
     void parseMCFG(void * table, IOService * nub);
     static int handlePEHaltRestart(unsigned int type);
-    IOService * createNub(OSDictionary *dict, IORegistryEntry *from = NULL);
-
+    IOService * createNub(OSDictionary *dict);
+    bool compareNubName( const IOService * nub, OSString * name, OSString ** matched ) const;
 
 protected:
     virtual SInt32 installDeviceInterruptForFixedEvent(IOService *device,
@@ -196,13 +199,13 @@ public:
     virtual bool start(IOService *provider) APPLE_KEXT_OVERRIDE;
     virtual bool configure(IOService *provider) APPLE_KEXT_OVERRIDE;
     virtual bool matchNubWithPropertyTable(IOService *nub, OSDictionary *table);
-    virtual bool reserveSystemInterrupt(IOService *client, UInt32 vectorNumber, bool exclusive);
-    virtual void releaseSystemInterrupt(IOService *client, UInt32 vectorNumber, bool exclusive);
     virtual bool setNubInterruptVectors(IOService *nub, const UInt32 vectors[], UInt32 vectorCount);
     virtual bool setNubInterruptVector(IOService *nub, UInt32 vector);
     virtual IOReturn callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4) APPLE_KEXT_OVERRIDE;
     virtual bool getModelName(char *name, int maxLengh) APPLE_KEXT_OVERRIDE;
     virtual bool getMachineName(char *name, int maxLength) APPLE_KEXT_OVERRIDE;
+    virtual void setupAPIC(IOService *nub);
+    IOReturn handleInterrupt(void *refCon, IOService *nub, int source);
 };
 
 #endif /* ! _IOKIT_APPLEI386PLATFORM_H */

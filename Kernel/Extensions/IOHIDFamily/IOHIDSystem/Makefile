@@ -1,14 +1,23 @@
 MK_WERROR = no
 KEXT = IOHIDSystem
 INFO_PLIST = Info-IOHIDSystem.plist
-BUNDLE_IDENTIFIER = com.apple.iokit.IOHIDFamily
+BUNDLE_IDENTIFIER = com.apple.iokit.IOHIDSystem
 BUNDLE_VERSION = 1.5.2
 KERNEL_PRIVATE = yes
 
 .PATH: ${.CURDIR:H}
-SRCS = \
+IIGS= \
 	HIDDriverKit/IOHIDDevice.iig \
 	HIDDriverKit/IOHIDEventService.iig \
+	HIDDriverKit/IOHIDInterface.iig
+
+SRCS = \
+	IOHIDSystem/IOHIDevice.cpp \
+	IOHIDSystem/IOHIKeyboard.cpp \
+	IOHIDSystem/IOHIKeyboardMapper.cpp \
+	IOHIDSystem/IOBSDConsole.cpp
+
+REAL_SRCS = \
 	IOHIDFamily/IOHIDUserDevice.cpp \
 	IOHIDFamily/AppleUserHIDDevice.cpp \
 	IOHIDFamily/IOHIDEventServiceFastPathUserClient.cpp \
@@ -40,7 +49,6 @@ SRCS = \
 	IOHIDSystem/IOHIDIO.cpp \
 	HIDDriverKit/IOHIDElementPrivate.cpp \
 	HIDDriverKit/IOHIDInterface.cpp \
-	HIDDriverKit/IOHIDInterface.iig \
 	HIDDriverKit/IOHIDEventService.cpp \
 	IOHIDFamily/IOHIDActionQueue.cpp \
 	IOHIDFamily/IOHIDProviderPropertyMerger.cpp \
@@ -95,20 +103,28 @@ SRCS = \
 	IOHIDFamily/IOHIDResourceUserClient.cpp \
 	IOHIDFamily/IOHIDResource.cpp
 
-CFLAGS = -Wno-implicit-int-conversion -Wno-sign-conversion \
-	-I${.CURDIR}/include \
-	-I${ROOT_SOURCE_DIR}/Kernel/xnu/iokit \
-	-I${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk \
-	-I${ROOT_SOURCE_DIR}/Kernel/xnu/bsd \
-	-I${ROOT_SOURCE_DIR}/Kernel/xnu/libkern \
+CSTD = none
+CXXSTD = none
+
+SLF = /System/Library/Frameworks
+CFLAGS = -DOMITPENDINGKEYCAPS \
+        -Wno-implicit-int-conversion -Wno-sign-conversion \
+        -Wno-elaborated-enum-base -Wno-nullability-completeness \
+	-DAVAILABLE_MAC_OS_X_VERSION_10_13_AND_LATER="" \
+	-I${.CURDIR} -I${.CURDIR:H} -I${.CURDIR:H}/IOHIDFamily \
+	-I${.CURDIR}/IOKit/hidsystem \
+        -I${RAVYN_SDKROOT}/usr/local/include/kernel \
+	-I${ROOT_BINARY_DIR}${ROOT_SOURCE_DIR}/Kernel/xnu/EXPORT_HDRS/iokit \
+	-I${ROOT_BINARY_DIR}${ROOT_SOURCE_DIR}/Kernel/xnu/EXPORT_HDRS/bsd \
+	-I${ROOT_BINARY_DIR}${ROOT_SOURCE_DIR}/Kernel/xnu/EXPORT_HDRS/libkern \
 	-I${ROOT_BINARY_DIR}${ROOT_SOURCE_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk \
-	-I${ROOT_BINARY_DIR}${ROOT_SOURCE_DIR}/Kernel/xnu/EXPORT_HDRS \
-	-I${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS \
-	-I${.CURDIR:H}/IOPCIFamily \
-	-I${.CURDIR:H}/AppleAPIC \
-	-I${.CURDIR:H}/RavynAHCIPort
+	-I${ROOT_BINARY_DIR}${ROOT_SOURCE_DIR}/Kernel/xnu/EXPORT_HDRS/san \
+	-include${RAVYN_SDKROOT}/usr/include/i386/endian.h \
+	-include${RAVYN_SDKROOT}/usr/local/include/kernel/os/object.h \
+	${CFLAGS.${.TARGET}}
 
 LDFLAGS = -mmacos-version-min=${MACOS_VERSION_MIN} --sysroot=${RAVYN_SDKROOT} \
 	-fuse-ld=${LD}
+
 
 .include <rvn.kext.mk>

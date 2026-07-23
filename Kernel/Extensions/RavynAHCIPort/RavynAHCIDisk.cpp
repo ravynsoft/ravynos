@@ -80,9 +80,22 @@ RavynAHCIDisk::doAsyncReadWrite(IOMemoryDescriptor  * buffer,
                                 IOStorageAttributes * attributes,
                                 IOStorageCompletion * completion)
 {
+    /*
+     * This provider is fully synchronous: by the time any of the branches
+     * below returns, the completion has already fired. Per the
+     * doAsyncReadWrite convention (mirrored by IOBlockStorageDriver::
+     * executeRequest), a non-success return means "I have NOT completed
+     * this request, caller must complete it" - returning the real error
+     * code here after already calling IOStorage::complete() ourselves
+     * caused the caller to complete the same IOStorageCompletion/context
+     * a second time (use-after-free -> page fault in
+     * prepareRequestCompletion). Always return kIOReturnSuccess once we've
+     * completed it ourselves; the real status was already delivered via
+     * the completion callback.
+     */
     if (!fParent || nblks == 0 || !buffer) {
         IOStorage::complete(completion, kIOReturnBadArgument, 0);
-        return kIOReturnBadArgument;
+        return kIOReturnSuccess;
     }
 
     UInt64 maxBlock = fParent->sectorCount(fPortIndex);
@@ -90,13 +103,13 @@ RavynAHCIDisk::doAsyncReadWrite(IOMemoryDescriptor  * buffer,
         AHCI_Log("disk%u rejecting I/O block=%llu nblks=%llu max=%llu",
                  fPortIndex, block, nblks, maxBlock);
         IOStorage::complete(completion, kIOReturnBadArgument, 0);
-        return kIOReturnBadArgument;
+        return kIOReturnSuccess;
     }
 
     IOReturn ioret = buffer->prepare();
     if (ioret != kIOReturnSuccess) {
         IOStorage::complete(completion, ioret, 0);
-        return ioret;
+        return kIOReturnSuccess;
     }
 
     const bool isWrite  = ((buffer->getDirection() & kIODirectionOut) != 0);
@@ -110,7 +123,7 @@ RavynAHCIDisk::doAsyncReadWrite(IOMemoryDescriptor  * buffer,
     buffer->complete();
     IOStorage::complete(completion, ret, (ret == kIOReturnSuccess) ? totBytes : 0);
 
-    return ret;
+    return kIOReturnSuccess;
 }
 
 IOReturn

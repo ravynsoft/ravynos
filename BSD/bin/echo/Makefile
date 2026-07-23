@@ -1,6 +1,5 @@
 .include <src.opts.mk>
 
-PACKAGE=runtime
 PROG=	echo
 
 HAS_TESTS=

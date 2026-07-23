@@ -35,6 +35,15 @@
 			<key>IOProviderClass</key>
 			<string>IOPlatformDevice</string>
 		</dict>
+                <key>ApplePS2Keyboard</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.apple.driver.ApplePS2Controller</string>
+			<key>IOClass</key>
+			<string>ApplePS2Keyboard</string>
+			<key>IOProviderClass</key>
+			<string>ApplePS2KeyboardDevice</string>
+		</dict>
 	</dict>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2018 PureDarwin.</string>
@@ -42,6 +51,8 @@
 	<string>1.1.0</string>
 	<key>OSBundleLibraries</key>
 	<dict>
+                <key>com.apple.iokit.IOHIDFamily</key>
+                <string>1.5.2</string>
 		<key>com.apple.kpi.iokit</key>
 		<string>1.1</string>
 		<key>com.apple.kpi.libkern</key>

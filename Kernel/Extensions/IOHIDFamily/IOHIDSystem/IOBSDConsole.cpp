@@ -59,6 +59,7 @@ bool IOBSDConsole::start(IOService * provider)
         this, this );
     assert( notify );
 
+    kprintf("IOBSDConsole::start\n");
     return( true );
 }
 
@@ -74,7 +75,7 @@ bool IOBSDConsole::publishNotificationHandler(
     if( ref) {
         audio = OSDynamicCast(IOService, newService->metaCast("IOAudioStream"));
         if (audio != 0) {
-            OSNumber *out = newService->copyProperty("Out");
+            OSNumber *out = OSDynamicCast(OSNumber, newService->copyProperty("Out"));
             if (OSDynamicCast(OSNumber, out)) {
                 if (out->unsigned8BitValue() == 1) {
                     self->fAudioOut = newService;
@@ -153,6 +154,8 @@ void IOBSDConsole::keyboardEvent(OSObject * target,
                                  OSObject * sender,
                                  void *     refcon)
 {
+    kprintf("IOBSDConsole::keyboardEvent\n");
+
     static const char cursorCodes[] = { 'D', 'A', 'C', 'B' };
 
     if ( ((IOBSDConsole *)target)->displayManager != NULL ) {

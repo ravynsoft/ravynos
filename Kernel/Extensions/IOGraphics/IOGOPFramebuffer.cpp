@@ -11,15 +11,12 @@ OSDefineMetaClassAndStructors(IOFramebuffer, IOService);
 IOService *
 IOFramebuffer::probe(IOService *provider, SInt32 *score)
 {
-    DEBUG("probe %p\n", provider);
     return this;
 }
 
 bool
 IOFramebuffer::start(IOService *provider)
 {
-    kprintf("IOFramebuffer::start called with provider %p\n", provider);
-
     if (!super::start(provider)) {
         kprintf("IOFramebuffer::start - super::start failed\n");
         return false;
@@ -88,6 +85,7 @@ uint32_t IOFramebuffer::getWidth(void) { return width; }
 uint32_t IOFramebuffer::getHeight(void) { return height; }
 uint32_t IOFramebuffer::getPitch(void) { return pitch; }
 uint32_t IOFramebuffer::getDepth(void) { return bpp; }
+
 
 #if 0
 IOReturn

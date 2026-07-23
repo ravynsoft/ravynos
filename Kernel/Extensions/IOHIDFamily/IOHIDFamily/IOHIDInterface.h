@@ -45,7 +45,8 @@ class __deprecated_msg("Use DriverKit") IOHIDInterface : public IOService
 class IOHIDInterface : public IOService
 #endif
 {
-    OSDeclareDefaultStructorsWithDispatch( IOHIDInterface )
+    //OSDeclareDefaultStructorsWithDispatch( IOHIDInterface )
+    OSDeclareDefaultStructors( IOHIDInterface )
     
 public:
 

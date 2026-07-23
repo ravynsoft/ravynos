@@ -24,7 +24,8 @@ CFLAGS = -Wno-implicit-int-conversion -Wno-sign-conversion \
 	-I${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS \
 	-I${.CURDIR:H}/IOPCIFamily \
 	-I${.CURDIR:H}/AppleAPIC \
-	-I${.CURDIR:H}/RavynAHCIPort
+	-I${.CURDIR:H}/RavynAHCIPort \
+	-I${.CURDIR:H}/ApplePS2Controller
 
 LDFLAGS = -mmacos-version-min=${MACOS_VERSION_MIN} --sysroot=${RAVYN_SDKROOT} \
 	-fuse-ld=${LD}
