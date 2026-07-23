@@ -4,7 +4,7 @@
  * Provides desktop file browsing, bundle execution via LaunchServices,
  * and drag-and-drop .app bundle installation into /Applications.
  *
- * Copyright (C) 2026 Zoe Knox. All rights reserved.
+ * Copyright (C) 2026 Jack Davenport. All rights reserved.
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
