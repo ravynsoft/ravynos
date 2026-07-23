@@ -31,6 +31,8 @@
 
 #include <stdio.h>
 #include <dlfcn.h>
+#include <CoreFoundation/CFString.h>
+#include <CoreFoundation/CFData.h>
 #include "init.h"
 
 /* Libsystem init glue */
