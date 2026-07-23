@@ -12,16 +12,19 @@ DMIHelper: ${.CURDIR}/DMIHelper.c
 	${SUDO} chown 0:0 ${BUILDROOT}/System/Library/CoreServices/DMIHelper
 	${SUDO} chmod 4755 ${BUILDROOT}/System/Library/CoreServices/DMIHelper
 
-build: buildWindowServer DMIHelper buildDock #buildFiler 
+build: buildWindowServer DMIHelper buildDock buildFiler
 	mkdir -p ${BUILDROOT}/System/Library/CoreServices/
 	mkdir -p ${BUILDROOT}/Applications/Utilities/
 	cp -av ${OBJTOP}/CoreServices/WindowServer/WindowServer.app ${BUILDROOT}/System/Library/CoreServices
 	cp -av ${OBJTOP}/CoreServices/Dock/Dock.app ${BUILDROOT}/System/Library/CoreServices
-	#cp -av ${.CURDIR}/Filer/Filer.app ${BUILDROOT}/System/Library/CoreServices
+	cp -av ${OBJTOP}/CoreServices/Filer/Filer.app ${BUILDROOT}/System/Library/CoreServices
 .for f in ${.CURDIR}/askpass 
 	cp -fv ${f} ${BUILDROOT}/System/Library/CoreServices/
 	chmod 755 ${BUILDROOT}/System/Library/CoreServices/$$(basename ${f})
 .endfor
+
+buildFiler:
+	${MAKE} -C ${.CURDIR}/Filer obj all
 
 buildDock:
 	mkdir -p ${MAKEOBJDIR}/Dock/Trash

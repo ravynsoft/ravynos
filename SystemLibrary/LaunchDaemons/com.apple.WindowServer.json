@@ -1,0 +1,17 @@
+{
+	"EnvironmentVariables": {
+		"ASL_DISABLE": "1",
+		"LANG": "C.UTF-8"
+	},
+	"Label": "com.apple.WindowServer",
+	"ProgramArguments": [
+		"/System/Library/CoreServices/WindowServer.app/Contents/ravynOS/WindowServer"
+	],
+	"MachServices": {
+		"com.apple.windowserver": true,
+		"com.apple.windowserver.active": true
+	},
+	"StandardErrorPath": "/tmp/stderr.txt",
+	"KeepAlive": true,
+	"RunAtLoad": true
+}
