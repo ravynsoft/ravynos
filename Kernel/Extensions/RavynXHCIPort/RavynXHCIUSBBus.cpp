@@ -9,7 +9,7 @@ OSDefineMetaClassAndStructors(RavynXHCIUSBBus, IOUSBController)
 
 bool RavynXHCIUSBBus::initWithPort(RavynXHCIPort *port)
 {
-    if (!init(NULL)) return false;
+    if (!port || !init(NULL)) return false;
     fPort = port;
     bzero(fBulkConfigured, sizeof(fBulkConfigured));
     bzero(fIntrConfigured, sizeof(fIntrConfigured));
@@ -19,7 +19,7 @@ bool RavynXHCIUSBBus::initWithPort(RavynXHCIPort *port)
 IOReturn RavynXHCIUSBBus::UIMOpenPipe(USBDeviceAddress address, UInt8 speed, Endpoint *endpoint)
 {
     UInt32 slotId = address;
-    if (slotId >= 64 || !endpoint) return kIOReturnBadArgument;
+    if (slotId >= 64 || !endpoint || !fPort) return kIOReturnBadArgument;
 
     switch (endpoint->transferType) {
         case kUSBControl:
@@ -82,7 +82,7 @@ IOReturn RavynXHCIUSBBus::UIMClearPipeStall(USBDeviceAddress address, Endpoint *
 IOReturn RavynXHCIUSBBus::UIMDeviceRequest(IOUSBDevRequest *request, USBDeviceAddress address)
 {
     UInt32 slotId = address;
-    if (slotId >= 64 || !request) return kIOReturnBadArgument;
+    if (slotId >= 64 || !request || !fPort) return kIOReturnBadArgument;
 
     USBSetupPacket setup;
     setup.bmRequestType = request->bmRequestType;
@@ -101,7 +101,7 @@ IOReturn RavynXHCIUSBBus::UIMReadWrite(IOMemoryDescriptor *buffer, USBDeviceAddr
                                        Endpoint *endpoint, bool isWrite)
 {
     UInt32 slotId = address;
-    if (slotId >= 64 || !endpoint || !buffer) return kIOReturnBadArgument;
+    if (slotId >= 64 || !endpoint || !buffer || !fPort) return kIOReturnBadArgument;
     if (endpoint->transferType != kUSBBulk && endpoint->transferType != kUSBInterrupt)
         return kIOReturnUnsupported;
 

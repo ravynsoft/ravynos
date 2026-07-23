@@ -65,12 +65,14 @@ os_log_create(const char* subsystem, const char* category)
     if (!log)
         return (os_log_t)NULL;
 
-    // FIXME: these probably leak
     if (_CFStringCreateWithCString) {
         log->subsystem = (void*)_CFStringCreateWithCString(NULL,
             subsystem, kCFStringEncodingUTF8);
         log->category = (void*)_CFStringCreateWithCString(NULL,
             category, kCFStringEncodingUTF8);
+    } else {
+        log->subsystem = subsystem ? strdup(subsystem) : NULL;
+        log->category = category ? strdup(category) : NULL;
     }
 
     log->sink_type = OS_LOG_SINK_TYPE_FD;
@@ -174,7 +176,7 @@ size_t os_log_encode(void* buffer,
     if (buffer == NULL || format == NULL || buffer_size <= 0)
         return 0;
 
-    if (_os_log_encode(format, args, errno, &ctx))
+    if (_os_log_encode(format, args, errno, ctx))
         return ctx->arg_content_sz;
 
     return 0;
@@ -187,7 +189,7 @@ size_t __os_log_encode(void* buffer,
     ...)
 {
     va_list args;
-    va_start(format, args);
+    va_start(args, format);
     size_t size = os_log_encode(buffer, buffer_size, format, args, 0);
     va_end(args);
     return size;
@@ -370,7 +372,7 @@ void _os_log_error(void* dso, os_log_t log, const char* format, ...)
     size_t buffer_size = sizeof(buffer);
     va_list args;
 
-    va_start(format, args);
+    va_start(args, format);
     size_t len = os_log_encode(buffer, buffer_size, format, args, 0);
     va_end(args);
     __os_log_impl(dso, log, OS_LOG_TYPE_ERROR, format, buffer, buffer_size);
@@ -382,7 +384,7 @@ void _os_log_fault(void* dso, os_log_t log, const char* format, ...)
     size_t buffer_size = sizeof(buffer);
     va_list args;
 
-    va_start(format, args);
+    va_start(args, format);
     size_t len = os_log_encode(buffer, buffer_size, format, args, 0);
     va_end(args);
     __os_log_impl(dso, log, OS_LOG_TYPE_FAULT, format, buffer, buffer_size);
@@ -394,7 +396,7 @@ void _os_log_info(void* dso, os_log_t log, const char* format, ...)
     size_t buffer_size = sizeof(buffer);
     va_list args;
 
-    va_start(format, args);
+    va_start(args, format);
     size_t len = os_log_encode(buffer, buffer_size, format, args, 0);
     va_end(args);
     __os_log_impl(dso, log, OS_LOG_TYPE_INFO, format, buffer, buffer_size);
@@ -406,7 +408,7 @@ void _os_log_debug(void* dso, os_log_t log, const char* format, ...)
     size_t buffer_size = sizeof(buffer);
     va_list args;
 
-    va_start(format, args);
+    va_start(args, format);
     size_t len = os_log_encode(buffer, buffer_size, format, args, 0);
     va_end(args);
     __os_log_impl(dso, log, OS_LOG_TYPE_DEBUG, format, buffer, buffer_size);
