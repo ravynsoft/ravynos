@@ -29,7 +29,6 @@
  * SUCH DAMAGE.
  */
 
-#include <capsicum_helpers.h>
 #include <err.h>
 #include <libgen.h>
 #include <limits.h>
@@ -51,9 +50,6 @@ main(int argc, char **argv)
 	int aflag, ch;
 
 	setlocale(LC_ALL, "");
-
-	if (caph_limit_stdio() < 0 || caph_enter() < 0)
-		err(1, "capsicum");
 
 	aflag = 0;
 	suffix = NULL;
