@@ -27,7 +27,6 @@
  * SUCH DAMAGE.
  */
 
-#include <capsicum_helpers.h>
 #include <err.h>
 #include <errno.h>
 #include <limits.h>
@@ -92,9 +91,6 @@ main(int argc, char *argv[])
 	struct timespec time_to_sleep;
 	double seconds;
 	time_t original;
-
-	if (caph_limit_stdio() < 0 || caph_enter() < 0)
-		err(1, "capsicum");
 
 	while (getopt(argc, argv, "") != -1)
 		usage();
