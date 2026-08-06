@@ -24,6 +24,7 @@ __On macOS:__
 * Have a recent Xcode installed
 * Run: `cmake -S /path/to/ravynos -B /path/to/build -GNinja`
 * Run: `cmake --build /path/to/build`
+* Note: For BSD make target builds on macOS hosts without root privileges, use `bmake -j8 NO_ROOT=1 world`.
 
 
 __On Linux (tested on Arch 2025/12/21):__

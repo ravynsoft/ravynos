@@ -73,7 +73,9 @@ install: $(OBJBASE)/CoreFoundation_$(STYLE)
 	#/usr/bin/strip -S -o $(DSTBASE)/CoreFoundation.framework/Versions/A/CoreFoundation $(OBJBASE)/CoreFoundation_$(STYLE)
 	/bin/cp $(OBJBASE)/CoreFoundation_$(STYLE) $(DSTBASE)/CoreFoundation.framework/Versions/A/CoreFoundation
 	/usr/bin/dsymutil $(DSTBASE)/CoreFoundation.framework/Versions/A/CoreFoundation -o $(DSTBASE)/CoreFoundation.framework.dSYM
+ifneq ($(NO_ROOT),1)
 	/usr/sbin/chown -RH -f root:wheel $(DSTBASE)/CoreFoundation.framework
+endif
 	/bin/chmod -RH a-w,a+rX $(DSTBASE)/CoreFoundation.framework
 	/bin/chmod -RH u+w $(DSTBASE)
 	install_name_tool -id /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation $(DSTBASE)/CoreFoundation.framework/Versions/A/CoreFoundation

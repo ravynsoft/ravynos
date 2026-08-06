@@ -45,6 +45,7 @@
         TARGET_CPU_68K          - Compiler is generating 680x0 instructions
         TARGET_CPU_X86          - Compiler is generating x86 instructions
         TARGET_CPU_ARM          - Compiler is generating ARM instructions
+        TARGET_CPU_ARM64        - Compiler is generating ARM64 instructions
         TARGET_CPU_MIPS         - Compiler is generating MIPS instructions
         TARGET_CPU_SPARC        - Compiler is generating Sparc instructions
         TARGET_CPU_ALPHA        - Compiler is generating Dec Alpha instructions
@@ -99,6 +100,7 @@
         #define TARGET_CPU_X86          0
         #define TARGET_CPU_X86_64       0
         #define TARGET_CPU_ARM          0
+        #define TARGET_CPU_ARM64        0
         #define TARGET_CPU_MIPS         0
         #define TARGET_CPU_SPARC        0   
         #define TARGET_CPU_ALPHA        0
@@ -119,6 +121,7 @@
         #define TARGET_CPU_X86          0
         #define TARGET_CPU_X86_64       0
         #define TARGET_CPU_ARM          0
+        #define TARGET_CPU_ARM64        0
         #define TARGET_CPU_MIPS         0
         #define TARGET_CPU_SPARC        0   
         #define TARGET_CPU_ALPHA        0
@@ -134,6 +137,7 @@
         #define TARGET_CPU_X86          1
         #define TARGET_CPU_X86_64       0
         #define TARGET_CPU_ARM          0
+        #define TARGET_CPU_ARM64        0
         #define TARGET_CPU_MIPS         0
         #define TARGET_CPU_SPARC        0
         #define TARGET_CPU_ALPHA        0
@@ -149,6 +153,7 @@
         #define TARGET_CPU_X86          0
         #define TARGET_CPU_X86_64       1
         #define TARGET_CPU_ARM          0
+        #define TARGET_CPU_ARM64        0
         #define TARGET_CPU_MIPS         0
         #define TARGET_CPU_SPARC        0
         #define TARGET_CPU_ALPHA        0
@@ -164,6 +169,7 @@
         #define TARGET_CPU_X86          0
         #define TARGET_CPU_X86_64       0
         #define TARGET_CPU_ARM          1
+        #define TARGET_CPU_ARM64        0
         #define TARGET_CPU_MIPS         0
         #define TARGET_CPU_SPARC        0
         #define TARGET_CPU_ALPHA        0
@@ -172,6 +178,22 @@
         #define TARGET_RT_LITTLE_ENDIAN 1
         #define TARGET_RT_BIG_ENDIAN    0
         #define TARGET_RT_64_BIT        0
+     #elif defined(__arm64__) || defined(__aarch64__)
+        #define TARGET_CPU_PPC          0
+        #define TARGET_CPU_PPC64        0
+        #define TARGET_CPU_68K          0
+        #define TARGET_CPU_X86          0
+        #define TARGET_CPU_X86_64       0
+        #define TARGET_CPU_ARM          0
+        #define TARGET_CPU_ARM64        1
+        #define TARGET_CPU_MIPS         0
+        #define TARGET_CPU_SPARC        0
+        #define TARGET_CPU_ALPHA        0
+        #define TARGET_RT_MAC_CFM       0
+        #define TARGET_RT_MAC_MACHO     1
+        #define TARGET_RT_LITTLE_ENDIAN 1
+        #define TARGET_RT_BIG_ENDIAN    0
+        #define TARGET_RT_64_BIT        1
     #else
         #error unrecognized GNU C compiler
     #endif
@@ -227,6 +249,7 @@
         #define TARGET_CPU_X86      0
         #define TARGET_CPU_X86_64   0
         #define TARGET_CPU_ARM      0
+        #define TARGET_CPU_ARM64    0
         #define TARGET_CPU_MIPS     0
         #define TARGET_CPU_SPARC    0
         #define TARGET_CPU_ALPHA    0
@@ -236,6 +259,7 @@
         #define TARGET_CPU_X86      0
         #define TARGET_CPU_X86_64   0
         #define TARGET_CPU_ARM      0
+        #define TARGET_CPU_ARM64    0
         #define TARGET_CPU_MIPS     0
         #define TARGET_CPU_SPARC    0
         #define TARGET_CPU_ALPHA    0
@@ -245,6 +269,7 @@
         #define TARGET_CPU_X86_64   0
         #define TARGET_CPU_68K      0
         #define TARGET_CPU_ARM      0
+        #define TARGET_CPU_ARM64    0
         #define TARGET_CPU_MIPS     0
         #define TARGET_CPU_SPARC    0
         #define TARGET_CPU_ALPHA    0
@@ -254,6 +279,7 @@
         #define TARGET_CPU_X86      0
         #define TARGET_CPU_68K      0
         #define TARGET_CPU_ARM      0
+        #define TARGET_CPU_ARM64    0
         #define TARGET_CPU_MIPS     0
         #define TARGET_CPU_SPARC    0
         #define TARGET_CPU_ALPHA    0
@@ -263,6 +289,17 @@
         #define TARGET_CPU_X86      0
         #define TARGET_CPU_X86_64   0
         #define TARGET_CPU_68K      0
+        #define TARGET_CPU_ARM64    0
+        #define TARGET_CPU_MIPS     0
+        #define TARGET_CPU_SPARC    0
+        #define TARGET_CPU_ALPHA    0
+    #elif defined(TARGET_CPU_ARM64) && TARGET_CPU_ARM64
+        #define TARGET_CPU_PPC      0
+        #define TARGET_CPU_PPC64    0
+        #define TARGET_CPU_X86      0
+        #define TARGET_CPU_X86_64   0
+        #define TARGET_CPU_68K      0
+        #define TARGET_CPU_ARM      0
         #define TARGET_CPU_MIPS     0
         #define TARGET_CPU_SPARC    0
         #define TARGET_CPU_ALPHA    0
@@ -287,6 +324,7 @@
         #define TARGET_CPU_68K    0
         #define TARGET_CPU_X86    0
         #define TARGET_CPU_ARM    0
+        #define TARGET_CPU_ARM64  0
         #define TARGET_CPU_MIPS   0
         #define TARGET_CPU_SPARC  0
         #define TARGET_CPU_ALPHA  0
@@ -302,7 +340,7 @@
         #define TARGET_RT_BIG_ENDIAN     0
         #define TARGET_RT_LITTLE_ENDIAN  1
     #endif
-    #if TARGET_CPU_PPC64 || TARGET_CPU_X86_64
+    #if TARGET_CPU_PPC64 || TARGET_CPU_X86_64 || TARGET_CPU_ARM64
         #define TARGET_RT_64_BIT         1
     #else
         #define TARGET_RT_64_BIT         0

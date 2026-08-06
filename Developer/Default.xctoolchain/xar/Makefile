@@ -30,6 +30,9 @@ XAR_OBJS = ${XAR_SRCS:%.c=%.o}
 
 .if "${.MAKE.OS}" == "Linux"
 LDFLAGS += -lacl -lbsd -L/usr/lib/x86_64-linux-gnu
+.elif "${.MAKE.OS}" == "Darwin"
+CFLAGS += -I/opt/homebrew/opt/openssl@3/include -I/usr/local/opt/openssl@3/include
+LDFLAGS += -L/opt/homebrew/opt/openssl@3/lib -L/usr/local/opt/openssl@3/lib
 .endif
 LDFLAGS += -lssl -lcrypto -lxml2 -lz
 LIBS = ${TOOLCHAIN}/usr/lib/libstuff.a ${TOOLCHAIN}/usr/lib/libxar.a
