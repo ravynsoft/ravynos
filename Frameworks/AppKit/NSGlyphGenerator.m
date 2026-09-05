@@ -6,6 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#import <sys/param.h>
 #import <AppKit/NSGlyphGenerator.h>
 #import <AppKit/NSAttributedString.h>
 
@@ -13,10 +14,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 +sharedGlyphGenerator {
    NSGlyphGenerator *shared=nil;
-   
+
    if(shared==nil)
     shared=[self new];
-   
+
    return shared;
 }
 
@@ -30,24 +31,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    NSDictionary       *attributes=nil;
    NSFont             *font=nil;
    int                 i;
-   
+
    for(i=0;i<numberOfCharacters && characterIndex<length;){
     unsigned chunkSize=MIN(1024,numberOfCharacters-i);
     unichar  characterChunk[chunkSize];
     NSGlyph  glyphChunk[chunkSize];
-    
+
     if(!NSLocationInRange(characterIndex,effectiveRange)){
      attributes=[text attributesAtIndex:characterIndex effectiveRange:&effectiveRange];
      font=NSFontAttributeInDictionary(attributes);
     }
     if(chunkSize>(NSMaxRange(effectiveRange)-characterIndex))
      chunkSize=NSMaxRange(effectiveRange)-characterIndex;
-    
+
     [string getCharacters:characterChunk range:NSMakeRange(characterIndex,chunkSize)];
     [font getGlyphs:glyphChunk forCharacters:characterChunk length:chunkSize];
-    
+
     [glyphStorage insertGlyphs:glyphChunk length:chunkSize forStartingGlyphAtIndex:glyphIndex characterIndex:characterIndex];
-    
+
     characterIndex+=chunkSize;
     glyphIndex+=chunkSize;
     i+=chunkSize;

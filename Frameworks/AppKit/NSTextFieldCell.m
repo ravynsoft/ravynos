@@ -32,7 +32,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
    if([coder allowsKeyedCoding]){
     NSKeyedUnarchiver *keyed=(NSKeyedUnarchiver *)coder;
-    
+
     _drawsBackground=[keyed decodeBoolForKey:@"NSDrawsBackground"];
     _backgroundColor=[[keyed decodeObjectForKey:@"NSBackgroundColor"] retain];
     _textColor=[[keyed decodeObjectForKey:@"NSTextColor"] retain];
@@ -40,7 +40,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     _placeholder=[[keyed decodeObjectForKey:@"NSPlaceholderString"] retain];
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",isa,[coder class]];
+    [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",[self class],[coder class]];
    }
 
    return self;
@@ -95,27 +95,27 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -(NSString *)placeholderString {
    if([_placeholder isKindOfClass:[NSString class]])
     return _placeholder;
-    
+
    return nil;
 }
 
 -(NSAttributedString *)placeholderAttributedString {
    if([_placeholder isKindOfClass:[NSAttributedString class]])
     return _placeholder;
-    
+
    return nil;
 }
 
 -(void)setBackgroundColor:(NSColor *)color {
    color=[color retain];
    [_backgroundColor release];
-   _backgroundColor=color; 
+   _backgroundColor=color;
 }
 
 -(void)setTextColor:(NSColor *)color {
    color=[color retain];
    [_textColor release];
-   _textColor=color; 
+   _textColor=color;
 }
 
 -(void)setDrawsBackground:(BOOL)flag {
@@ -141,7 +141,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 // titleRectForBounds is not used for generating the value rect in a text field
 -(NSRect)_valueRectForBounds:(NSRect)rect {
    if([self isBezeled]){
-   
+
     switch([self bezelStyle]){
      default:
      case NSTextFieldSquareBezel:
@@ -156,8 +156,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    }
    else if([self isBordered])
     rect=NSInsetRect(rect,2,2);
-   else 
-    rect=NSInsetRect(rect,2,0); 
+   else
+    rect=NSInsetRect(rect,2,0);
 
    return rect;
 }
@@ -216,25 +216,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    }
 }
 
--(NSSize)cellSize 
+-(NSSize)cellSize
 {
-	NSSize size = [[self attributedStringValue] size];
-	
-	if([self isBezeled])
-	{
-		size.width += 6;
-		size.height += 6;
-	}
-	else if([self isBordered])
-	{
-		size.width += 4;
-		size.height += 4;
-	}
-	else
-	{
-		size.width += 4;
-	}
-	return size;
+    NSSize size = [[self attributedStringValue] size];
+
+    if([self isBezeled])
+    {
+        size.width += 6;
+        size.height += 6;
+    }
+    else if([self isBordered])
+    {
+        size.width += 4;
+        size.height += 4;
+    }
+    else
+    {
+        size.width += 4;
+    }
+    return size;
 }
 
 -(void)editWithFrame:(NSRect)frame inView:(NSView *)view editor:(NSText *)editor delegate:(id)delegate event:(NSEvent *)event {
@@ -251,7 +251,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    NSRect titleRect=[self titleRectForBounds:frame];
 
    NSAttributedString *drawValue=[self attributedStringValue];
-   
+
    if([drawValue length]==0 && [_placeholder length]>0){
     if([_placeholder isKindOfClass:[NSAttributedString class]])
       drawValue=_placeholder;
@@ -262,12 +262,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
      drawValue=placeString;
 }
    }
-	[drawValue _clipAndDrawInRect:titleRect truncatingTail: _lineBreakMode > NSLineBreakByClipping];
+    [drawValue _clipAndDrawInRect:titleRect truncatingTail: _lineBreakMode > NSLineBreakByClipping];
 }
 
 static void drawRoundedBezel(CGContextRef context,CGRect frame){
    CGFloat radius=frame.size.height/2;
-   
+
    CGContextBeginPath(context);
    CGContextAddArc(context,CGRectGetMaxX(frame)-radius,CGRectGetMinY(frame)+radius,radius,M_PI_2,M_PI_2*3,YES);
    CGContextAddArc(context,CGRectGetMinX(frame)+radius,CGRectGetMinY(frame)+radius,radius,M_PI_2*3,M_PI_2,YES);
@@ -291,11 +291,11 @@ static void drawRoundedBezel(CGContextRef context,CGRect frame){
      case NSTextFieldRoundedBezel:;
       CGContextRef context=[[NSGraphicsContext currentContext] graphicsPort];
       NSRect roundedFrame=frame;
-      
+
       roundedFrame.size.height--;
       [[NSColor darkGrayColor] setFill];
       drawRoundedBezel(context,roundedFrame);
-      
+
       roundedFrame.origin.y+=1;
       [[NSColor lightGrayColor] setFill];
       drawRoundedBezel(context,roundedFrame);
@@ -305,7 +305,7 @@ static void drawRoundedBezel(CGContextRef context,CGRect frame){
       drawRoundedBezel(context,roundedFrame);
       break;
    }
-    
+
    }
    else {
     if([self isBordered]){
@@ -335,7 +335,7 @@ static void drawRoundedBezel(CGContextRef context,CGRect frame){
 }
 - (void) _setFontSize:(CGFloat)fontSize {
     NSString *fontName = [_font fontName];
-    [self setFont:[NSFont fontWithName:fontName 
+    [self setFont:[NSFont fontWithName:fontName
                                   size:fontSize]];
 }
 - (NSString*) _fontFamilyName {
@@ -345,17 +345,17 @@ static void drawRoundedBezel(CGContextRef context,CGRect frame){
     if (!familyName) {
         return;
     }
-    
+
     NSLog(@"_setFontFamilyName: %@", familyName);
-    
+
     CGFloat currentSize = [_font pointSize];
-    [self setFont:[NSFont fontWithName:familyName 
+    [self setFont:[NSFont fontWithName:familyName
                                    size:currentSize]];
 }
 
 -(id)_replacementKeyPathForBinding:(id)binding {
     if([binding isEqual:@"value"])
-		return @"stringValue";
+        return @"stringValue";
     return [super _replacementKeyPathForBinding:binding];
 }
 

@@ -166,7 +166,7 @@ NSString * const NSOldSelectedCharacterRange=@"NSOldSelectedCharacterRange";
         }
     }
     else {
-        [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
+        [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",[self class], sel_getName(_cmd),coder];
     }
     [self registerForDraggedTypes:[NSArray arrayWithObjects:NSRTFPboardType, NSStringPboardType, nil]];
     
@@ -449,7 +449,7 @@ NSString * const NSOldSelectedCharacterRange=@"NSOldSelectedCharacterRange";
 
 -(void)setSelectedRanges:(NSArray *)ranges affinity:(NSSelectionAffinity)affinity stillSelecting:(BOOL)stillSelecting {
     if([ranges count]==0)
-        [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] ranges should not be empty",isa,_cmd];
+        [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] ranges should not be empty",[self class], _cmd];
     
 	// Save the initial selected ranges so we can use it when we're done with the selection change
 	if (_initialRanges == nil) {

@@ -31,11 +31,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -initWithMarlettCharacter:(unichar)character {
-   return [self initWithCharacter:character fontName:@"Inter-Regular" pointSize:10 color:[isa textColor]];
+   return [self initWithCharacter:character fontName:@"Inter-Regular" pointSize:10 color:[[self class] textColor]];
 }
 
 -initWithFACharacter:(unichar)character {
-   return [self initWithCharacter:character fontName:@"Font Awesome 5 Free-Solid" pointSize:10 color:[isa textColor]];
+   return [self initWithCharacter:character fontName:@"Font Awesome 5 Free-Solid" pointSize:10 color:[[self class] textColor]];
 }
 
 -(void)dealloc {

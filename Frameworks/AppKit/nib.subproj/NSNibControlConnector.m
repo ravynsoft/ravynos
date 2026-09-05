@@ -15,28 +15,28 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    NSString *selectorName=_label;
    unsigned  length=[selectorName length];
    SEL selector;
-   
+
    if(length>0 && [selectorName characterAtIndex:length-1]!=':')
     selectorName=[selectorName stringByAppendingString:@":"];
-   
+
    selector=NSSelectorFromString(selectorName);
 
    if(selector==NULL)
     [NSException raise:NSInvalidArgumentException
-         format:@"-[%@ %s] selector %@ does not exist:",isa,sel_getName(_cmd),selectorName];
+         format:@"-[%@ %s] selector %@ does not exist:",[self class],sel_getName(_cmd),selectorName];
 
    if([_source respondsToSelector:@selector(setAction:)])
     [_source performSelector:@selector(setAction:) withObject:(id)selector];
    else {
     [NSException raise:NSInvalidArgumentException
-         format:@"-[%@ %s] _source does not respond to setAction:",isa,sel_getName(_cmd)];
+         format:@"-[%@ %s] _source does not respond to setAction:",[self class],sel_getName(_cmd)];
    }
 
    if([_source respondsToSelector:@selector(setTarget:)])
     [_source performSelector:@selector(setTarget:) withObject:_destination];
    else {
     [NSException raise:NSInvalidArgumentException
-         format:@"-[%@ %s] _source does not respond to setTarget:",isa,sel_getName(_cmd)];
+         format:@"-[%@ %s] _source does not respond to setTarget:",[self class],sel_getName(_cmd)];
    }
 }
 

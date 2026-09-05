@@ -6,6 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#import <sys/param.h>
 #import <AppKit/NSCell.h>
 #import <AppKit/NSFont.h>
 #import <AppKit/NSImage.h>
@@ -36,12 +37,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 + (NSMenu *)defaultMenu
 {
-	return nil;
+   return nil;
 }
 
 +(BOOL)prefersTrackingUntilMouseUp
 {
-	return NO;
+   return NO;
 }
 
 #pragma mark -
@@ -77,13 +78,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
        // 0x00040000 = action on mouse down
        // 0x00000100 = action on mouse drag
        _isContinuous    = (flags & 0x00080100) ? YES : NO;
-       
+
        //actOnMouseDown = (flags & 0x00040000)
        //isLeaf         = (flags & 0x00020000)
 
        // invObjectVal  = (flags & 0x00010000)
        _hasValidObjectValue = YES;
-       
+
        // invalidFont   = (flags & 0x00008000)
        // cellReserved1 = (flags & 0x00001800)
        // singleLineMode= (flags & 0x00000400)
@@ -94,25 +95,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
        // isWhite       = (flags & 0x00000010)
        // userKeyEquiv  = (flags & 0x00000008)
        // showsFirstResp= (flags & 0x00000004)
-       
+
        _focusRingType   = (flags & 0x00000003);
-       
+
        // Now for flags2 - the layout of these flags seems to be more
        // random. So the best way to find out which bit(s) you need is
        // to diff a xib file before and after you make the change you're
        // trying to support (i.e. check a checkbox) and convert the decimal
        // NSCellFlags2 value to hex
        // wasSelectable = (flags2 & 0x80000000)
-       
+
        _isRichText        = (flags2 & 0x40000000) ? YES : NO;
-       
+
        // importsGraph  = (flags2 & 0x10000000)
-       
+
        _textAlignment   = (flags2 & 0x1c000000) >> 26;
 
        // layoutDirRTL  = (flags2 & 0x01000000)
        _writingDirection=NSWritingDirectionNatural;
-       
+
        // backgrdStyle  = (flags2 & 0x00c00000) >> 21;
        // cellReserved  = (flags2 & 0x003c0000)
        _refusesFirstResponder = (flags2 & 0x02000000) ? YES : NO;
@@ -121,11 +122,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
        // inMixedState  = (flags2 & 0x00800000)
 
        _sendsActionOnEndEditing = (flags2 &0x00400000) ? YES : NO;
-       
+
        // Odd this isn't in flags - it's near other items in flags in the Cocoa struct from which these are derived.
        _lineBreakMode   = (flags2 & 0x00000600) >> 9 & 0x7;
        _controlSize     = (flags2 & 0x000E0000) >> 17;
-       
+
 
     _objectValue=[[keyed decodeObjectForKey:@"NSContents"] retain];
     check=[keyed decodeObjectForKey:@"NSNormalImage"];
@@ -133,24 +134,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
      _image=[check retain];
     else if([check isKindOfClass:[NSFont class]])
      _font=[check retain];
-     
+
     check=[keyed decodeObjectForKey:@"NSSupport"];
     if([check isKindOfClass:[NSFont class]])
      _font=[check retain];
-	
-	[self setFormatter:[keyed decodeObjectForKey:@"NSFormatter"]];
+
+   [self setFormatter:[keyed decodeObjectForKey:@"NSFormatter"]];
 
     if (_font==nil)
        _font=[[NSFont userFontOfSize:16 - _controlSize*2] retain];
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",isa,[coder class]];
+    [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",[self class],[coder class]];
    }
    return self;
 }
 
 -initTextCell:(NSString *)string {
-   _focusRingType=[isa defaultFocusRingType];
+   _focusRingType=[[self class] defaultFocusRingType];
    _state=NSOffState;
    _font=[[NSFont userFontOfSize:0] retain];
    _objectValue=[string copy];
@@ -169,7 +170,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -initImageCell:(NSImage *)image {
-   _focusRingType=[isa defaultFocusRingType];
+   _focusRingType=[[self class] defaultFocusRingType];
    _state=NSOffState;
    _font=nil;
    _objectValue=nil;
@@ -368,11 +369,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(float)floatValue {
-	if (_objectValue == nil) {
-		// [nil someFloatMethod] doesn't return 0.f on Cocotron - tmp fix until the runtime is fixed
-		return 0.f;
-	}
-	NSString *objString = ([_objectValue isKindOfClass:[NSAttributedString class]]) ? [_objectValue string] : (NSString *)_objectValue;
+   if (_objectValue == nil) {
+      // [nil someFloatMethod] doesn't return 0.f on Cocotron - tmp fix until the runtime is fixed
+      return 0.f;
+   }
+   NSString *objString = ([_objectValue isKindOfClass:[NSAttributedString class]]) ? [_objectValue string] : (NSString *)_objectValue;
    if([objString isKindOfClass:[NSString class]])
    {
       float f = 0.0;
@@ -385,11 +386,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(double)doubleValue {
-	if (_objectValue == nil) {
-		// [nil someDoubleMethod] doesn't return 0. on Cocotron - tmp fix until the runtime is fixed
-		return 0.;
-	}
-	
+   if (_objectValue == nil) {
+      // [nil someDoubleMethod] doesn't return 0. on Cocotron - tmp fix until the runtime is fixed
+      return 0.;
+   }
+
    NSString *objString = ([_objectValue isKindOfClass:[NSAttributedString class]]) ? [_objectValue string] : (NSString *)_objectValue;
    if([objString isKindOfClass:[NSString class]])
    {
@@ -470,7 +471,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     _cellType = type;
     if (type == NSTextCellType) {
 // FIX, localization
-       [self setTitle:@"Cell"];				// mostly clarified in setEntryType dox
+       [self setTitle:@"Cell"];           // mostly clarified in setEntryType dox
        [self setFont:[NSFont systemFontOfSize:15.0]];
     }
     [[[self controlView] window] invalidateCursorRectsForView:[self controlView]];
@@ -513,18 +514,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)setTarget:target {
    [NSException raise:NSInternalInconsistencyException
-               format:@"-[%@ %s] Unimplemented",isa,sel_getName(_cmd)];
+               format:@"-[%@ %s] Unimplemented",[self class],sel_getName(_cmd)];
 }
 
 
 -(void)setAction:(SEL)action {
    [NSException raise:NSInternalInconsistencyException
-               format:@"-[%@ %s] Unimplemented",isa,sel_getName(_cmd)];
+               format:@"-[%@ %s] Unimplemented",[self class],sel_getName(_cmd)];
 }
 
 -(void)setTag:(int)tag {
    [NSException raise:NSInternalInconsistencyException
-               format:@"-[%@ %s] Unimplemented",isa,sel_getName(_cmd)];
+               format:@"-[%@ %s] Unimplemented",[self class],sel_getName(_cmd)];
 }
 
 -(void)setEntryType:(int)type {
@@ -547,7 +548,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -(void)setImage:(NSImage *)image {
    if(image!=nil)
    [self setType:NSImageCellType];
-    
+
    image=[image retain];
    [_image release];
    _image=image;
@@ -628,7 +629,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 // becomes one big floating-point entry, but NSNumberFormatter doesn't work that way. - dwy
 -(void)setFloatingPointFormat:(BOOL)fpp left:(unsigned)left right:(unsigned)right {
     NSMutableString *format = [NSMutableString string];
-    
+
     [self setFormatter:[[[NSNumberFormatter alloc] init] autorelease]];
     if (fpp == YES) { // autorange
         unsigned fieldWidth = left + right;
@@ -647,7 +648,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)setObjectValue:(id <NSCopying>)value {
     value=[value copyWithZone:NULL];
-    
+
     [[self controlView] willChangeValueForKey:@"objectValue"];
     [_objectValue release];
     _objectValue=value;
@@ -659,7 +660,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)setStringValue:(NSString *)value {
    if(value==nil){
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] value==nil",isa,sel_getName(_cmd)];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] value==nil",[self class],sel_getName(_cmd)];
     return;
    }
 
@@ -752,7 +753,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(NSSize)cellSizeForBounds:(NSRect)rect {
    NSSize result=[self cellSize];
-   
+
    return NSMakeSize(MIN(rect.size.width,result.width),MIN(rect.size.height,result.height));
 }
 
@@ -862,7 +863,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         strValue = [self stringValue];
     }
     [editor setRichText: _isRichText];
-	[editor setString: strValue];
+   [editor setString: strValue];
    [editor setFont:[self font]];
    [editor setAlignment:[self alignment]];
    if([self respondsToSelector:@selector(drawsBackground)])
@@ -887,8 +888,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     }
     else {
      clipView=[[[NSClipView alloc] initWithFrame:frame] autorelease];
-	 [editor setFrameOrigin:NSZeroPoint];
-	 [editor setFrameSize:frame.size];
+    [editor setFrameOrigin:NSZeroPoint];
+    [editor setFrameSize:frame.size];
      [clipView setDocumentView:editor];
      [view addSubview:clipView];
     }
@@ -901,14 +902,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     [editor setNeedsDisplay:YES];
    }
    else {
-	   [editor setHorizontallyResizable:NO];
-	   [editor setVerticallyResizable:NO];
-	   [editor setFrame:frame];
-	   [view addSubview:editor];
+      [editor setHorizontallyResizable:NO];
+      [editor setVerticallyResizable:NO];
+      [editor setFrame:frame];
+      [view addSubview:editor];
    }
    [[view window] makeFirstResponder:editor];
    [editor setDelegate:delegate];
-  
+
    if ([editor isKindOfClass:[NSTextView class]]) {
     NSCellUndoManager * undoManager = [[NSCellUndoManager alloc] init];
     [undoManager setNextUndoManager:[[view window] undoManager]];

@@ -7,6 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#import <sys/param.h>
 #import <AppKit/NSFont.h>
 #import <AppKit/NSFontDescriptor.h>
 #import <AppKit/NSFontFamily.h>
@@ -25,62 +26,62 @@ FOUNDATION_EXPORT char *NSUnicodeToSymbol(const unichar *characters,unsigned len
 @implementation NSNibFontNameTranslator
 // It seems the default mapping should really go to some platform specific place
 -(NSString *)translateToNibFontName:(NSString *)name {
-	NSString *displayName = [O2Font displayNameForPostscriptName:name];
-	if([displayName isEqual:@"Inter-Regular"])
-		return[O2Font postscriptNameForDisplayName:@"Helvetica"];
-	if([displayName isEqual:@"Inter-Bold"])
-		return @"Helvetica-Bold";
-	if([displayName isEqual:@"Inter-Italic"])
-		return @"Helvetica-Oblique";
-	if([displayName isEqual:@"Inter-Bold Italic"])
-		return @"Helvetica-BoldOblique";
-	
-	if([displayName isEqual:@"Nimbus Roman-Regular"])
-		return @"Times-Roman";
-	if([displayName isEqual:@"Source Code Pro-Regular"])
-		return @"Courier";
-	
-	return name;
+        NSString *displayName = [O2Font displayNameForPostscriptName:name];
+        if([displayName isEqual:@"Inter-Regular"])
+                return[O2Font postscriptNameForDisplayName:@"Helvetica"];
+        if([displayName isEqual:@"Inter-Bold"])
+                return @"Helvetica-Bold";
+        if([displayName isEqual:@"Inter-Italic"])
+                return @"Helvetica-Oblique";
+        if([displayName isEqual:@"Inter-Bold Italic"])
+                return @"Helvetica-BoldOblique";
+
+        if([displayName isEqual:@"Nimbus Roman-Regular"])
+                return @"Times-Roman";
+        if([displayName isEqual:@"Source Code Pro-Regular"])
+                return @"Courier";
+
+        return name;
 }
 
 -(NSString *)translateFromNibFontName:(NSString *)name {
-	NSString *displayName = [O2Font displayNameForPostscriptName:name];
+        NSString *displayName = [O2Font displayNameForPostscriptName:name];
 
-	if ([name isEqual:@"Helvetica"] || [name isEqual:@".AppleSystemUIFont"])
-		return [O2Font postscriptNameForDisplayName:@"Inter-Regular"];
-	if([name isEqual:@"Helvetica-Bold"] || [name isEqual:@".AppleSystemUIFontBold"])
-		return [O2Font postscriptNameForDisplayName:@"Inter-Bold"];
-	if([name isEqual:@"Helvetica-Oblique"])
-		return [O2Font postscriptNameForDisplayName:@"Inter-Italic"];
-	if([name isEqual:@"Helvetica-BoldOblique"])
-		return [O2Font postscriptNameForDisplayName:@"Inter-Bold Italic"];
-	
-	if([name isEqual:@"Times-Roman"])
-		return [O2Font postscriptNameForDisplayName:@"Nimbus Roman-Regular"];
-	if([name isEqual:@"Ohlfs"])
-		return [O2Font postscriptNameForDisplayName:@"Nimbus Mono PS-Regular"];
-	if([name isEqual:@"Courier"])
-		return [O2Font postscriptNameForDisplayName:@"Source Code Pro-Regular"];
-	
-	if([name isEqual:@"LucidaGrande"])
-		return [O2Font postscriptNameForDisplayName:@"URW Bookman-Light"];
-	if([name isEqual:@"LucidaGrande-Bold"])
-		return [O2Font postscriptNameForDisplayName:@"URW Bookman-Demi"];
-    
+        if ([name isEqual:@"Helvetica"] || [name isEqual:@".AppleSystemUIFont"])
+                return [O2Font postscriptNameForDisplayName:@"Inter-Regular"];
+        if([name isEqual:@"Helvetica-Bold"] || [name isEqual:@".AppleSystemUIFontBold"])
+                return [O2Font postscriptNameForDisplayName:@"Inter-Bold"];
+        if([name isEqual:@"Helvetica-Oblique"])
+                return [O2Font postscriptNameForDisplayName:@"Inter-Italic"];
+        if([name isEqual:@"Helvetica-BoldOblique"])
+                return [O2Font postscriptNameForDisplayName:@"Inter-Bold Italic"];
+
+        if([name isEqual:@"Times-Roman"])
+                return [O2Font postscriptNameForDisplayName:@"Nimbus Roman-Regular"];
+        if([name isEqual:@"Ohlfs"])
+                return [O2Font postscriptNameForDisplayName:@"Nimbus Mono PS-Regular"];
+        if([name isEqual:@"Courier"])
+                return [O2Font postscriptNameForDisplayName:@"Source Code Pro-Regular"];
+
+        if([name isEqual:@"LucidaGrande"])
+                return [O2Font postscriptNameForDisplayName:@"URW Bookman-Light"];
+        if([name isEqual:@"LucidaGrande-Bold"])
+                return [O2Font postscriptNameForDisplayName:@"URW Bookman-Demi"];
+
     // Special fonts used by Xcode 5 when compiling some xibs
-	if([name isEqual:@".LucidaGrandeUI"])
-		return [O2Font postscriptNameForDisplayName:@"URW Bookman-Light"];
-	if([name isEqual:@".LucidaGrandeUI-Bold"])
-		return [O2Font postscriptNameForDisplayName:@"URW Bookman-Demi"];
-    
-	if([name isEqual:@"HelveticaNeue-CondensedBold"])
-		return [O2Font postscriptNameForDisplayName:@"Inter-Bold"];
-	if([name isEqual:@"HelveticaNeue-Bold"])
-		return [O2Font postscriptNameForDisplayName:@"Inter-Bold"];
-	if([name isEqual:@"HelveticaNeue-Regular"])
-		return [O2Font postscriptNameForDisplayName:@"Inter-Regular"];
+        if([name isEqual:@".LucidaGrandeUI"])
+                return [O2Font postscriptNameForDisplayName:@"URW Bookman-Light"];
+        if([name isEqual:@".LucidaGrandeUI-Bold"])
+                return [O2Font postscriptNameForDisplayName:@"URW Bookman-Demi"];
 
-	return name;
+        if([name isEqual:@"HelveticaNeue-CondensedBold"])
+                return [O2Font postscriptNameForDisplayName:@"Inter-Bold"];
+        if([name isEqual:@"HelveticaNeue-Bold"])
+                return [O2Font postscriptNameForDisplayName:@"Inter-Bold"];
+        if([name isEqual:@"HelveticaNeue-Regular"])
+                return [O2Font postscriptNameForDisplayName:@"Inter-Regular"];
+
+        return name;
 }
 
 @end
@@ -100,7 +101,7 @@ static NSLock *_cacheLock=nil;
     _fontCacheCapacity=4;
     _fontCacheSize=0;
     _fontCache=NSZoneMalloc([self zone],sizeof(NSFont *)*_fontCacheCapacity);
-	   _nibFontTranslator = [[NSNibFontNameTranslator alloc] init];
+           _nibFontTranslator = [[NSNibFontNameTranslator alloc] init];
        _cacheLock = [[NSLock alloc] init];
    }
 }
@@ -114,26 +115,26 @@ static NSLock *_cacheLock=nil;
     if(check!=nil && [[check fontName] isEqualToString:name] && [check pointSize]==size)
      return i;
    }
-    
+
    return NSNotFound;
 }
 
 +(NSFont *)cachedFontWithName:(NSString *)name size:(float)size {
-    
+
     NSFont *font = nil;
     [_cacheLock lock];
     unsigned long i=[self _cacheIndexOfFontWithName:name size:size];
-        
+
     font = (i==NSNotFound)?(NSFont *)nil:_fontCache[i];
     [_cacheLock unlock];
     return font;
 }
 
 +(void)addFontToCache:(NSFont *)font {
-    
-	if (font == nil) {
-		return;
-	}
+
+        if (font == nil) {
+                return;
+        }
    unsigned long i;
 
     [_cacheLock lock];
@@ -179,10 +180,10 @@ static NSLock *_cacheLock=nil;
     default:
     case NSRegularControlSize:
      return 13.0;
-     
+
     case NSSmallControlSize:
      return 11.0;
-     
+
     case NSMiniControlSize:
      return 9.0;
    }
@@ -195,9 +196,9 @@ static NSLock *_cacheLock=nil;
     if (ctFont) {
         NSString *name=(NSString *)CTFontCopyFullName(ctFont);
         size=CTFontGetSize(ctFont);
-        
+
         result=[NSFont fontWithName:name size:size];
-        
+
         [ctFont release];
         [name release];
     } else {
@@ -281,7 +282,7 @@ static NSLock *_cacheLock=nil;
      [coder encodeFloat:_pointSize forKey:@"NSSize"];
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"%@ can not encodeWithCoder:%@",isa,[coder class]];
+    [NSException raise:NSInvalidArgumentException format:@"%@ can not encodeWithCoder:%@",[self class],[coder class]];
    }
 }
 
@@ -292,15 +293,15 @@ static NSLock *_cacheLock=nil;
     NSString          *name=[[NSFont nibFontTranslator] translateFromNibFontName: fontName];
     float              size=[keyed decodeFloatForKey:@"NSSize"];
     // int                flags=[keyed decodeIntForKey:@"NSfFlags"]; // ?
-    
+
     [self dealloc];
-    
+
     NSFont *realFont = [[NSFont fontWithName:name size:size] retain];
        O2FontLog(@"coded font name: %@ translated font name: %@ rendered font: %@", fontName, name, realFont);
        return realFont;
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",isa,[coder class]];
+    [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",[self class],[coder class]];
    }
    return nil;
 }
@@ -321,20 +322,20 @@ static NSLock *_cacheLock=nil;
    else
     _encoding=NSUnicodeStringEncoding;
 
-	_cgFont=CGFontCreateWithFontName((CFStringRef)_name);
-	if (_cgFont) {
-		_ctFont=CTFontCreateWithGraphicsFont(_cgFont,_pointSize,NULL,NULL);
-		[isa addFontToCache:self];
+        _cgFont=CGFontCreateWithFontName((CFStringRef)_name);
+        if (_cgFont) {
+                _ctFont=CTFontCreateWithGraphicsFont(_cgFont,_pointSize,NULL,NULL);
+                [[self class] addFontToCache:self];
         O2FontLog(@"name: %@ _cgFont: %@ _ctFont: %@", name, _cgFont, _ctFont);
-	} else {
-		[self release];
-		self = nil;
-	}
-	return self;
+        } else {
+                [self release];
+                self = nil;
+        }
+        return self;
 }
 
 -(void)dealloc {
-   [isa removeFontFromCache:self];
+   [[self class] removeFontFromCache:self];
 
    [_name release];
    CGFontRelease(_cgFont);
@@ -348,8 +349,8 @@ static NSLock *_cacheLock=nil;
    if(name==nil)
     [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] name==nil",self,sel_getName(_cmd)];
 
-	// Name can be PS name or a display name - internally we want a PS name - that's what Cocoa is doing
-	name = [O2Font postscriptNameForFontName:name];
+        // Name can be PS name or a display name - internally we want a PS name - that's what Cocoa is doing
+        name = [O2Font postscriptNameForFontName:name];
 
    result=[self cachedFontWithName:name size:size];
 
@@ -365,46 +366,46 @@ static NSLock *_cacheLock=nil;
 }
 
 +(NSFont *)fontWithDescriptor:(NSFontDescriptor *)descriptor size:(float)size {
-	
-	NSDictionary* attributes = [descriptor fontAttributes];
-	NSString* fontName = [attributes objectForKey: NSFontNameAttribute];
-	if (fontName) {
-		return [NSFont fontWithName: fontName size: size];
-	}
 
-	NSString* fontFamily = [attributes objectForKey: NSFontFamilyAttribute];
-	
-	if (fontFamily) {
-		NSFontManager* fontMgr = [NSFontManager sharedFontManager];
-		
-		NSArray* matchingFonts = [fontMgr availableMembersOfFontFamily: fontFamily];
-		
-		if ([matchingFonts count] == 1) {
-			// won't find anything better than this
-			NSArray* members = [matchingFonts objectAtIndex: 0];
-			return [NSFont fontWithName: [members objectAtIndex: 0] size: size];
-		} else {
-			// Let's hope that we've got more to go on.
-			NSString* fontFace = [attributes objectForKey: NSFontFaceAttribute];
-			if (fontFace != nil) {
-				int i = 0;
-				for (i = 0; i < [matchingFonts count]; i++) {
-					NSArray* members = [matchingFonts objectAtIndex: i];
-					NSString* candidateFace = [members objectAtIndex: 1];
-					if ([candidateFace isEqualToString: fontFace]) {
-						return [NSFont fontWithName: [members objectAtIndex: 0] size: size];
-					}
-				}
-			} else {
-				// just take the first one
-				NSArray* members = [matchingFonts objectAtIndex: 0];
-				return [NSFont fontWithName: [members objectAtIndex: 0] size: size];
-			}
-			
-		}
-	}
-	NSLog(@"unable to match font descriptor: %@", descriptor);
-	return nil;
+        NSDictionary* attributes = [descriptor fontAttributes];
+        NSString* fontName = [attributes objectForKey: NSFontNameAttribute];
+        if (fontName) {
+                return [NSFont fontWithName: fontName size: size];
+        }
+
+        NSString* fontFamily = [attributes objectForKey: NSFontFamilyAttribute];
+
+        if (fontFamily) {
+                NSFontManager* fontMgr = [NSFontManager sharedFontManager];
+
+                NSArray* matchingFonts = [fontMgr availableMembersOfFontFamily: fontFamily];
+
+                if ([matchingFonts count] == 1) {
+                        // won't find anything better than this
+                        NSArray* members = [matchingFonts objectAtIndex: 0];
+                        return [NSFont fontWithName: [members objectAtIndex: 0] size: size];
+                } else {
+                        // Let's hope that we've got more to go on.
+                        NSString* fontFace = [attributes objectForKey: NSFontFaceAttribute];
+                        if (fontFace != nil) {
+                                int i = 0;
+                                for (i = 0; i < [matchingFonts count]; i++) {
+                                        NSArray* members = [matchingFonts objectAtIndex: i];
+                                        NSString* candidateFace = [members objectAtIndex: 1];
+                                        if ([candidateFace isEqualToString: fontFace]) {
+                                                return [NSFont fontWithName: [members objectAtIndex: 0] size: size];
+                                        }
+                                }
+                        } else {
+                                // just take the first one
+                                NSArray* members = [matchingFonts objectAtIndex: 0];
+                                return [NSFont fontWithName: [members objectAtIndex: 0] size: size];
+                        }
+
+                }
+        }
+        NSLog(@"unable to match font descriptor: %@", descriptor);
+        return nil;
 }
 
 +(NSFont *)fontWithDescriptor:(NSFontDescriptor *)descriptor size:(float)size textTransform:(NSAffineTransform *)transform {
@@ -434,7 +435,7 @@ static NSLock *_cacheLock=nil;
     _matrix[0],_matrix[1],_matrix[2],
     _matrix[3],_matrix[4],_matrix[5],
    };
-   
+
    [result setTransformStruct:fields];
 
    return result;
@@ -469,52 +470,52 @@ arrayWithArray:[_name componentsSeparatedByString:blank]];
       }
    }
 
-	// Fall back to using the font name - nil is not an option
-	if (familyName == nil) {
-		familyName = _name;
-	}
+        // Fall back to using the font name - nil is not an option
+        if (familyName == nil) {
+                familyName = _name;
+        }
    return familyName;
 }
 
 -(NSString *)displayName {
-	NSFontTypeface *typeFace = [NSFontFamily fontTypefaceWithName:_name];
+        NSFontTypeface *typeFace = [NSFontFamily fontTypefaceWithName:_name];
    return [typeFace displayName];
 }
 
 - (NSDictionary*)_fontTraitsAsDictionary
 {
-	NSFontManager* fm = [NSFontManager sharedFontManager];
-	
-	NSMutableDictionary* traitsDictionary = [NSMutableDictionary dictionaryWithCapacity: 4];
-	NSFontFamily   *family=[NSFontFamily fontFamilyWithTypefaceName:[self fontName]];
-	NSFontTypeface *typeface=[family typefaceWithName:[self fontName]];
-	NSFontTraitMask symbolicTraits=[typeface traits];
-	[traitsDictionary setObject: [NSNumber numberWithInt: symbolicTraits] forKey: NSFontSymbolicTrait];
-	[traitsDictionary setObject: [NSNumber numberWithInt: [fm weightOfFont: self]] forKey: NSFontWeightTrait];
-//	[traitsDictionary setObject: [NSNumber numberWithInt: ??] forKey: NSFontWidthTrait]; // not sure what's put here
-	[traitsDictionary setObject: [NSNumber numberWithFloat: [self italicAngle]] forKey: NSFontSlantTrait];
-	return traitsDictionary;
+        NSFontManager* fm = [NSFontManager sharedFontManager];
+
+        NSMutableDictionary* traitsDictionary = [NSMutableDictionary dictionaryWithCapacity: 4];
+        NSFontFamily   *family=[NSFontFamily fontFamilyWithTypefaceName:[self fontName]];
+        NSFontTypeface *typeface=[family typefaceWithName:[self fontName]];
+        NSFontTraitMask symbolicTraits=[typeface traits];
+        [traitsDictionary setObject: [NSNumber numberWithInt: symbolicTraits] forKey: NSFontSymbolicTrait];
+        [traitsDictionary setObject: [NSNumber numberWithInt: [fm weightOfFont: self]] forKey: NSFontWeightTrait];
+//      [traitsDictionary setObject: [NSNumber numberWithInt: ??] forKey: NSFontWidthTrait]; // not sure what's put here
+        [traitsDictionary setObject: [NSNumber numberWithFloat: [self italicAngle]] forKey: NSFontSlantTrait];
+        return traitsDictionary;
 }
 
 -(NSFontDescriptor *)fontDescriptor {
-	
-	NSFontFamily   *fontFamily=[NSFontFamily fontFamilyWithName: [self familyName]];
-	NSFontTypeface *typeface=[fontFamily typefaceWithName:[self fontName]];
 
-	NSDictionary* attributes = [NSDictionary dictionaryWithObjectsAndKeys:
-								[self fontName],	NSFontNameAttribute,
-								[self familyName],	NSFontFamilyAttribute,
-								[[NSNumber numberWithFloat: [self pointSize]] stringValue], NSFontSizeAttribute,
-//								[self matrix], NSFontMatrixAttribute, // currently returns nil
-								[self coveredCharacterSet], NSFontCharacterSetAttribute, 
-								[self _fontTraitsAsDictionary], NSFontTraitsAttribute,
-								[typeface traitName], NSFontFaceAttribute,
-								[NSNumber numberWithFloat: [self maximumAdvancement].width], NSFontFixedAdvanceAttribute,
-								[self displayName], NSFontVisibleNameAttribute,
-								nil];
-								
-	NSFontDescriptor* descriptor = [NSFontDescriptor fontDescriptorWithFontAttributes: attributes];
-	return descriptor;
+        NSFontFamily   *fontFamily=[NSFontFamily fontFamilyWithName: [self familyName]];
+        NSFontTypeface *typeface=[fontFamily typefaceWithName:[self fontName]];
+
+        NSDictionary* attributes = [NSDictionary dictionaryWithObjectsAndKeys:
+                                                                [self fontName],        NSFontNameAttribute,
+                                                                [self familyName],      NSFontFamilyAttribute,
+                                                                [[NSNumber numberWithFloat: [self pointSize]] stringValue], NSFontSizeAttribute,
+//                                                              [self matrix], NSFontMatrixAttribute, // currently returns nil
+                                                                [self coveredCharacterSet], NSFontCharacterSetAttribute,
+                                                                [self _fontTraitsAsDictionary], NSFontTraitsAttribute,
+                                                                [typeface traitName], NSFontFaceAttribute,
+                                                                [NSNumber numberWithFloat: [self maximumAdvancement].width], NSFontFixedAdvanceAttribute,
+                                                                [self displayName], NSFontVisibleNameAttribute,
+                                                                nil];
+
+        NSFontDescriptor* descriptor = [NSFontDescriptor fontDescriptorWithFontAttributes: attributes];
+        return descriptor;
 }
 
 -(NSFont *)printerFont {
@@ -560,7 +561,7 @@ arrayWithArray:[_name componentsSeparatedByString:blank]];
 -(NSSize)advancementForGlyph:(NSGlyph)glyph {
    CGSize  cgSize;
    CGGlyph cgGlyphs[1]={glyph};
-   
+
    CTFontGetAdvancesForGlyphs(_ctFont,0,cgGlyphs,&cgSize,1);
 
    return NSMakeSize(cgSize.width,cgSize.height);
@@ -571,12 +572,12 @@ arrayWithArray:[_name componentsSeparatedByString:blank]];
    int     glyph,glyphCount=CTFontGetGlyphCount(_ctFont);
    CGGlyph glyphs[glyphCount];
    CGSize  advances[glyphCount];
-   
+
    for(glyph=0;glyph<glyphCount;glyph++)
     glyphs[glyph]=glyph;
-    
+
    CTFontGetAdvancesForGlyphs(_ctFont,0,glyphs,advances,glyphCount);
-   
+
    for(glyph=0;glyph<glyphCount;glyph++){
     max.width=MAX(max.width,advances[glyph].width);
     max.height=MAX(max.height,advances[glyph].height);
@@ -615,13 +616,13 @@ arrayWithArray:[_name componentsSeparatedByString:blank]];
    int     glyph,glyphCount=CTFontGetGlyphCount(_ctFont);
    CGGlyph glyphs[glyphCount];
    CGSize  advances[glyphCount];
-   
+
    for(glyph=0;glyph<glyphCount;glyph++)
     glyphs[glyph]=glyph;
-   
+
    CTFontGetAdvancesForGlyphs(_ctFont,0,glyphs,advances,glyphCount);
    current=advances[0];
-   
+
    for(glyph=1;glyph<glyphCount;glyph++){
     if(advances[glyph].width!=current.width || advances[glyph].height!=current.height)
      return NO;
@@ -644,12 +645,12 @@ arrayWithArray:[_name componentsSeparatedByString:blank]];
 
 -(void)setInContext:(NSGraphicsContext *)context {
    CGContextRef cgContext=[context graphicsPort];
-   
+
    CGContextSetFont(cgContext,_cgFont);
    CGContextSetFontSize(cgContext,_pointSize);
 
    CGAffineTransform textMatrix;
-   
+
 // FIX, should check the focusView in the context instead of NSView's
    if([[NSGraphicsContext currentContext] isFlipped])
     textMatrix=(CGAffineTransform){1,0,0,-1,0,0};
@@ -670,10 +671,10 @@ arrayWithArray:[_name componentsSeparatedByString:blank]];
 -(void)getAdvancements:(NSSize *)advancements forGlyphs:(const NSGlyph *)glyphs count:(unsigned)count {
    CGGlyph cgGlyphs[count];
    int     i;
-   
+
    for(i=0;i<count;i++)
     cgGlyphs[i]=glyphs[i];
-   
+
    CTFontGetAdvancesForGlyphs(_ctFont,0,cgGlyphs,advancements,count);
 }
 
@@ -688,9 +689,9 @@ arrayWithArray:[_name componentsSeparatedByString:blank]];
 -(unsigned)getGlyphs:(NSGlyph *)glyphs forCharacters:(unichar *)characters length:(unsigned)length {
    CGGlyph  cgGlyphs[length];
    int      i;
-   
+
    CTFontGetGlyphsForCharacters(_ctFont,characters,cgGlyphs,length);
-   
+
    for(i=0;i<length;i++){
     unichar check=characters[i];
 
@@ -704,7 +705,7 @@ arrayWithArray:[_name componentsSeparatedByString:blank]];
 }
 
 -(NSString *)description {
-   return [NSString stringWithFormat:@"<%@ %@ %f>",isa,_name,_pointSize];
+   return [NSString stringWithFormat:@"<%@ %@ %f>",[self class],_name,_pointSize];
 }
 
 int NSConvertGlyphsToPackedGlyphs(NSGlyph *glyphs,int length,NSMultibyteGlyphPacking packing,char *outputX) {
@@ -727,14 +728,14 @@ int NSConvertGlyphsToPackedGlyphs(NSGlyph *glyphs,int length,NSMultibyteGlyphPac
 
 + (void)setNibFontTranslator:(NSNibFontNameTranslator*)fontTranslator
 {
-	[fontTranslator retain];
-	[_nibFontTranslator release];
-	_nibFontTranslator = fontTranslator;
+        [fontTranslator retain];
+        [_nibFontTranslator release];
+        _nibFontTranslator = fontTranslator;
 }
 
 + (NSNibFontNameTranslator*)nibFontTranslator
 {
-	return _nibFontTranslator;
+        return _nibFontTranslator;
 }
 
 @end

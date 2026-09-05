@@ -58,10 +58,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	 NSStringFromClass(object_getClass(self)),NSStringFromSelector(selector)];
 }
 
--(NSMethodSignature *)methodSignatureForSelector:(SEL)selector {
-   NSInvalidAbstractInvocation();
-   return nil;
-}
 
 -(void)forwardInvocation:(NSInvocation *)invocation {
    NSInvalidAbstractInvocation();

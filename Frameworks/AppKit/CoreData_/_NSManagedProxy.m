@@ -32,15 +32,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
     _entityName = [[coder decodeObjectForKey: @"NSEntityName"] retain];
     NSPredicate *fetchPredicate=[coder decodeObjectForKey: @"NSFetchPredicate"];
-       
+
     _fetchRequest = [[NSFetchRequest alloc] init];
     [_fetchRequest setEntity: _entity];
     [_fetchRequest setPredicate: fetchPredicate];
-   
+
     _observers = [[NSMutableArray alloc] init];
     return self;
    } else {
-    [NSException raise:NSInvalidArgumentException format: @"%@ can not initWithCoder:%@", isa, [coder class]];
+    [NSException raise:NSInvalidArgumentException format: @"%@ can not initWithCoder:%@", [self class], [coder class]];
     return nil;
    }
 }
@@ -54,7 +54,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
    _fetchRequest = [[NSFetchRequest alloc] init];
    [_fetchRequest setEntity: _entity];
-    
+
    _observers = [[NSMutableArray alloc] init];
    return self;
 }
@@ -88,7 +88,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (void) setManagedObjectContext: (NSManagedObjectContext *) context {
     _context = context;
     _entity = [NSEntityDescription entityForName: _entityName
-				   inManagedObjectContext: _context];
+                                   inManagedObjectContext: _context];
 
     [_fetchRequest setEntity: _entity];
 }
@@ -96,17 +96,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (id) valueForKey: (NSString *) key {
     if(_object)
-	return [_object valueForKey: key];
+        return [_object valueForKey: key];
     else
-	return nil;
+        return nil;
 }
 
 
 - (void) setValue: (id) value forKey: (NSString *) key {
     if([key isEqualToString: @"managedObjectContext"])
-	[self setManagedObjectContext: value];
+        [self setManagedObjectContext: value];
     else if(_object)
-	[_object setValue: value forKey: key];
+        [_object setValue: value forKey: key];
 }
 
 
@@ -122,24 +122,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if(!_context || !_fetchRequest) result = 0;
     else result = (NSUInteger)[_fetchRequest _countInContext: _context];
     NSLog(@"%@ being asked about its count and saying %lu; %@ %@\n", self, result,
-	  _context, _fetchRequest);
+          _context, _fetchRequest);
     return result;
 }
 
 
 - (void) addObserver: (NSObject *) observer
   toObjectsAtIndexes: (NSIndexSet *) indexes
-	  forKeyPath: (NSString *) keyPath
-	     options: (NSKeyValueObservingOptions) options
-	     context: (void *) context
+          forKeyPath: (NSString *) keyPath
+             options: (NSKeyValueObservingOptions) options
+             context: (void *) context
 {
     NSLog(@"Proxy for %@ asked to observe by %@ for keypath %@ options 0x%08x\n",
-	  _object,
-	  observer,
-	  keyPath,
-	  options);
+          _object,
+          observer,
+          keyPath,
+          options);
     _NSManagedProxy_observerInfo *observerInfo
-	= [[_NSManagedProxy_observerInfo alloc] init];
+        = [[_NSManagedProxy_observerInfo alloc] init];
     [observerInfo setObserver: observer];
     [observerInfo setIndexSet: indexes];
     [observerInfo setKeyPath: keyPath];
@@ -152,7 +152,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (void) removeObserver: (NSObject *) observer
    fromObjectsAtIndexes: (NSIndexSet *) indexes
-	     forKeyPath: (NSString *) keyPath
+             forKeyPath: (NSString *) keyPath
 {
 }
 
@@ -160,21 +160,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (void) notifyObserver: (_NSManagedProxy_observerInfo *) observerInfo {
     NSDictionary *change = [NSDictionary dictionary];
     [[observerInfo observer] observeValueForKeyPath: [observerInfo keyPath]
-			     ofObject: self
-			     change: change
-			     context: [observerInfo context]];
+                             ofObject: self
+                             change: change
+                             context: [observerInfo context]];
     /* Unnecessary - a single notification will do it.
     for(NSUInteger index = [indexes firstIndex];
-	index != NSNotFound;
-	index = [indexes indexGreaterThanIndex: index]) {
-	id object = [self objectAtIndex: index];
-	id value = [object valueForKey: keyPath];
-	
-	NSDictionary *change = [NSDictionary dictionary];
-	[observer observeValueForKeyPath: keyPath
-		  ofObject: object
-		  change: change
-		  context: context];
+        index != NSNotFound;
+        index = [indexes indexGreaterThanIndex: index]) {
+        id object = [self objectAtIndex: index];
+        id value = [object valueForKey: keyPath];
+
+        NSDictionary *change = [NSDictionary dictionary];
+        [observer observeValueForKeyPath: keyPath
+                  ofObject: object
+                  change: change
+                  context: context];
     }
     */
 }
@@ -183,7 +183,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (void) _refresh {
     NSLog(@"%@ about to refresh", self);
     for(_NSManagedProxy_observerInfo *info in _observers)
-	[self notifyObserver: info];
+        [self notifyObserver: info];
     NSLog(@"%@ refreshed", self);
 }
 

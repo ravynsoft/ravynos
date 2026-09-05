@@ -86,6 +86,11 @@ NSUInteger NSGetCFStringWithMaxLength(const unichar *characters,
     unsigned char bytes[];
 }
 
+-(NSCFString *)initWithBytes:(const void *)bytes length:(NSUInteger)length
+                 encoding:(NSStringEncoding)encoding;
+-(NSCFString *)initWithBytesNoCopy:(void *)bytes length:(NSUInteger)length
+                encoding:(NSStringEncoding)encoding 
+                freeWhenDone:(BOOL)freeWhenDone;
 -(NSUInteger)length;
 -(NSStringEncoding)fastestEncoding;
 -(unichar)characterAtIndex:(NSUInteger)location;

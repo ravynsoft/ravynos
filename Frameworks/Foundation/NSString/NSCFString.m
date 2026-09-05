@@ -118,6 +118,12 @@ NSUInteger NSGetCFStringWithMaxLength(const unichar *characters,
     [super dealloc];
 }
 
+- initWithCharactersNoCopy:(unichar *)characters length:(NSUInteger)length freeWhenDone:(BOOL)freeWhenDone
+{
+    NSDeallocateObject(self);
+    return NSCFStringNewWithCharacters(NULL, characters, length, freeWhenDone);
+}
+
 -(NSUInteger)length {
     uint8_t infobits = self->cfinfo[CF_INFO_BITS];
 

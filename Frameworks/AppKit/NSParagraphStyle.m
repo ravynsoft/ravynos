@@ -56,37 +56,37 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    _lineHeightMultiple=0;
    _lineSpacing=0;
    _defaultTabInterval=0;
-   _tabStops=[[isa _defaultTabStops] retain];
+   _tabStops=[[[self class] _defaultTabStops] retain];
    _hyphenationFactor=0;
    _tighteningFactorForTruncation=0;
 }
 
 -initWithCoder:(NSCoder *)coder {
    if([coder allowsKeyedCoding]){
-	   _writingDirection = [coder decodeIntForKey: @"BaseWritingDirection"];
-	   _paragraphSpacing = [coder decodeFloatForKey: @"ParagraphSpacing"];
-	   _paragraphSpacingBefore = [coder decodeFloatForKey: @"ParagraphSpacingBefore"];
-	   _textBlocks = [[coder decodeObjectForKey: @"Blocks"] retain];
-	   _textLists = [coder decodeObjectForKey: @"Lists"];
-	   _headerLevel = [coder decodeIntForKey: @"HeaderLevel"];
-	   _firstLineHeadIndent = [coder decodeFloatForKey: @"FirstLineHeadIndent"];
-	   _headIndent = [coder decodeFloatForKey: @"HeadIndent"];
-	   _tailIndent = [coder decodeFloatForKey: @"TailIndent"];
-	   _alignment = [coder decodeIntForKey: @"Alignment"];
-	   _lineBreakMode = [coder decodeIntForKey: @"LineBreakMode"];
-	   _minimumLineHeight = [coder decodeFloatForKey: @"MinimumLineHeight"];
-	   _maximumLineHeight = [coder decodeFloatForKey: @"MaximumLineHeight"];
-	   _lineHeightMultiple = [coder decodeFloatForKey: @"LineHeightMultiple"];
-	   _lineSpacing = [coder decodeFloatForKey: @"LineSpacing"];
-	   _defaultTabInterval = [coder decodeFloatForKey: @"DefaultTabInterval"];
-	   _tabStops = [[coder decodeObjectForKey: @"Tabs"] retain];
-	   _hyphenationFactor = [coder decodeFloatForKey: @"HyphenationFactor"];
-	   _tighteningFactorForTruncation = [coder decodeFloatForKey: @"TighteningFactor"];
+           _writingDirection = [coder decodeIntForKey: @"BaseWritingDirection"];
+           _paragraphSpacing = [coder decodeFloatForKey: @"ParagraphSpacing"];
+           _paragraphSpacingBefore = [coder decodeFloatForKey: @"ParagraphSpacingBefore"];
+           _textBlocks = [[coder decodeObjectForKey: @"Blocks"] retain];
+           _textLists = [coder decodeObjectForKey: @"Lists"];
+           _headerLevel = [coder decodeIntForKey: @"HeaderLevel"];
+           _firstLineHeadIndent = [coder decodeFloatForKey: @"FirstLineHeadIndent"];
+           _headIndent = [coder decodeFloatForKey: @"HeadIndent"];
+           _tailIndent = [coder decodeFloatForKey: @"TailIndent"];
+           _alignment = [coder decodeIntForKey: @"Alignment"];
+           _lineBreakMode = [coder decodeIntForKey: @"LineBreakMode"];
+           _minimumLineHeight = [coder decodeFloatForKey: @"MinimumLineHeight"];
+           _maximumLineHeight = [coder decodeFloatForKey: @"MaximumLineHeight"];
+           _lineHeightMultiple = [coder decodeFloatForKey: @"LineHeightMultiple"];
+           _lineSpacing = [coder decodeFloatForKey: @"LineSpacing"];
+           _defaultTabInterval = [coder decodeFloatForKey: @"DefaultTabInterval"];
+           _tabStops = [[coder decodeObjectForKey: @"Tabs"] retain];
+           _hyphenationFactor = [coder decodeFloatForKey: @"HyphenationFactor"];
+           _tighteningFactorForTruncation = [coder decodeFloatForKey: @"TighteningFactor"];
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",[self class],sel_getName(_cmd),coder];
    }
-   
+
    return self;
 }
 
@@ -120,29 +120,29 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (void)encodeWithCoder:(NSCoder *)coder
 {
-	if ([coder isKindOfClass: [NSKeyedArchiver class]]) {
-		[coder encodeInt: _writingDirection forKey: @"BaseWritingDirection"];
-		[coder encodeFloat: _paragraphSpacing forKey: @"ParagraphSpacing"];
-		[coder encodeFloat: _paragraphSpacingBefore forKey: @"ParagraphSpacingBefore"];
-		[coder encodeObject: _textBlocks forKey: @"Blocks"];
-		[coder encodeObject: _textLists forKey: @"Lists"];
-		[coder encodeInt: _headerLevel forKey: @"HeaderLevel"];
-		[coder encodeFloat: _firstLineHeadIndent forKey: @"FirstLineHeadIndent"];
-		[coder encodeFloat: _headIndent forKey: @"HeadIndent"];
-		[coder encodeFloat: _tailIndent forKey: @"TailIndent"];
-		[coder encodeInt: _alignment forKey: @"Alignment"];
-		[coder encodeInt: _lineBreakMode forKey: @"LineBreakMode"];
-		[coder encodeFloat: _minimumLineHeight forKey: @"MinimumLineHeight"];
-		[coder encodeFloat: _maximumLineHeight forKey: @"MaximumLineHeight"];
-		[coder encodeFloat: _lineHeightMultiple forKey: @"LineHeightMultiple"];
-		[coder encodeFloat: _lineSpacing forKey: @"LineSpacing"];
-		[coder encodeFloat: _defaultTabInterval forKey: @"DefaultTabInterval"];
-		[coder encodeObject: _tabStops forKey: @"Tabs"];
-		[coder encodeFloat: _hyphenationFactor forKey: @"HyphenationFactor"];
-		[coder encodeFloat: _tighteningFactorForTruncation forKey: @"TighteningFactor"];
-	} else {
-		NSUnimplementedMethod();
-	}
+        if ([coder isKindOfClass: [NSKeyedArchiver class]]) {
+                [coder encodeInt: _writingDirection forKey: @"BaseWritingDirection"];
+                [coder encodeFloat: _paragraphSpacing forKey: @"ParagraphSpacing"];
+                [coder encodeFloat: _paragraphSpacingBefore forKey: @"ParagraphSpacingBefore"];
+                [coder encodeObject: _textBlocks forKey: @"Blocks"];
+                [coder encodeObject: _textLists forKey: @"Lists"];
+                [coder encodeInt: _headerLevel forKey: @"HeaderLevel"];
+                [coder encodeFloat: _firstLineHeadIndent forKey: @"FirstLineHeadIndent"];
+                [coder encodeFloat: _headIndent forKey: @"HeadIndent"];
+                [coder encodeFloat: _tailIndent forKey: @"TailIndent"];
+                [coder encodeInt: _alignment forKey: @"Alignment"];
+                [coder encodeInt: _lineBreakMode forKey: @"LineBreakMode"];
+                [coder encodeFloat: _minimumLineHeight forKey: @"MinimumLineHeight"];
+                [coder encodeFloat: _maximumLineHeight forKey: @"MaximumLineHeight"];
+                [coder encodeFloat: _lineHeightMultiple forKey: @"LineHeightMultiple"];
+                [coder encodeFloat: _lineSpacing forKey: @"LineSpacing"];
+                [coder encodeFloat: _defaultTabInterval forKey: @"DefaultTabInterval"];
+                [coder encodeObject: _tabStops forKey: @"Tabs"];
+                [coder encodeFloat: _hyphenationFactor forKey: @"HyphenationFactor"];
+                [coder encodeFloat: _tighteningFactorForTruncation forKey: @"TighteningFactor"];
+        } else {
+                NSUnimplementedMethod();
+        }
 }
 
 -(void)dealloc {
@@ -280,27 +280,27 @@ static inline id mutableCopyWithZone(NSParagraphStyle *self,NSZone *zone){
 
 - (NSString*)description
 {
-	NSMutableString* tabsString = [NSMutableString stringWithString: @" (\n"];
-	
-	for (NSTextTab* tab in _tabStops) {
-		switch ([tab tabStopType]) {
-			case NSLeftTabStopType:
-				[tabsString appendString: [NSString stringWithFormat: @"%fL", [tab location]]];
-				break;
-			case NSRightTabStopType:
-				[tabsString appendString: [NSString stringWithFormat: @"%fR", [tab location]]];
-				break;
-			case NSCenterTabStopType:
-				[tabsString appendString: [NSString stringWithFormat: @"%fC", [tab location]]];
-				break;
-			case NSDecimalTabStopType:
-				[tabsString appendString: [NSString stringWithFormat: @"%fD", [tab location]]];
-				break;
-		}
-	}
-	[tabsString appendString: @")"];
-		
-	return [NSString stringWithFormat: @"Alignment %d, LineSpacing %f, ParagraphSpacing %f, "
+        NSMutableString* tabsString = [NSMutableString stringWithString: @" (\n"];
+
+        for (NSTextTab* tab in _tabStops) {
+                switch ([tab tabStopType]) {
+                        case NSLeftTabStopType:
+                                [tabsString appendString: [NSString stringWithFormat: @"%fL", [tab location]]];
+                                break;
+                        case NSRightTabStopType:
+                                [tabsString appendString: [NSString stringWithFormat: @"%fR", [tab location]]];
+                                break;
+                        case NSCenterTabStopType:
+                                [tabsString appendString: [NSString stringWithFormat: @"%fC", [tab location]]];
+                                break;
+                        case NSDecimalTabStopType:
+                                [tabsString appendString: [NSString stringWithFormat: @"%fD", [tab location]]];
+                                break;
+                }
+        }
+        [tabsString appendString: @")"];
+
+        return [NSString stringWithFormat: @"Alignment %d, LineSpacing %f, ParagraphSpacing %f, "
             @"ParagraphSpacingBefore %f, HeadIndent %f, TailIndent %f, FirstLineHeadIndent %f, "
             @"LineHeight %f/%f, LineHeightMultiple %f, LineBreakMode %d, Tabs %@, "
             @"DefaultTabInterval %f, Blocks %@, Lists %@, BaseWritingDirection %d, "

@@ -11,7 +11,7 @@
 	self = [super initWithCoder: coder];
 	if (self) {
 		if (![coder allowsKeyedCoding]) {
-			[NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",isa,[coder class]];
+			[NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",[self class], [coder class]];
 		}
 
 		[self setPlaceholderString: [coder decodeObjectForKey: @"NSPlaceholderString"]];
@@ -73,7 +73,7 @@
    else if([(id)value isKindOfClass: [NSString class]])
     [self setURL:[NSURL fileURLWithPath:(id)value]];
 
-   [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] only accepts URL's and strings, class=%@",isa,_cmd,[(id)value class]];
+   [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] only accepts URL's and strings, class=%@",[self class], _cmd,[(id)value class]];
 }
 
 -(NSAttributedString *)placeholderAttributedString {

@@ -44,7 +44,7 @@ NSString * const NSFontSlantTrait = @"NSFontSlantTrait";
 
 
 -(NSString *)description {
-	return [NSString stringWithFormat:@"<%@ %@>",isa,_attributes];
+   return [NSString stringWithFormat:@"<%@ %@>",[self class],_attributes];
 }
 
 +fontDescriptorWithFontAttributes:(NSDictionary *)attributes {
@@ -64,7 +64,7 @@ NSString * const NSFontSlantTrait = @"NSFontSlantTrait";
     name,NSFontNameAttribute,
     [[NSNumber numberWithFloat:pointSize] stringValue],NSFontSizeAttribute,
     nil];
-   
+
    return [[[self allocWithZone:NULL] initWithFontAttributes:attributes] autorelease];
 }
 
@@ -85,24 +85,24 @@ NSString * const NSFontSlantTrait = @"NSFontSlantTrait";
 }
 
 -(NSFontSymbolicTraits)symbolicTraits {
-	NSDictionary* fontTraits = [_attributes objectForKey:NSFontTraitsAttribute];
-	return [[fontTraits objectForKey: NSFontSymbolicTrait] unsignedIntValue];
+   NSDictionary* fontTraits = [_attributes objectForKey:NSFontTraitsAttribute];
+   return [[fontTraits objectForKey: NSFontSymbolicTrait] unsignedIntValue];
 }
 
 -(NSFontDescriptor *)fontDescriptorByAddingAttributes:(NSDictionary *)attributes {
    NSMutableDictionary *copy=[NSMutableDictionary dictionaryWithDictionary:_attributes];
-   
+
    [copy addEntriesFromDictionary:attributes];
-   
-   return [isa fontDescriptorWithFontAttributes:copy];
+
+   return [[self class] fontDescriptorWithFontAttributes:copy];
 }
 
 -(NSFontDescriptor *)fontDescriptorWithFace:(NSString *)face {
    NSMutableDictionary *copy=[NSMutableDictionary dictionaryWithDictionary:_attributes];
 
    [copy setObject:face forKey:NSFontFaceAttribute];
-   
-   return [isa fontDescriptorWithFontAttributes:copy];
+
+   return [[self class] fontDescriptorWithFontAttributes:copy];
 }
 
 -(NSFontDescriptor *)fontDescriptorWithFamily:(NSString *)family {
@@ -110,7 +110,7 @@ NSString * const NSFontSlantTrait = @"NSFontSlantTrait";
 
    [copy setObject:family forKey:NSFontFamilyAttribute];
 
-   return [isa fontDescriptorWithFontAttributes:copy];
+   return [[self class] fontDescriptorWithFontAttributes:copy];
 }
 
 -(NSFontDescriptor *)fontDescriptorWithMatrix:(NSAffineTransform *)matrix {
@@ -118,7 +118,7 @@ NSString * const NSFontSlantTrait = @"NSFontSlantTrait";
 
    [copy setObject:matrix forKey:NSFontMatrixAttribute];
 
-   return [isa fontDescriptorWithFontAttributes:copy];
+   return [[self class] fontDescriptorWithFontAttributes:copy];
 }
 
 -(NSFontDescriptor *)fontDescriptorWithSize:(float)pointSize {
@@ -126,17 +126,17 @@ NSString * const NSFontSlantTrait = @"NSFontSlantTrait";
 
    [copy setObject:[NSNumber numberWithFloat:pointSize] forKey:NSFontSizeAttribute];
 
-   return [isa fontDescriptorWithFontAttributes:copy];
+   return [[self class] fontDescriptorWithFontAttributes:copy];
 }
 
 -(NSFontDescriptor *)fontDescriptorWithSymbolicTraits:(NSFontSymbolicTraits)traits {
    NSMutableDictionary *copy=[NSMutableDictionary dictionaryWithDictionary:_attributes];
 
-	NSMutableDictionary *traitsCopy = [NSMutableDictionary dictionaryWithDictionary: [_attributes objectForKey: NSFontTraitsAttribute]];
-	[traitsCopy setObject: [NSNumber numberWithUnsignedInt: traits] forKey: NSFontSymbolicTrait];
+   NSMutableDictionary *traitsCopy = [NSMutableDictionary dictionaryWithDictionary: [_attributes objectForKey: NSFontTraitsAttribute]];
+   [traitsCopy setObject: [NSNumber numberWithUnsignedInt: traits] forKey: NSFontSymbolicTrait];
    [copy setObject:traitsCopy forKey:NSFontTraitsAttribute];
 
-   return [isa fontDescriptorWithFontAttributes:copy];
+   return [[self class] fontDescriptorWithFontAttributes:copy];
 }
 
 -(NSArray *)matchingFontDescriptorsWithMandatoryKeys:(NSSet *)keys {

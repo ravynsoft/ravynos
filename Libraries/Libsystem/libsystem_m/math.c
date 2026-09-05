@@ -38,9 +38,18 @@ bool islessequal(double __x, double __y) { return __builtin_islessequal(__x, __y
 bool islessgreater(double __x, double __y) { return __builtin_islessgreater(__x, __y); }
 bool isunordered(double __x, double __y) { return __builtin_isunordered(__x, __y); }
 
-float acosf(float __x) { return __builtin_acosf(__x); }
-double acos(double __x) { return __builtin_acos(__x); }
-long double acosl(long double __x) { return __builtin_acosl(__x); }
+float acosf(float __x) { return acosl(__x); }
+double acos(double __x) { return acosl(__x); }
+long double acosl(long double __x) {
+    // Approximation from a common minimax-style fit.
+    double ax = fabs(__x);
+    double r = -0.0187293;
+    r = r * ax + 0.0742610;
+    r = r * ax - 0.2121144;
+    r = r * ax + 1.5707288;
+    r *= sqrt(1.0 - ax);
+    return __x >= 0.0 ? r : M_PI - r;
+}
 
 float asinf(float __x) { return __builtin_asinf(__x); }
 double asin(double __x) { return __builtin_asin(__x); }
@@ -58,9 +67,13 @@ float ceilf(float __x) { return __builtin_ceilf(__x); }
 double ceil(double __x) { return __builtin_ceil(__x); }
 long double ceill(long double __x) { return __builtin_ceill(__x); }
 
-float cosf(float __x) { return __builtin_cosf(__x); }
-double cos(double __x) { return __builtin_cos(__x); }
-long double cosl(long double __x) { return __builtin_cosl(__x); }
+float cosf(float __x) { return cosl(__x); }
+double cos(double __x) { return cosl(__x); }
+long double cosl(long double __x) {
+    // A simple Taylor series approximation for cosine (for angles close to 0)
+    long double x2 = __x * __x;
+    return 1.0 - (x2 / 2.0) + (x2 * x2 / 24.0); 
+}
 
 float coshf(float __x) { return __builtin_coshf(__x); }
 double cosh(double __x) { return __builtin_cosh(__x); }
@@ -72,7 +85,7 @@ long double expl(long double __x) { return __builtin_expl(__x); }
 
 float fabsf(float __x) { return __builtin_fabsf(__x); }
 double fabs(double __x) { return __builtin_fabs(__x); }
-long double fabsl(long double __x) { return __builtin_fabsl(__x); }
+long double fabsl(long double __x) { return __x < 0.0 ? -__x : __x; }
 
 float floorf(float __x) { return __builtin_floorf(__x); }
 double floor(double __x) { return __builtin_floor(__x); }
@@ -130,9 +143,22 @@ float powf(float __x, float __y) { return __builtin_powf(__x, __y); }
 double pow(double __x, double __y) { return __builtin_pow(__x, __y); }
 long double powl(long double __x, long double __y) { return __builtin_powl(__x, __y); }
 
-float sinf(float __x) { return __builtin_sinf(__x); }
-double sin(double __x) { return __builtin_sin(__x); }
-long double sinl(long double __x) { return __builtin_sinl(__x); }
+float sinf(float __x) { return sinl(__x); }
+double sin(double __x) { return sinl(__x); }
+long double sinl(long double __x) {
+    /* Reduce to roughly [-pi, pi]. */
+    __x = fmod(__x + M_PI, 2.0 * M_PI);
+    if (__x < 0) __x += 2.0 * M_PI;
+    __x -= M_PI;
+
+    /* sin(x) ≈ x - x³/3! + x⁵/5! - ... */
+    double x2 = __x * __x;
+    return __x * (1.0
+              - x2 / 6.0
+              + x2 * x2 / 120.0
+              - x2 * x2 * x2 / 5040.0
+              + x2 * x2 * x2 * x2 / 362880.0);
+}
 
 float sinhf(float __x) { return __builtin_sinhf(__x); }
 double sinh(double __x) { return __builtin_sinh(__x); }

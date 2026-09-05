@@ -11,25 +11,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @implementation NSEvent_mouse
 
 -initWithType:(NSEventType)type location:(NSPoint)location modifierFlags:(unsigned)modifierFlags window:(NSWindow *)window clickCount:(int)clickCount deltaX:(float)deltaX deltaY:(float)deltaY {
-	[super initWithType:type location:location modifierFlags:modifierFlags window:window];
-	
-	_clickCount = clickCount;
-	_deltaX = deltaX;
-	_deltaY = deltaY;
-	
-	return self;
+        [super initWithType:type location:location modifierFlags:modifierFlags window:window];
+
+        _clickCount = clickCount;
+        _deltaX = deltaX;
+        _deltaY = deltaY;
+
+        return self;
 }
 
 - (int)clickCount {
-	return _clickCount;
+        return _clickCount;
 }
 
 -initWithType:(NSEventType)type location:(NSPoint)location modifierFlags:(unsigned)modifierFlags window:(NSWindow *)window deltaY:(float)deltaY {
-	[super initWithType:type location:location modifierFlags:modifierFlags window:window];
-	
-	_deltaY = deltaY;
-	
-	return self;
+        [super initWithType:type location:location modifierFlags:modifierFlags window:window];
+
+        _deltaY = deltaY;
+
+        return self;
 }
 
 -initWithType:(NSEventType)type location:(NSPoint)location modifierFlags:(NSUInteger)modifierFlags timestamp:(NSTimeInterval)timestamp windowNumber:(NSInteger)windowNumber context:(NSGraphicsContext*)context eventNumber:(NSInteger)eventNumber trackingNumber:(NSInteger)tracking userData:(void *)userData {
@@ -48,15 +48,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 - (float)deltaX {
-	return _deltaX;
+        return _deltaX;
 }
 
 - (float)deltaY {
-	return _deltaY;
+        return _deltaY;
 }
 
 -(float)deltaZ {
-	return 0.0;
+        return 0.0;
 }
 
 // Apple's documentation is a bit confusing here. NSEvent exposes no API to pass a
@@ -80,10 +80,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void *)userData {
    if(_type!=NSMouseEntered && _type!=NSMouseExited){
-    [NSException raise:NSInternalInconsistencyException format:@"-[%@ userData] not valid for type %d",isa,_type];
+    [NSException raise:NSInternalInconsistencyException format:@"-[%@ userData] not valid for type %d",[self class],_type];
     return NULL;
    }
-   
+
    return _userData;
 }
 

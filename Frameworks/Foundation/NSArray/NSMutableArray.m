@@ -30,6 +30,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    return NSAllocateObject(self,0,zone);
 }
 
++(NSMutableArray *)alloc {
+    return [self allocWithZone:NULL];
+}
+
 -initWithObjects:(id *)objects count:(NSUInteger)count {
    NSUInteger i;
 
@@ -122,7 +126,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
 -(void)addObject:object {
-   //NSInvalidAbstractInvocation();
+   NSInvalidAbstractInvocation();
 }
 
 -(void)addObjectsFromArray:(NSArray *)other {

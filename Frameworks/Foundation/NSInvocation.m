@@ -205,10 +205,11 @@ static void byteCopy(void *src,void *dst,NSUInteger length){
     NSUInteger naturalSize = _argumentSizes[index];
     NSUInteger promotedSize = ((naturalSize + sizeof(NSUInteger) - 1) / sizeof(NSUInteger)) * sizeof(NSUInteger);
 
+
     if (naturalSize == promotedSize) {
         byteCopy(_argumentFrame + _argumentOffsets[index], pointerToValue, naturalSize);
-    } else if (promotedSize == sizeof(long)) {
-        long promoted;
+    } else if (promotedSize == sizeof(uintptr_t)) {
+        uintptr_t promoted;
 
         byteCopy(_argumentFrame + _argumentOffsets[index], &promoted, promotedSize);
         if (naturalSize == 1) {
@@ -217,7 +218,10 @@ static void byteCopy(void *src,void *dst,NSUInteger length){
             *((short *)pointerToValue) = (short)promoted;
         } else if (naturalSize == 4) {
             *((int32_t *)pointerToValue) = (int32_t)promoted;
-        }
+        } else if (naturalSize == 8) {
+            *((int64_t *)pointerToValue) = (int64_t)promoted;
+        } else
+            printf("UNHANDLED naturalSize %d for promoted %lx\n", naturalSize, promoted);
     } else {
         [NSException raise:NSInvalidArgumentException format:@"Unable to convert naturalSize=%d to promotedSize=%d", naturalSize, promotedSize];
     }
@@ -319,14 +323,17 @@ static void byteCopy(void *src,void *dst,NSUInteger length){
     [self invoke];
 }
 
+-(NSUInteger)_argumentOffsetAtIndex:(NSUInteger)index {
+    if (index > [self numberOfArguments])
+        return NSNotFound;
+    return _argumentOffsets[index];
+}
 
+extern id NSobjc_msgSendv(id, SEL, ...);
 - (void)invoke
 {
-#if 1
-#warning [invoke] is a stub until objc_msgSendv is replaced
-#else
     const char *returnType = [_signature methodReturnType];
-    void *msgSendv = objc_msgSendv;
+    void *msgSendv = NSobjc_msgSendv;
 
     switch (returnType[0]) {
         case 'r':
@@ -424,7 +431,7 @@ static void byteCopy(void *src,void *dst,NSUInteger length){
             {
                 void *(*function)() = msgSendv;
                 void *value=function([self target], [self selector], _argumentFrameSize, _argumentFrame);
-
+printf("back from the dead, imp = %p\n", value);
                 [self setReturnValue:&value];
             }
             break;
@@ -451,7 +458,7 @@ static void byteCopy(void *src,void *dst,NSUInteger length){
 #else
                     struct structReturn {
                         char *result;;
-                    } (*function)() = (struct structReturn (*)())msgSendv; // should be msgSend_stret
+                    } (*function)() = (struct structReturn (*)())msgSend_stret;
                     struct structReturn value;
 
 			value.result = calloc(size, sizeof(char));
@@ -470,7 +477,6 @@ static void byteCopy(void *src,void *dst,NSUInteger length){
             }
             break;
     }
-#endif /* 1 */
 }
 
 

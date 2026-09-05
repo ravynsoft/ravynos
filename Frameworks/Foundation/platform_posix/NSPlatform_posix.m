@@ -42,6 +42,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <sys/socket.h>
 #include <errno.h>
 
+
 @implementation NSPlatform_posix
 
 -(Class)taskClass {
@@ -119,8 +120,11 @@ static struct passwd *pwent = NULL;
     NSMutableArray *result=[NSMutableArray array];
     int             i;
 
-    for(i=0;i<NSProcessInfoArgc;i++)
-        [result addObject:[NSString stringWithCString:NSProcessInfoArgv[i]]];
+printf("posix arguments - %d args\n", NSProcessInfoArgc);
+    for(i=0;i<NSProcessInfoArgc;i++) {
+        NSString *s = [NSString stringWithCString:NSProcessInfoArgv[i]]; 
+        [result addObject:s];
+    }
 
     return result;
 }

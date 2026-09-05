@@ -5,21 +5,16 @@
 # alongside pointer/cursor support."
 # Plist goes in /Library/Preferences/com.apple.windowserver.plist
 #
-MK_AUTO_OBJ=    yes
 APP=	        WindowServer
 .PATH:          ${.CURDIR}
 SRCS=           WindowServer.m \
-                BSDFramebuffer.m \
+		IOFramebuffer.mm \
 		WSInput.m \
 		WSAppRecord.m \
 		WSWindowRecord.m \
 		WSDisplay.m \
 		main.m
 RESOURCES=	${.CURDIR}/Icon.png \
-		${MAKEOBJDIR}/libinput/libinput.so.1 \
-		${MAKEOBJDIR}/libinput/libinput.so \
-		${MAKEOBJDIR}/libevdev/libevdev.so.2 \
-		${MAKEOBJDIR}/libevdev/libevdev.so \
 		${.CURDIR}/Cursors/arrowCursor.png \
 		${.CURDIR}/Cursors/resizeCursor.png \
 		${.CURDIR}/Decorations/close.png \
@@ -33,35 +28,16 @@ RESOURCES=	${.CURDIR}/Icon.png \
 MK_WERROR=	no
 MK_PIE=		no
 WARNS=	        1
-SYSROOT=        --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin
-CFLAGS+=	-fobjc-arc -g -D__RAVYNOS__ -D__MACH__ -D__WSRPC -pthread \
-		-I${.CURDIR} -I${MAKEOBJDIR} -I${.CURDIR}/libinput/src \
-		-I${.CURDIR}/libinput/include -I${SRCTOP}/Frameworks \
-		-I${.CURDIR}/libxkbcommon/include -I${SRCTOP}/CoreServices \
-		-I${OBJTOP}/Frameworks/Foundation/Headers -I${OBJTOP}/tmp/usr/include \
-		-I${SRCTOP}/gnu/lib/libobjc2 -I${SRCTOP}/sys/sys -I${SRCTOP}/sys \
-		-I${SRCTOP}/Frameworks/AppKit/Headers
+SYSROOT=        --sysroot=${RAVYN_SDKROOT} -B${TOOLS}
+CFLAGS+=	-fobjc-arc -g -D__WSRPC -pthread \
+		-I${.CURDIR} -I${.OBJDIR} -I${.CURDIR}/libinput/src \
+		-I${.CURDIR}/libinput/include -I${ROOT_SOURCE_DIR}/Frameworks \
+		-I${.CURDIR}/libxkbcommon/include -I${ROOT_SOURCE_DIR}/CoreServices \
+		-I${ROOT_SOURCE_DIR}/Frameworks/Foundation/Headers \
+		-I${ROOT_SOURCE_DIR}/Frameworks/AppKit/Headers
 
-LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -L${MAKEOBJDIR} \
-		-L${OBJTOP}/tmp/lib -L${OBJTOP}/tmp/usr/lib \
-		-L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
-		-L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework \
-		-L${OBJTOP}/Frameworks/CoreFoundation/CoreFoundation.framework \
-		-L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework \
-		-L${OBJTOP}/Frameworks/AppKit/AppKit.framework \
-		-L${OBJTOP}/Frameworks/CoreText/CoreText.framework \
-                -Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A \
-                -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
-                -Wl,-R/System/Library/Frameworks/CoreGraphics.framework/Versions/A \
-                -Wl,-R/System/Library/Frameworks/CoreFoundation.framework/Versions/A \
-                -Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
-                -Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
-                -Wl,-R/System/Library/Frameworks/CoreText.framework/Versions/A \
-		${MAKEOBJDIR}/libxkbcommon/src/*.pico \
-		${MAKEOBJDIR}/libxkbcommon/src/compose/*.pico \
-		${MAKEOBJDIR}/libxkbcommon/src/xkbcomp/*.pico \
-		${OBJTOP}/tmp/lib/libutil.so.10 -L${MAKEOBJDIR}/libinput -linput \
-		-ludev -lCoreText -lAppKit -lFoundation -lCoreGraphics -lcrypt -llaunch \
+LDFLAGS+=	-L${.OBJDIR} \
+		-lAppKit -lFoundation -lCoreGraphics -lcrypt -llaunch \
 		-lCoreFoundation -lOnyx2D -lxml2 -pthread -lobjc -lSystem -lkvm -lm \
 		${OBJTOP}/tmp/lib/libc.so.7
 #.export SYSROOT

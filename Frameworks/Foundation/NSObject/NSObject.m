@@ -83,6 +83,41 @@ BOOL NSObjectIsKindOfClass(id object,Class kindOf) {
     return NSAllocateObject(self, 0, NULL);
 }
 
++ (NSMethodSignature *) methodSignatureForSelector:(SEL) sel
+{
+	Method m;
+	m = class_getInstanceMethod(self, sel);
+	if (m) {
+		/* A real Objective-C method */
+                char *p = method_getTypeEncoding(m);
+		return [NSMethodSignature 
+		    signatureWithObjCTypes:method_getTypeEncoding(m)];
+	}
+
+	[NSException raise:NSInvalidArgumentException 
+		format:@"Class %s: no such selector: %s", 
+		class_getName(self), sel_getName(sel)];
+	return nil;
+}
+
+-(NSMethodSignature *) methodSignatureForSelector:(SEL) sel
+{
+	Class		   cls;
+	Method		   m;
+	cls = object_getClass(self);
+	m = class_getInstanceMethod(cls, sel);
+	if (m) {
+		/* A real Objective-C method */
+		return [NSMethodSignature 
+		    signatureWithObjCTypes:method_getTypeEncoding(m)];
+	}
+
+	[NSException raise:NSInvalidArgumentException 
+		format:@"Class %s: no such selector: %s", 
+		class_getName(cls), sel_getName(sel)];
+	return nil;
+}
+
 -(id)alloc {
     return NSAllocateObject(self, 0, NULL);
 }
@@ -95,9 +130,11 @@ BOOL NSObjectIsKindOfClass(id object,Class kindOf) {
 +(void)setVersion:(NSInteger)version {
    class_setVersion(self,version);
 }
+extern id NSObjCForward(id self, SEL _cmd, ...);
+extern id NSObjCForward_stret(id self, SEL _cmd, ...);
 
 +(void)initialize {
-    //objc_setForwardHandler(_defaultForwardHandler,NULL);
+    objc_setForwardHandler(NSObjCForward, NSObjCForward_stret);
 }
 
 
@@ -139,6 +176,13 @@ BOOL NSObjectIsKindOfClass(id object,Class kindOf) {
    return [signature frameLength];
 }
 
+-(void)forwardInvocation:(NSInvocation *)invocation {
+    id target = [invocation target];
+    SEL sel = [invocation selector];
+    printf("target %p %s sel %p %s\n", target, object_getClassName(target), sel, sel_getName(sel));
+    [invocation invoke];
+}
+
 -(id)forwardSelector:(SEL)selector arguments:(void *)arguments {
    NSMethodSignature *signature=[self methodSignatureForSelector:selector];
 
@@ -148,8 +192,8 @@ BOOL NSObjectIsKindOfClass(id object,Class kindOf) {
    }
    else {
     NSInvocation *invocation=[NSInvocation invocationWithMethodSignature:signature arguments:arguments];
-   // char          result[[signature methodReturnLength]];
-    id              result;
+    char          result[[signature methodReturnLength]];
+    //id            result;
 
     [self forwardInvocation:invocation];
     [invocation getReturnValue:&result];

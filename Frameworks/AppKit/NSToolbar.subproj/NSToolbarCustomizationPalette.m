@@ -6,6 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#import <sys/param.h>
 #import <AppKit/NSToolbarCustomizationPalette.h>
 #import <AppKit/NSToolbarCustomizationView.h>
 #import <AppKit/NSToolbar.h>
@@ -27,11 +28,11 @@ static NSToolbarCustomizationPalette *_nextPanel;
 
 +(NSToolbarCustomizationPalette *)toolbarCustomizationPalette {
    NSToolbarCustomizationPalette *result;
-   
+
    [NSBundle loadNibNamed:@"NSToolbarCustomizationPalette" owner:self];
    result=_nextPanel;
    _nextPanel=nil;
-   
+
    return result;
 }
 
@@ -48,22 +49,22 @@ static NSToolbarCustomizationPalette *_nextPanel;
    _toolbar=[toolbar retain];
 
    int index=[_displayModePopUp indexOfItemWithTag:[toolbar displayMode]];
-    
+
    [_displayModePopUp selectItemAtIndex:(index == -1)?0:index];
    [_smallSizeModeButton setState:([_toolbar sizeMode]==NSToolbarSizeModeSmall)?NSOnState:NSOffState];
    [self setDefaultButtonCell:[_button cell]];
 
    NSSize oldSize,newSize;
    CGFloat deltaWidth=0,deltaHeight=0;
-   
+
    oldSize=[_allowedItemsView frame].size;
    [_allowedItemsView setToolbar:_toolbar];
    [_allowedItemsView setDefaultSetView:NO];
    newSize=[_allowedItemsView desiredSize];
-   
+
    deltaWidth=newSize.width-oldSize.width;
    deltaHeight=newSize.height-oldSize.height;
-   
+
    oldSize=[_allowedItemsView frame].size;
    [_defaultItemsView setToolbar:_toolbar];
    [_defaultItemsView setDefaultSetView:YES];
@@ -72,13 +73,13 @@ static NSToolbarCustomizationPalette *_nextPanel;
    deltaWidth=MAX(deltaWidth,newSize.width-oldSize.width);
 // FIXME: We're depending on autosizing to distribute the height change properly which isnt the case
 
-   deltaHeight+=newSize.height-oldSize.height; 
+   deltaHeight+=newSize.height-oldSize.height;
    NSRect frame=[self frame];
    frame.size.width+=deltaWidth;
    frame.size.height+=deltaHeight;
-   
+
    [self setFrame:frame display:NO];
-}    
+}
 
 -(NSToolbar *)toolbar {
    return _toolbar;
@@ -86,13 +87,13 @@ static NSToolbarCustomizationPalette *_nextPanel;
 
 -(void)displayModeChanged:sender {
    NSToolbarDisplayMode displayMode=[[_displayModePopUp selectedCell] tag];
-   
+
    [_toolbar setDisplayMode:displayMode];
 }
 
 -(void)sizeModeChanged:sender {
     NSToolbarSizeMode sizeMode=[_smallSizeModeButton state] ? NSToolbarSizeModeSmall : NSToolbarSizeModeRegular;
-    
+
     [_toolbar setSizeMode:sizeMode];
 }
 

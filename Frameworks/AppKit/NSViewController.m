@@ -19,7 +19,7 @@
     if(bundleIdentifier!=nil)
      _nibBundle=[NSBundle bundleWithIdentifier:bundleIdentifier];
    }
-   
+
    return self;
 }
 
@@ -34,7 +34,7 @@
 -(NSView *)view {
    if(_view==nil)
     [self loadView];
-    
+
    return _view;
 }
 
@@ -70,10 +70,10 @@
 
    if(name==nil){
    // should pathForResource assert name for non-nil?
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] nibName is nil",isa,_cmd];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] nibName is nil",[self class],_cmd];
     return;
    }
-   
+
    if(bundle==nil)
     bundle=[NSBundle mainBundle];
 
@@ -81,7 +81,7 @@
    NSDictionary *nameTable=[NSDictionary dictionaryWithObject:self forKey:NSNibOwner];
 
    if(path==nil)
-    NSLog(@"NSViewController unable to find nib named %@, bundle=%@",name,bundle);    
+    NSLog(@"NSViewController unable to find nib named %@, bundle=%@",name,bundle);
 
    [bundle loadNibFile:path externalNameTable:nameTable withZone:NULL];
 }

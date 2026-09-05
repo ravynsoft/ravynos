@@ -8,7 +8,7 @@
  * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
  * sell copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  *
@@ -30,6 +30,9 @@
 #import <AppKit/NSToolbarView.h>
 #import <AppKit/NSAttributedString.h>
 #import <Onyx2D/O2Context.h>
+
+extern void CGNativeBorderFrameWidthsForStyle(unsigned styleMask, CGFloat *top,
+    CGFloat *left, CGFloat *bottom, CGFloat *right);
 
 @implementation NSThemeFrame
 
@@ -106,14 +109,14 @@ static O2Image *wsZoom, *wsZoomUp, *wsZoomDown;
     switch(_borderType){
         case NSNoBorder:
             break;
-            
+
         case NSWindowToolTipBorderType:
             [[NSColor blackColor] setStroke];
             NSFrameRect(bounds);
             bounds = NSInsetRect(bounds, 1, 1);
             cheatSheet = 1;
             break;
-                
+
         case NSWindowSheetBorderType:
             NSDrawButton(bounds,bounds);
             bounds = NSInsetRect(bounds, 2, 2);
@@ -131,7 +134,7 @@ static O2Image *wsZoom, *wsZoomUp, *wsZoomDown;
 
     if([[self window] styleMask] == NSBorderlessWindowMask)
         return;
-    
+
     if([[self window] isSheet])
         bounds.size.height += cheatSheet;
 
@@ -203,7 +206,7 @@ static O2Image *wsZoom, *wsZoomUp, *wsZoomDown;
 -(void)resizeSubviewsWithOldSize:(NSSize)oldSize {
    NSToolbarView *toolbarView=nil;
    NSView *contentView=nil;
-   
+
 // tile the subviews, when/if we add titlebars and such do it here
    for(NSView *view in _subviews){
     if([view isKindOfClass:[NSToolbarView class]])
@@ -211,16 +214,16 @@ static O2Image *wsZoom, *wsZoomUp, *wsZoomDown;
     else
      contentView=view;
    }
-   
+
    NSRect toolbarFrame=(toolbarView!=nil)?[toolbarView frame]:NSZeroRect;
    NSRect contentFrame=[[[self window] class] contentRectForFrameRect:[self bounds] styleMask:[[self window] styleMask]];
    toolbarFrame.origin.y=NSMaxY(contentFrame)-toolbarFrame.size.height;
    toolbarFrame.origin.x=contentFrame.origin.x;
    toolbarFrame.size.width=contentFrame.size.width;
-   
+
    [toolbarView setFrame:toolbarFrame];
    [toolbarView layoutViews];
-   
+
    contentFrame.size.height-=toolbarFrame.size.height;
    [contentView setFrame:contentFrame];
 }

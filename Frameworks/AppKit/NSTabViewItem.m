@@ -41,7 +41,7 @@ NSString *_NSTruncatedStringWithAttributesInRect(NSString *string, NSDictionary 
 -initWithCoder:(NSCoder *)coder {
    if([coder allowsKeyedCoding]){
     NSKeyedUnarchiver *keyed=(NSKeyedUnarchiver *)coder;
-    
+
     _identifier=[[keyed decodeObjectForKey:@"NSIdentifier"] retain];
     _label=[[keyed decodeObjectForKey:@"NSLabel"] retain];
     _view=[[keyed decodeObjectForKey:@"NSView"] retain];
@@ -50,7 +50,7 @@ NSString *_NSTruncatedStringWithAttributesInRect(NSString *string, NSDictionary 
     _color=[[keyed decodeObjectForKey:@"NSColor"] retain];
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",[self class],sel_getName(_cmd),coder];
    }
 
    return self;
@@ -139,7 +139,7 @@ NSString *_NSTruncatedStringWithAttributesInRect(NSString *string, NSDictionary 
     responder=[responder retain];
     [_initialFirstResponder release];
     _initialFirstResponder=responder;
-}   
+}
 
 // This is private Apple API, BGHUDAppKit uses it, override for custom color
 -_labelColor {

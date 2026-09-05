@@ -6,6 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#import <sys/param.h>
 #import <AppKit/NSBitmapImageRep-Private.h>
 #import <AppKit/NSGraphicsContextFunctions.h>
 #import <AppKit/NSView.h>
@@ -43,13 +44,13 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
 
 +(NSArray *)imageRepsWithContentsOfFile:(NSString *)path {
    NSData *data=[NSData dataWithContentsOfFile:path];
-   
+
    if(data==nil)
     return nil;
-    
+
    if([self canInitWithData:data])
     return [self imageRepsWithData:data];
-   
+
    return nil;
 }
 
@@ -69,14 +70,14 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
 +(NSData *)TIFFRepresentationOfImageRepsInArray:(NSArray *)array usingCompression:(NSTIFFCompression)compression factor:(float)factor {
    NSMutableData        *result=[NSMutableData data];
    CGImageDestinationRef dest=CGImageDestinationCreateWithData((CFMutableDataRef)result,(CFStringRef)@"public.tiff",[array count],NULL);
-   
+
    for(NSBitmapImageRep *bitmap in array){
     CGImageDestinationAddImage(dest,[bitmap CGImage],NULL);
    }
 
    CGImageDestinationFinalize(dest);
    CFRelease(dest);
-   
+
    return result;
 }
 
@@ -86,9 +87,9 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
 }
 
 +(NSArray *)imageUnfilteredPasteboardTypes {
-	return [NSArray arrayWithObjects:
-			NSTIFFPboardType,
-			nil];
+    return [NSArray arrayWithObjects:
+            NSTIFFPboardType,
+            nil];
 }
 
 +(BOOL)canInitWithData:(NSData *)data {
@@ -101,18 +102,18 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
 +(NSArray *)imageRepsWithData:(NSData *)data {
    NSMutableArray *result=[NSMutableArray array];
    CGImageSourceRef imageSource=CGImageSourceCreateWithData((CFDataRef)data,nil);
-   
+
    if(imageSource==nil)
     return nil;
-  
+
    size_t i,count=CGImageSourceGetCount(imageSource);
-   
+
    for(i=0;i<count;i++){
     CGImageRef cgImage=CGImageSourceCreateImageAtIndex(imageSource,i,nil);
-   
+
     if(cgImage==nil)
      break;
-        
+
     CFDictionaryRef properties=CGImageSourceCopyPropertiesAtIndex(imageSource,i,nil);
     NSNumber        *xres=[[(id)CFDictionaryGetValue(properties,kCGImagePropertyDPIWidth) copy] autorelease];
     NSNumber        *yres=[[(id)CFDictionaryGetValue(properties,kCGImagePropertyDPIHeight) copy] autorelease];
@@ -121,21 +122,21 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
 
     NSBitmapImageRep *imageRep=[[self alloc] initWithCGImage:cgImage];
     NSSize size={ CGImageGetWidth(cgImage),CGImageGetHeight(cgImage) };
-    
+
     CGImageRelease(cgImage);
-   
+
     if(xres!=nil && [xres doubleValue]>0)
      size.width*=72.0/[xres doubleValue];
-    
+
     if(yres!=nil && [yres doubleValue]>0)
      size.height*=72.0/[yres doubleValue];
-     
+
     [imageRep setSize:size];
-    
+
     if(imageRep!=nil)
      [result addObject:imageRep];
-	   
-	   [imageRep release];
+
+       [imageRep release];
 }
 
    CFRelease(imageSource);
@@ -149,7 +150,7 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
 
 -initWithBitmapDataPlanes:(unsigned char **)planes pixelsWide:(int)width pixelsHigh:(int)height bitsPerSample:(int)bitsPerSample samplesPerPixel:(int)samplesPerPixel hasAlpha:(BOOL)hasAlpha isPlanar:(BOOL)isPlanar colorSpaceName:(NSString *)colorSpaceName bitmapFormat:(NSBitmapFormat)bitmapFormat bytesPerRow:(int)bytesPerRow bitsPerPixel:(int)bitsPerPixel {
    int i,numberOfPlanes=isPlanar?samplesPerPixel:1;
-   
+
    _size=NSMakeSize(width,height);
    _colorSpaceName=[colorSpaceName copy];
    _bitsPerSample=bitsPerSample;
@@ -160,7 +161,7 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
    _samplesPerPixel=samplesPerPixel;
    _isPlanar=isPlanar;
    _bitmapFormat=bitmapFormat;
-   
+
    if(bitsPerPixel!=0)
     _bitsPerPixel=bitsPerPixel;
    else
@@ -176,15 +177,15 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
     _freeWhenDone=YES;
    else {
     int i;
-    
+
     for(i=0;i<numberOfPlanes;i++)
      if(planes[i]!=NULL)
       break;
-      
+
     if(i==numberOfPlanes)
      _freeWhenDone=YES;
    }
-   
+
    _bitmapPlanes=NSZoneCalloc(NULL,numberOfPlanes,sizeof(unsigned char *));
    for(i=0;i<numberOfPlanes;i++){
     if(!_freeWhenDone)
@@ -207,34 +208,34 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
 
 -initWithFocusedViewRect:(NSRect)rect {
    CGContextRef graphicsPort=NSCurrentGraphicsPort();
-   
+
    if(graphicsPort==NULL){
     [self dealloc];
     return nil;
    }
 
    [self initWithData:(NSData *)CGContextCaptureBitmap(graphicsPort,rect)];
-   
+
    return self;
 }
 
 
 -initWithData:(NSData *)data {
    CGImageSourceRef imageSource=CGImageSourceCreateWithData((CFDataRef)data,nil);
-   
+
    if(imageSource==nil){
     [self dealloc];
     return nil;
    }
-    
+
    CGImageRef       cgImage=CGImageSourceCreateImageAtIndex(imageSource,0,nil);
-   
+
    if(cgImage==nil){
     CFRelease(imageSource);
     [self dealloc];
     return nil;
    }
-   
+
    CFDictionaryRef properties=CGImageSourceCopyPropertiesAtIndex(imageSource,0,nil);
    NSNumber        *xres=[[(id)CFDictionaryGetValue(properties,kCGImagePropertyDPIWidth) copy] autorelease];
    NSNumber        *yres=[[(id)CFDictionaryGetValue(properties,kCGImagePropertyDPIHeight) copy] autorelease];
@@ -248,19 +249,19 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
    }
 
    if((self=[self initWithCGImage:cgImage])==nil)
-    return nil;   
+    return nil;
 
    CGImageRelease(cgImage);
-   
+
    if(xres!=nil && [xres doubleValue]>0)
     _size.width*=72.0/[xres doubleValue];
-    
+
    if(yres!=nil && [yres doubleValue]>0)
     _size.height*=72.0/[yres doubleValue];
 
    return self;
 }
-   
+
 -initWithContentsOfFile:(NSString *)path {
    NSData *data=[NSData dataWithContentsOfFile:path];
 
@@ -268,7 +269,7 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
     [self dealloc];
     return nil;
    }
-   
+
    return [self initWithData:data];
 }
 
@@ -277,7 +278,7 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
     _freeWhenDone=YES;
     _bitmapPlanes=NSZoneCalloc(NULL,1,sizeof(unsigned char *));
     _bitmapPlanes[0]=NSZoneCalloc(NULL,_bytesPerRow*_pixelsHigh,1);
-   
+
     if(_cgImage!=NULL){
      CGBitmapInfo         bitmapInfo=CGImageGetBitmapInfo(_cgImage);
      CGDataProviderRef    provider=CGImageGetDataProvider(_cgImage);
@@ -285,7 +286,7 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
      CFDataRef            bitmapData=CGDataProviderCopyData(provider);
      const unsigned char *bytes=CFDataGetBytePtr(bitmapData);
      int                  i,length=_bytesPerRow*_pixelsHigh;
-   
+
      if(bitmapInfo==(kCGImageAlphaPremultipliedLast|kCGBitmapByteOrder32Big)){
      for(i=0;i<length;i++)
       _bitmapPlanes[0][i]=bytes[i];
@@ -314,7 +315,7 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
    _size.height=CGImageGetHeight(_cgImage);
 
    CGColorSpaceRef colorSpace=CGImageGetColorSpace(_cgImage);
-   
+
    // FIXME:
    _colorSpaceName=NSDeviceRGBColorSpace;
    _bitsPerSample=CGImageGetBitsPerComponent(_cgImage);
@@ -332,7 +333,7 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
      _hasAlpha=NO;
      break;
    }
-   
+
    _samplesPerPixel=CGColorSpaceGetNumberOfComponents(colorSpace);
    if(_hasAlpha)
     _samplesPerPixel++;
@@ -362,31 +363,31 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
     case kCGImageAlphaOnly:
      break;
    }
-    
+
    _bitsPerPixel=CGImageGetBitsPerPixel(_cgImage);
    _bytesPerRow=CGImageGetBytesPerRow(_cgImage);
    _freeWhenDone=NO;
-   
+
 //   [self createBitmapIfNeeded];
-   
+
    return self;
 }
 
-   
+
 -(void)dealloc {
    if(_freeWhenDone){
     if(_bitmapPlanes!=NULL){
      int i,numberOfPlanes=[self numberOfPlanes];
-   
+
      for(i=0;i<numberOfPlanes;i++)
       if(_bitmapPlanes[i]!=NULL)
        NSZoneFree(NULL,_bitmapPlanes[i]);
-       
+
 }
    }
-	if(_bitmapPlanes!=NULL){
-	NSZoneFree(NULL,_bitmapPlanes);
-	}
+    if(_bitmapPlanes!=NULL){
+    NSZoneFree(NULL,_bitmapPlanes);
+    }
    CGImageRelease(_cgImage);
    [super dealloc];
 }
@@ -428,7 +429,7 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
 
 -(unsigned char *)bitmapData {
    [self createBitmapIfNeeded];
-   
+
    return _bitmapPlanes[0];
 }
 
@@ -439,7 +440,7 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
 
    for(i=0;i<numberOfPlanes;i++)
     planes[i]=_bitmapPlanes[i];
-    
+
    for(;i<5;i++)
     planes[i]=NULL;
 }
@@ -455,81 +456,81 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
    NSAssert(y>=0 && y<[self pixelsHigh],@"y out of bounds");
 
    [self createBitmapIfNeeded];
-   
-	if(_isPlanar) {
-		NSUnimplementedMethod();
-	} else {
-		if(_bitsPerPixel/_samplesPerPixel!=8) {
-			NSUnimplementedMethod();
-		}
-		unsigned char *bits=_bitmapPlanes[0]+_bytesPerRow*y+(x*_bitsPerPixel)/8;
-    
-		int i;
-   
-		for( i = 0; i < _samplesPerPixel; i++) {
-			bits[i]=pixel[i];
-		}
-	}
+
+    if(_isPlanar) {
+        NSUnimplementedMethod();
+    } else {
+        if(_bitsPerPixel/_samplesPerPixel!=8) {
+            NSUnimplementedMethod();
+        }
+        unsigned char *bits=_bitmapPlanes[0]+_bytesPerRow*y+(x*_bitsPerPixel)/8;
+
+        int i;
+
+        for( i = 0; i < _samplesPerPixel; i++) {
+            bits[i]=pixel[i];
+        }
+    }
 }
 
--(NSColor *)colorAtX:(NSInteger)x y:(NSInteger)y {   
+-(NSColor *)colorAtX:(NSInteger)x y:(NSInteger)y {
    NSUnimplementedMethod();
    return nil;
 }
 
 -(void)setColor:(NSColor *)color atX:(NSInteger)x y:(NSInteger)y
 {
-	// Convert the color to a compatible format
+    // Convert the color to a compatible format
    color=[color colorUsingColorSpaceName:[self colorSpaceName]];
 
    NSInteger i,numberOfComponents=[color numberOfComponents];
    CGFloat   components[numberOfComponents];
    unsigned  pixels[numberOfComponents];
 
-	// Extract the RGBA components
+    // Extract the RGBA components
    [color getComponents:components];
-   
-	if(!_hasAlpha) {
-		// No alpha - then drop the component count  
-		numberOfComponents--;
-	} else {
-		// Deal with the alpha component
-		if((_bitmapFormat & NSAlphaNonpremultipliedBitmapFormat) == NO) { // premultiplied
-			CGFloat alpha=components[numberOfComponents-1];
 
-			// Multiply through the alpha
-			for(i=0;i<numberOfComponents-1;i++) {
-				components[i]*=alpha;
-			}
-		}
-	
-		if(_bitmapFormat&NSAlphaFirstBitmapFormat) {
-			// Swap the location of the alpha component
-			CGFloat alpha=components[numberOfComponents-1];
-		 
-			for(i=numberOfComponents;--i>=1;) {
-				components[i]=components[i-1];
-			}
-			components[0]=alpha;
-		}
-	}
-	
-	if(_bitmapFormat&NSFloatingPointSamplesBitmapFormat){
-		for(i=0;i<numberOfComponents;i++) {
-			((float *)pixels)[i]=MAX(0.0f,MIN(1.0f,components[i])); // clamp just in case
-		}
-	} else {
-		int maxValue=(1<<[self bitsPerSample])-1;
-    
-		for(i=0;i<numberOfComponents;i++){
+    if(!_hasAlpha) {
+        // No alpha - then drop the component count
+        numberOfComponents--;
+    } else {
+        // Deal with the alpha component
+        if((_bitmapFormat & NSAlphaNonpremultipliedBitmapFormat) == NO) { // premultiplied
+            CGFloat alpha=components[numberOfComponents-1];
+
+            // Multiply through the alpha
+            for(i=0;i<numberOfComponents-1;i++) {
+                components[i]*=alpha;
+            }
+        }
+
+        if(_bitmapFormat&NSAlphaFirstBitmapFormat) {
+            // Swap the location of the alpha component
+            CGFloat alpha=components[numberOfComponents-1];
+
+            for(i=numberOfComponents;--i>=1;) {
+                components[i]=components[i-1];
+            }
+            components[0]=alpha;
+        }
+    }
+
+    if(_bitmapFormat&NSFloatingPointSamplesBitmapFormat){
+        for(i=0;i<numberOfComponents;i++) {
+            ((float *)pixels)[i]=MAX(0.0f,MIN(1.0f,components[i])); // clamp just in case
+        }
+    } else {
+        int maxValue=(1<<[self bitsPerSample])-1;
+
+        for(i=0;i<numberOfComponents;i++){
 #ifdef __LITTLE_ENDIAN__
-			pixels[i]=MAX(0,MIN(maxValue,(int)(components[(numberOfComponents - 1) - i]*maxValue))); // clamp just in case
+            pixels[i]=MAX(0,MIN(maxValue,(int)(components[(numberOfComponents - 1) - i]*maxValue))); // clamp just in case
 #else
-			pixels[i]=MAX(0,MIN(maxValue,(int)(components[i]*maxValue))); // clamp just in case
+            pixels[i]=MAX(0,MIN(maxValue,(int)(components[i]*maxValue))); // clamp just in case
 #endif
-		}
+        }
    }
-   
+
    [self setPixel:pixels atX:x y:y];
 }
 
@@ -560,33 +561,33 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
 
 -(NSData *)representationUsingType:(NSBitmapImageFileType)type properties:(NSDictionary *)properties {
    CFStringRef uti;
-   
+
    switch(type){
-   
+
     case NSTIFFFileType:
      uti=(CFStringRef)@"public.tiff";
      break;
-     
+
     case NSBMPFileType:
      uti=(CFStringRef)@"com.microsoft.bmp";
      break;
-     
+
     case NSGIFFileType:
      uti=(CFStringRef)@"com.compuserve.gif";
      break;
-     
+
     case NSJPEGFileType:
      uti=(CFStringRef)@"public.jpeg";
      break;
-     
+
     case NSPNGFileType:
      uti=(CFStringRef)@"public.png";
      break;
-     
+
     case NSJPEG2000FileType:
      uti=(CFStringRef)@"public.jpeg-2000";
      break;
-    
+
     default:
      return nil;
    }
@@ -596,24 +597,24 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
         dpi = ceilf(72 * _pixelsWide / _size.width);
     }
    NSMutableData        *result=[NSMutableData data];
-	// Convert the NS options to CG options - just NSImageCompressionFactor for now
-	NSDictionary *CGProperties = [NSMutableDictionary dictionary];
+    // Convert the NS options to CG options - just NSImageCompressionFactor for now
+    NSDictionary *CGProperties = [NSMutableDictionary dictionary];
 
     [CGProperties setValue: [NSNumber numberWithInt: dpi] forKey: (id)kCGImageDestinationDPI];
-    
-	if ([properties count]) {
-		id compressionFactor = [properties valueForKey:NSImageCompressionFactor];
-		if (compressionFactor) {
-			[CGProperties setValue:compressionFactor forKey:(id)kCGImageDestinationLossyCompressionQuality];
-		}
-	}
+
+    if ([properties count]) {
+        id compressionFactor = [properties valueForKey:NSImageCompressionFactor];
+        if (compressionFactor) {
+            [CGProperties setValue:compressionFactor forKey:(id)kCGImageDestinationLossyCompressionQuality];
+        }
+    }
    CGImageDestinationRef dest=CGImageDestinationCreateWithData((CFMutableDataRef)result,uti,1,(CFDictionaryRef)CGProperties);
-   
+
    CGImageDestinationAddImage(dest,[self CGImage],(CFDictionaryRef)CGProperties);
 
    CGImageDestinationFinalize(dest);
    CFRelease(dest);
-   
+
    return result;
 }
 
@@ -623,31 +624,31 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
 
 -(NSData *)TIFFRepresentationUsingCompression:(NSTIFFCompression)compression factor:(float)factor {
    return [[self class] TIFFRepresentationOfImageRepsInArray:[NSArray arrayWithObject:self]
-											usingCompression:compression 
-													  factor:factor];
+                                            usingCompression:compression
+                                                      factor:factor];
 }
 
 -(CGImageRef)createCGImageIfNeeded {
    if(_cgImage!=NULL)
     return CGImageRetain(_cgImage);
-    
+
    if(_isPlanar)
     NSUnimplementedMethod();
-    
+
   CGDataProviderRef provider=CGDataProviderCreateWithData(NULL,_bitmapPlanes[0],_bytesPerRow*_pixelsHigh,NULL);
-  
+
   CGImageRef image=CGImageCreate(_pixelsWide,_pixelsHigh,_bitsPerPixel/_samplesPerPixel,_bitsPerPixel,_bytesPerRow,[self CGColorSpace],
      [self CGBitmapInfo],provider,NULL,NO,kCGRenderingIntentDefault);
-     
+
    CGDataProviderRelease(provider);
-  
+
   return image;
 }
 
 -(CGImageRef)CGImage {
    if(_cgImage!=NULL)
     return _cgImage;
-    
+
    return (CGImageRef)[(id)[self createCGImageIfNeeded] autorelease];
 }
 
@@ -655,11 +656,11 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
    CGContextRef context=NSCurrentGraphicsPort();
    NSSize size=[self size];
    CGImageRef image=[self createCGImageIfNeeded];
-   
+
    CGContextDrawImage(context,NSMakeRect(0,0,size.width,size.height),image);
-   
+
    CGImageRelease(image);
-   
+
    return YES;
 }
 
@@ -674,7 +675,7 @@ NSString* NSImageCompressionFactor = @"NSImageCompressionFactor";
 
 -(CGBitmapInfo)CGBitmapInfo {
    CGBitmapInfo result=kCGBitmapByteOrderDefault;
-	
+
    if(![self hasAlpha])
     result|=kCGImageAlphaNone;
    else {

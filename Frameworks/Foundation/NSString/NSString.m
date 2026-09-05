@@ -67,19 +67,18 @@ NSString * const NSCharacterConversionException = @"NSCharacterConversionExcepti
 
 extern int *__CFConstantStringClassReference;
 extern int *__NSConstantStringClassReference;
+extern NSString *NSCFStringNewWithBytes(NSZone *zone, const char *bytes,
+        NSUInteger length);
+extern unichar *NSBytesToUnicode(const char *, NSUInteger, NSStringEncoding,
+        NSUInteger *, NSZone *);
 
 @implementation NSString
 
 +allocWithZone:(NSZone *)zone {
    if(self==objc_lookUpClass("NSString"))
-    return NSAllocateObject(objc_lookUpClass("NSString_placeholder"),0,NULL);
+    return NSAllocateObject(objc_lookUpClass("NSCFString"),0,NULL);
 
    return NSAllocateObject(self,0,zone);
-}
-
--initWithCharactersNoCopy:(unichar *)characters length:(NSUInteger)length freeWhenDone:(BOOL)freeWhenDone {
-   NSInvalidAbstractInvocation();
-   return nil;
 }
 
 -initWithCharacters:(const unichar *)characters length:(NSUInteger)length {
@@ -90,6 +89,12 @@ extern int *__NSConstantStringClassReference;
     copy[i]=characters[i];
 
    return [self initWithCharactersNoCopy:copy length:length freeWhenDone:YES];
+}
+
+- initWithCharactersNoCopy:(unichar *)characters length:(NSUInteger)length freeWhenDone:(BOOL)freeWhenDone
+{
+    NSDeallocateObject(self);
+    return (NSString *)NSCFStringNewWithCharacters(NULL, characters, length, freeWhenDone);
 }
 
 -init {
@@ -126,10 +131,9 @@ extern int *__NSConstantStringClassReference;
    return [self initWithCharactersNoCopy:unicode length:length freeWhenDone:YES];
 }
 
--initWithFormat:(NSString *)format locale:(id)locale
-      arguments:(va_list)arguments {
-   NSInvalidAbstractInvocation();
-   return nil;
+-initWithFormat:(NSString *)format locale:(id)locale arguments:(va_list)arguments {
+    NSDeallocateObject(self);
+    return NSStringNewWithFormat(format, locale, arguments, NULL);
 }
 
 -initWithFormat:(NSString *)format locale:(id)locale,... {
@@ -200,8 +204,68 @@ extern int *__NSConstantStringClassReference;
 }
 
 -initWithBytes:(const void *)bytes length:(NSUInteger)length encoding:(NSStringEncoding)encoding {
-   NSInvalidAbstractInvocation();
-   return 0;
+    NSDeallocateObject(self);
+
+    if (encoding == defaultEncoding()) {
+        return (NSString_placeholder *)NSCFStringNewWithBytes(NULL, bytes, length);
+    }
+
+    switch(encoding) {
+        NSUInteger resultLength;
+        unichar *characters;
+
+        case NSUnicodeStringEncoding:
+            characters = NSUnicodeFromBytes(bytes, length, &resultLength);
+            return (NSString_placeholder *)NSCFStringNewWithCharacters(NULL, characters, resultLength, YES);
+
+        case NSNEXTSTEPStringEncoding:
+            return (NSString_placeholder *)NSCFStringNewWithBytes(NULL, bytes, length);
+
+// FIX, not nextstep
+        case NSASCIIStringEncoding:
+        case NSNonLossyASCIIStringEncoding:
+            return (NSString_placeholder *)NSCFStringNewWithBytes(NULL, bytes, length);
+
+        case NSISOLatin1StringEncoding:
+            return (NSString_placeholder *)NSCFStringNewWithBytes(NULL, bytes, length);
+
+        case NSSymbolStringEncoding:
+            characters = NSSymbolToUnicode(bytes, length, &resultLength, NULL);
+            return (NSString_placeholder *)NSCFStringNewWithCharacters(NULL, characters, resultLength, YES);
+
+        case NSUTF8StringEncoding:
+            characters = NSUTF8ToUnicode(bytes, length, &resultLength, NULL);
+            return (NSString_placeholder *)NSCFStringNewWithCharacters(NULL, characters, resultLength, YES);
+
+        case NSWindowsCP1252StringEncoding:
+            return (NSString_placeholder *)NSCFStringNewWithBytes(NULL, bytes, length);
+
+        case NSMacOSRomanStringEncoding:
+            return (NSString_placeholder *)NSCFStringNewWithBytes(NULL, bytes, length);
+
+        case NSUTF16LittleEndianStringEncoding:
+            characters = NSUnicodeFromBytesUTF16LittleEndian(bytes, length, &resultLength);
+            return (NSString_placeholder *)NSCFStringNewWithCharacters(NULL, characters, resultLength, YES);
+
+        case NSUTF16BigEndianStringEncoding:
+            characters = NSUnicodeFromBytesUTF16BigEndian(bytes, length, &resultLength);
+            return (NSString_placeholder *)NSCFStringNewWithCharacters(NULL, characters, resultLength, YES);
+
+        default: {
+            // Let's convert the encoding to unicode and use that
+            unichar *unicodePtr = NSBytesToUnicode(bytes, length, encoding, &resultLength, NULL);
+            NSCLog("-[NSString_placeholder initWithBytes:] trying CoreFoundation fallback");
+            int maxCharLen = length, usedCharLen = 0;
+            CFStringEncodingBytesToUnicode(encoding, 0, bytes, length, &resultLength, unicodePtr, maxCharLen, &usedCharLen);
+            if (unicodePtr) {
+                return (NSString_placeholder *)NSCFStringNewWithCharacters(NULL, unicodePtr, resultLength, YES);
+            }
+        }
+            break;
+    }
+
+    NSRaiseException(NSInvalidArgumentException, nil, _cmd, @"encoding %d not (yet) implemented", encoding);
+    return nil;
 }
 
 -initWithBytesNoCopy:(void *)bytes length:(NSUInteger)length encoding:(NSStringEncoding)encoding freeWhenDone:(BOOL)freeWhenDone {
@@ -453,7 +517,7 @@ extern int *__NSConstantStringClassReference;
 }
 
 -(NSUInteger)length {
-printf("NSString length stub\n");
+    printf("NSString length stub\n");
    return 0;
 }
 

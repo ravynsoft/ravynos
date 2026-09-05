@@ -21,9 +21,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 }
 
--init {
-   NSInvalidAbstractInvocation();
-   return self;
+-(NSLock *)init {
+    Class cls = objc_lookUpClass("NSLock_posix");
+    IMP imp = class_getMethodImplementation(cls, @selector(init));
+    id (*func)(id, SEL) = (id (*)(id, SEL))imp;
+    return func(self, @selector(init));
 }
 
 -(void)dealloc

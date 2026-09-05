@@ -7,7 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #import <Onyx2D/O2Context.h>
-#import <Onyx2D/O2BitmapContext.h>
+#import <Onyx2D/O2Context_builtin.h>
 #import <Onyx2D/O2GraphicsState.h>
 #import <Onyx2D/O2Color.h>
 #import <Onyx2D/O2ColorSpace.h>
@@ -134,13 +134,13 @@ static NSMutableArray *possibleContextClasses=nil;
 }
 
 -initWithSize:(O2Size)size window:(CGWindow *)window {
-   O2InvalidAbstractInvocation();
-   return nil;
+   //O2InvalidAbstractInvocation();
+   return [(O2Context_builtin *)self initWithSize:size window:window];
 }
 
 -initWithSize:(O2Size)size context:(O2Context *)context {
-   O2InvalidAbstractInvocation();
-   return nil;
+   //O2InvalidAbstractInvocation();
+   return [(O2Context_builtin *)self initWithSize:size context:context];
 }
 
 -initWithGraphicsState:(O2GState *)state {
@@ -253,7 +253,8 @@ O2ColorRef O2ContextFillColor(O2ContextRef self) {
 }
 
 -(void)drawPath:(O2PathDrawingMode)pathMode {
-   O2InvalidAbstractInvocation();
+   //O2InvalidAbstractInvocation();
+   [(O2Context_builtin *)self drawPath:pathMode];
 // reset path in subclass
 }
 
@@ -262,15 +263,17 @@ O2ColorRef O2ContextFillColor(O2ContextRef self) {
 }
 
 -(void)drawShading:(O2Shading *)shading {
-   O2InvalidAbstractInvocation();
+   [(O2Context_builtin *)self drawShading:shading];
+   //O2InvalidAbstractInvocation();
 }
 
 -(void)drawImage:(O2Image *)image inRect:(O2Rect)rect {
-   O2InvalidAbstractInvocation();
+   [(O2Context_builtin *)self drawImage:image inRect:rect];
+   //O2InvalidAbstractInvocation();
 }
 
 -(void)drawLayer:(O2LayerRef)layer inRect:(O2Rect)rect {
-   O2InvalidAbstractInvocation();
+   //O2InvalidAbstractInvocation();
 }
    
 -(void)flush {
@@ -316,11 +319,11 @@ O2ColorRef O2ContextFillColor(O2ContextRef self) {
 }
 
 -(void)copyBitsInRect:(O2Rect)rect toPoint:(O2Point)point gState:(int)gState {
-   O2InvalidAbstractInvocation();
+   //O2InvalidAbstractInvocation();
 }
 
 -(NSData *)captureBitmapInRect:(NSRect)rect {
-   O2InvalidAbstractInvocation();
+   //O2InvalidAbstractInvocation();
    return nil;
 }
 
@@ -330,7 +333,7 @@ O2ColorRef O2ContextFillColor(O2ContextRef self) {
  */
  
 -(void)clipToState:(O2ClipState *)clipState {
-   O2InvalidAbstractInvocation();
+   //O2InvalidAbstractInvocation();
 }
 
 O2ContextRef O2ContextRetain(O2ContextRef self) {
@@ -1197,7 +1200,7 @@ void O2ContextShowGlyphsAtPoint(O2ContextRef self,O2Float x,O2Float y,const O2Gl
 
 -(void)showGlyphs:(const O2Glyph *)glyphs advances:(const O2Size *)advances count:(unsigned)count {
 #if 1
-   O2InvalidAbstractInvocation();
+   //O2InvalidAbstractInvocation();
 #else
    O2AffineTransform textMatrix=O2ContextGetTextMatrix(self);
    O2Float             x=textMatrix.tx;

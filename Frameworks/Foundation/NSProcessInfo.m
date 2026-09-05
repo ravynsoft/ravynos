@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #endif
 #import <objc/runtime.h>
 
+#import "NSCFString.h"
 #import "NSDarwinString.h"
 #import "NSString_cString.h"
 
@@ -177,8 +178,9 @@ const char * const *NSProcessInfoArgv=NULL;
 }
 
 -(NSArray *)arguments {
+   Class cls = objc_lookUpClass("NSPlatform_posix");
    if(_arguments==nil){
-    _arguments=[[[NSPlatform currentPlatform] arguments] retain];
+    _arguments=[[cls arguments] retain];
    }
 
    return _arguments;

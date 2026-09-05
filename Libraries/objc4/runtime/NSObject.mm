@@ -2190,12 +2190,14 @@ __attribute__((objc_nonlazy_class))
     return ((id(*)(id, SEL, id, id))objc_msgSend)(self, sel, obj1, obj2);
 }
 
-
 // Replaced by CF (returns an NSMethodSignature)
 + (NSMethodSignature *)instanceMethodSignatureForSelector:(SEL)sel {
     _objc_fatal("+[NSObject instanceMethodSignatureForSelector:] "
                 "not available without CoreFoundation");
 }
+
+#if 0
+// Fuck this, sport. We have these in NSObject(Foundation).
 
 // Replaced by CF (returns an NSMethodSignature)
 + (NSMethodSignature *)methodSignatureForSelector:(SEL)sel {
@@ -2216,6 +2218,7 @@ __attribute__((objc_nonlazy_class))
 - (void)forwardInvocation:(NSInvocation *)invocation {
     [self doesNotRecognizeSelector:(invocation ? [invocation selector] : 0)];
 }
+#endif
 
 + (id)forwardingTargetForSelector:(SEL)sel {
     return nil;
