@@ -13,17 +13,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -initWithCoder:(NSCoder *)coder {
    [super initWithCoder:coder];
-   
+
    if([coder allowsKeyedCoding]){
     NSKeyedUnarchiver *keyed=(NSKeyedUnarchiver *)coder;
-    
+
     _delegate=[keyed decodeObjectForKey:@"NSDelegate"];
     _string=[[keyed decodeObjectForKey:@"NSString"] retain];
     _rangeToAttributes=NSCreateRangeToCopiedObjectEntries(0);
     NSRangeEntryInsert(_rangeToAttributes,NSMakeRange(0,[_string length]),[NSDictionary dictionary]);
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",[self class],sel_getName(_cmd),coder];
    }
    return self;
 }
@@ -58,7 +58,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    if(effectiveRangep!=NULL && effectiveRangep->length==NSNotFound)
     effectiveRangep->length=[self length]-effectiveRangep->location;
 
-	return [[result retain] autorelease];
+   return [[result retain] autorelease];
 }
 
 static inline int replaceCharactersInRangeWithString(NSTextStorage_concrete *self,NSRange range,NSString *string){
@@ -110,11 +110,11 @@ static inline void replaceCharactersInRangeWithAttributedString(NSTextStorage_co
     location=NSMaxRange(effectiveRange);
    }
 
-	if (limit == 0) {
+   if (limit == 0) {
           // That will just try to merge attributes at the location when possible
           NSRangeEntryInsert(self->_rangeToAttributes,NSMakeRange(replaced.location,0),nil);
-	}
-	
+   }
+
    [self edited:NSTextStorageEditedAttributes|NSTextStorageEditedCharacters range:replaced changeInLength:delta];
 }
 

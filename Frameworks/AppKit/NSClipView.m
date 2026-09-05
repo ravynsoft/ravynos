@@ -27,21 +27,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    if([coder allowsKeyedCoding]){
     NSKeyedUnarchiver *keyed=(NSKeyedUnarchiver *)coder;
     unsigned           flags=[keyed decodeIntForKey:@"NScvFlags"];
-    
+
     _drawsBackground=(flags&0x04)?YES:NO;
     _backgroundColor=[[keyed decodeObjectForKey:@"NSBGColor"] retain];
     _docView=[[keyed decodeObjectForKey:@"NSDocView"] retain];
-    
+
     if(_docView!=nil)
-		[[NSNotificationCenter defaultCenter] addObserver:self
-												 selector:@selector(viewFrameChanged:)
-													 name:NSViewFrameDidChangeNotification object:_docView];
-	   [[NSNotificationCenter defaultCenter] addObserver:self
-												selector:@selector(viewBoundsChanged:)
-													name: NSViewBoundsDidChangeNotification object:_docView];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(viewFrameChanged:)
+                                                     name:NSViewFrameDidChangeNotification object:_docView];
+       [[NSNotificationCenter defaultCenter] addObserver:self
+                                                selector:@selector(viewBoundsChanged:)
+                                                    name: NSViewBoundsDidChangeNotification object:_docView];
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",[self class],sel_getName(_cmd),coder];
    }
    return self;
 }
@@ -114,7 +114,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
    view=[view retain];
    [_docView release];
-   _docView=view;   
+   _docView=view;
 
    [self addSubview:view];
 
@@ -167,31 +167,31 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -(void)viewBoundsChanged:(NSNotification *)note {
    [self scrollToPoint:[self _scrollPoint]];
 
-	// Be sure our scrollbars are in sync with the new docview bounds
-	if([[self superview] isKindOfClass:[NSScrollView class]]) {
+    // Be sure our scrollbars are in sync with the new docview bounds
+    if([[self superview] isKindOfClass:[NSScrollView class]]) {
         NSScrollView *sv = (NSScrollView *)[self superview];
-		[sv tile]; // tiling might be needed if autohide scrollers is enabled
-		[sv reflectScrolledClipView:self];
-	}
+        [sv tile]; // tiling might be needed if autohide scrollers is enabled
+        [sv reflectScrolledClipView:self];
+    }
 }
 
 -(void)viewFrameChanged:(NSNotification *)note {
    [self scrollToPoint:[self _scrollPoint]];
 
-	// Be sure our scrollbars are in sync with the new docview frame
-	if([[self superview] isKindOfClass:[NSScrollView class]]) {
+    // Be sure our scrollbars are in sync with the new docview frame
+    if([[self superview] isKindOfClass:[NSScrollView class]]) {
         NSScrollView *sv = (NSScrollView *)[self superview];
-		[sv tile]; // tiling might be needed if autohide scrollers is enabled
-		[sv reflectScrolledClipView:self];
-	}
-    
+        [sv tile]; // tiling might be needed if autohide scrollers is enabled
+        [sv reflectScrolledClipView:self];
+    }
+
     // if the docview doesn't completely fill the clip view, we need a redraw
-	// because some of our content has been revealed
+    // because some of our content has been revealed
     NSRect visibleRect=[self visibleRect];
     NSRect frame=[_docView frame];
     if(NSContainsRect(frame, visibleRect) == NO) {
-		[self setNeedsDisplay:YES];
-	}
+        [self setNeedsDisplay:YES];
+    }
 }
 
 -(BOOL)isOpaque {
@@ -227,7 +227,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    if(NSMouseInRect(point,bounds,[self isFlipped]))
     return NO;
 
-   if(![superview isKindOfClass:[NSScrollView class]] || 
+   if(![superview isKindOfClass:[NSScrollView class]] ||
        [(NSScrollView *)[self superview] hasVerticalScroller]){
     if(point.y<NSMinY(bounds))
      deltay=NSMinY(bounds)-point.y;
@@ -238,7 +238,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if(deltay>bounds.size.height)
      deltay=bounds.size.height;
    }
-   if(![superview isKindOfClass:[NSScrollView class]] || 
+   if(![superview isKindOfClass:[NSScrollView class]] ||
        [(NSScrollView *)[self superview] hasHorizontalScroller]){
     if(point.x<NSMinX(bounds))
      deltax=NSMinX(bounds)-point.x;
@@ -251,27 +251,27 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    }
 
   // "Returns YES if any scrolling is performed; otherwise returns NO." - AppKit documentation
-	if (deltax != 0.f || deltay != 0.f) {
-		bounds.origin.y-=deltay;
-		bounds.origin.x-=deltax;
-		[self scrollToPoint:bounds.origin];
-		// Return YES only if some scrolling really happened
-		return NSEqualPoints(bounds.origin, _bounds.origin) == NO;
-	} else {
-		return NO;
-	}
+    if (deltax != 0.f || deltay != 0.f) {
+        bounds.origin.y-=deltay;
+        bounds.origin.x-=deltax;
+        [self scrollToPoint:bounds.origin];
+        // Return YES only if some scrolling really happened
+        return NSEqualPoints(bounds.origin, _bounds.origin) == NO;
+    } else {
+        return NO;
+    }
 }
 
--(void)scrollToPoint:(NSPoint)point {   
+-(void)scrollToPoint:(NSPoint)point {
    point=[self constrainScrollPoint:point];
-	// Not need for more work and a full redislay if we don't really scroll
-	if (!NSEqualPoints(point, _bounds.origin)) {
-		[self setBoundsOrigin:point];
-		[self setNeedsDisplay:YES];
+    // Not need for more work and a full redislay if we don't really scroll
+    if (!NSEqualPoints(point, _bounds.origin)) {
+        [self setBoundsOrigin:point];
+        [self setNeedsDisplay:YES];
 
-		if([[self superview] isKindOfClass:[NSScrollView class]])
-			[[self superview] reflectScrolledClipView:self];
-	}
+        if([[self superview] isKindOfClass:[NSScrollView class]])
+            [[self superview] reflectScrolledClipView:self];
+    }
 }
 
 @end

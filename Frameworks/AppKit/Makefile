@@ -1,14 +1,11 @@
 .PATH: ${.CURDIR}
 .PATH: ${MAKEOBJDIR}
 
-FRAMEWORK=AppKit
-MK_AUTO_OBJ=yes
-NO_FMWK_COMMON=yes
-.include "../framework.common.mk"
+MK_WERROR = no
+FRAMEWORK = AppKit
+SUBDIR = xkeyboard-config
 
-SUBDIR+=	xkeyboard-config
-
-SRCS= \
+SRCS = \
     CoreData_/NSPersistentDocument.m \
     CoreData_/_NSManagedProxy.m \
     NSAccessibility.m \
@@ -263,15 +260,14 @@ SRCS= \
     nib.subproj/NSWindowTemplate.m \
     O2Font_FT.m \
     KTFont_FT.m \
-    O2Context_builtin_FT.m 
+    O2Context_builtin_FT.m
 
 
-INCS= \
+INCS = \
     AppKit.h \
     AppKitExport.h \
     CoreData_/NSPersistentDocument.h \
     CoreData_/_NSManagedProxy.h \
-    CGEvent.h \
     KTFont.h \
     NSAccessibility.h \
     NSActionCell.h \
@@ -537,10 +533,11 @@ INCS= \
     nib.subproj/NSWindowTemplate.h \
     KTFont_FT.h \
     O2Context_builtin_FT.h \
-    O2Font_FT.h 
+    O2Font_FT.h \
+    ${.CURDIR:H}/CoreGraphics/CGEvent.h
 
 
-RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
+RESOURCES = Info.plist en.lproj de.lproj fr.lproj \
 	NSToolbar.subproj/NSToolbarPrintItem.tiff \
 	NSToolbar.subproj/NSToolbarOverflowArrow.tiff \
 	NSToolbar.subproj/NSToolbarShowFontsItem.tiff \
@@ -576,35 +573,21 @@ RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
 	NSSwitch.tiff \
 	NSKeyboardBinding/StandardKeyBindings.keyBindings
 
-CFLAGS+= -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/sys \
-	 -F../OpenGL -framework OpenGL -I${.CURDIR}/Headers -I../Foundation/Headers \
-         -I${.CURDIR} -I${MAKEOBJDIR} -I${SRCTOP}/CoreServices \
-	 -I${SRCTOP}/Frameworks/Onyx2D/freetype/include \
-	 -I${SRCTOP}/Frameworks/CoreText/fontconfig/include \
-	 -I${SRCTOP}/Frameworks/CoreText/fontconfig/fontconfig \
-	 -D_BuildingFramework -DFREETYPE_PRESENT -pthread
-LDFLAGS+= ${FMWK_LDFLAGS} \
-	  -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
-	  -Wl,-R/System/Library/Frameworks/CoreFoundation.framework/Versions/A \
-	  -Wl,-R/System/Library/Frameworks/CoreGraphics.framework/Versions/A \
-	  -Wl,-R/System/Library/Frameworks/CoreData.framework/Versions/A \
-	  -Wl,-R/System/Library/Frameworks/CoreText.framework/Versions/A \
-	  -Wl,-R/System/Library/Frameworks/QuartzCore.framework/Versions/A \
-	  -Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A \
-	  -Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
-	  -L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
-	  -L${OBJTOP}/Frameworks/CoreFoundation/CoreFoundation.framework \
-	  -L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework \
-	  -L${OBJTOP}/Frameworks/CoreData/CoreData.framework \
-	  -L${OBJTOP}/Frameworks/CoreText/CoreText.framework \
-	  -L${OBJTOP}/Frameworks/QuartzCore/QuartzCore.framework \
-	  -L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework \
-	  -L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework \
-	  -pthread -lFoundation -lCoreFoundation -lCoreGraphics \
-          -lCoreText -lCoreData -lQuartzCore -lOpenGL -lOnyx2D \
-	  -lobjc -lmach -lm
+CFLAGS = --sysroot=${RAVYN_SDKROOT} -mmacos-version-min=${MACOS_VERSION_MIN} \
+    -I${.CURDIR:H} -I${.CURDIR}/Headers -I${.CURDIR:H}/Foundation/Headers \
+    -I${.CURDIR:H}/Foundation/platform_posix \
+    -I${.CURDIR} -I${.OBJDIR} -I${ROOT_SOURCE_DIR}/CoreServices \
+	-I${ROOT_SOURCE_DIR}/Frameworks/Onyx2D/freetype/include \
+	-I${ROOT_SOURCE_DIR}/Frameworks/CoreText/fontconfig/include \
+	-I${ROOT_SOURCE_DIR}/Frameworks/CoreText/fontconfig/fontconfig \
+	-D_BuildingFramework -DFREETYPE_PRESENT -pthread
 
-DIRS= \
+LDFLAGS = -pthread -framework Foundation -framework CoreFoundation \
+    -framework CoreGraphics -framework CoreText -framework CoreData \
+    -framework QuartzCore -framework OpenGL -framework Onyx2D \
+	-lobjc -lSystem
+
+DIRS = \
 	NSMenu.subproj \
 	NSColorPicker.subproj \
 	WindowServer.backend \
@@ -632,16 +615,16 @@ DIRS= \
 	NSEvent.subproj
 
 make-obj-dirs: .PHONY
-	echo ${FRAMEWORK} ${TARGET} in ${MAKEOBJDIR}
+	echo ${FRAMEWORK} ${TARGET} in ${.OBJDIR}
 .for subdir in ${DIRS}
-	mkdir -pv ${MAKEOBJDIR}/${subdir}
+	mkdir -pv ${.OBJDIR}/${subdir}
 .endfor
 
 fmwkclean:
 	rm -rf ${.CURDIR}/Headers
 
 _install-hook:
-	cp -fv lib${FRAMEWORK}.so ${FRAMEWORK}.framework/Versions/Current/
+	cp -fv lib${FRAMEWORK} ${FRAMEWORK}.framework/Versions/Current/
 	mv ${FRAMEWORK}.framework/Resources/NSKeyboardBinding/StandardKeyBindings.keyBindings \
 		${FRAMEWORK}.framework/Resources/
 	rmdir ${FRAMEWORK}.framework/Resources/NSKeyboardBinding
@@ -652,7 +635,7 @@ _install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
 	cp -av ${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
 	mkdir -pv ${BUILDROOT}/System/Library/KeyboardLayout
-	${MAKE} -C ${.CURDIR}/xkeyboard-config install DESTDIR=${DESTDIR} BUILDROOT=${BUILDROOT}
+	${MAKE} -C ${.CURDIR}/xkeyboard-config install DESTDIR=${DIR}
 
 clean-deps:
 	rm -f .depend.*
@@ -662,4 +645,3 @@ clean-deps:
 clean: fmwkclean
 post-resources: _install-hook
 clean: clean-deps
-CFLAGS+= ${FMWK_CFLAGS}

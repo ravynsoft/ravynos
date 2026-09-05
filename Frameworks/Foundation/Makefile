@@ -7,12 +7,13 @@ FMWK_VERSION = C
 INFO_PLIST = Info.plist
 RESOURCES_DIRS = English.lproj
 RESOURCES_FILES != cd ${.CURDIR}; echo NSCharacterSet/*.bitmap
-HEADERS != cd ${.CURDIR}; echo Headers/Foundation/* Headers/*.h
+HEADERS != cd ${.CURDIR}; echo Headers/Foundation/* Headers/*.h \
+	platform_posix/NSSocket_bsd.h
 SLF = /System/Library/Frameworks
 INSTALL_NAME_DIR = ${SLF}/${FRAMEWORK}.framework/Versions/${FMWK_VERSION}
 
 SRCS = 	NSFormatter.m \
-        NSObject/msgSendv-Darwin_x86_64.s \
+	NSObject/msgSendv-Darwin_x86_64.s \
 	NSDictionary/NSEnumerator_dictionaryObjects.m \
 	NSDictionary/NSMutableDictionary.m \
 	NSDictionary/NSEnumerator_dictionaryKeys.m \
@@ -262,7 +263,7 @@ SRCS = 	NSFormatter.m \
 	NSAttributedString/NSAttributedString_oneAttribute.m \
 	NSAttributedString/NSMutableString_proxyToMutableAttributedString.m \
 	NSAttributedString/NSMutableAttributedString.m \
-        NSObject/NSObject.m \
+	NSObject/NSObject.m \
 	NSObject/objc_size_alignment.m \
 	NSObject/NSZombieObject.m \
 	NSDistributedLock.m \
@@ -303,29 +304,29 @@ SRCS = 	NSFormatter.m \
 	NSDate/NSDate.m \
 	NSDate/NSDateComponents.m \
 	NSDate/NSDateFormatter.m \
-        platform_darwin/DarwinMemoryFunctions.m \
-        platform_darwin/NSPlatform_darwin.m \
-        platform_darwin/NSString_defaultEncoding_darwin.m \
-        platform_darwin/libmain.m \
-        platform_posix/NSCancelInputSource_posix.m \
-        platform_posix/NSCondition_posix.m \
-        platform_posix/NSConditionLock_posix.m \
-        platform_posix/NSConstantString.m \
-        platform_posix/NSFileHandle_posix.m \
-        platform_posix/NSFileManager_posix.m \
-        platform_posix/NSLocale_posix.m \
-        platform_posix/NSLock_posix.m \
-        platform_posix/NSMemoryFunctions_posix.m \
-        platform_posix/NSPersistantDomain_posix.m \
-        platform_posix/NSPipe_posix.m \
-        platform_posix/NSPlatform_posix.m \
-        platform_posix/NSRecursiveLock_posix.m \
-        platform_posix/NSRunLoopState_posix.m \
-        platform_posix/NSSelectSet_bsd.m \
-        platform_posix/NSSocket_bsd.m \
-        platform_posix/NSSocketPort_posix.m \
-        platform_posix/NSTask_posix.m \
-        platform_posix/NSTimeZone_posix.m \
+	platform_darwin/DarwinMemoryFunctions.m \
+	platform_darwin/NSPlatform_darwin.m \
+	platform_darwin/NSString_defaultEncoding_darwin.m \
+	platform_darwin/libmain.m \
+	platform_posix/NSCancelInputSource_posix.m \
+	platform_posix/NSCondition_posix.m \
+	platform_posix/NSConditionLock_posix.m \
+	platform_posix/NSConstantString.m \
+	platform_posix/NSFileHandle_posix.m \
+	platform_posix/NSFileManager_posix.m \
+	platform_posix/NSLocale_posix.m \
+	platform_posix/NSLock_posix.m \
+	platform_posix/NSMemoryFunctions_posix.m \
+	platform_posix/NSPersistantDomain_posix.m \
+	platform_posix/NSPipe_posix.m \
+	platform_posix/NSPlatform_posix.m \
+	platform_posix/NSRecursiveLock_posix.m \
+	platform_posix/NSRunLoopState_posix.m \
+	platform_posix/NSSelectSet_bsd.m \
+	platform_posix/NSSocket_bsd.m \
+	platform_posix/NSSocketPort_posix.m \
+	platform_posix/NSTask_posix.m \
+	platform_posix/NSTimeZone_posix.m \
 	NSObject/forwarding.m
 
 # FIXME: we should build with HAVE_FFI=1
@@ -362,7 +363,7 @@ SUBDIR =
 fmwk-install-hook:
 .for dir in ${RAVYN_SDKROOT}/System/Library/Frameworks/ ${SYSROOT_DIR}/System/Library/Frameworks/
 	mkdir -p ${dir}
-	cp -Rfp ${.OBJDIR}/${FRAMEWORK}.framework ${dir}
+	cp -Rf ${.OBJDIR}/${FRAMEWORK}.framework ${dir}
 .endfor
 
 .include <rvn.framework.mk>

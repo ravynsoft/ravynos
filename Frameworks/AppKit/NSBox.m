@@ -37,7 +37,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
    if([coder allowsKeyedCoding]){
     NSKeyedUnarchiver *keyed=(NSKeyedUnarchiver *)coder;
-    
+
     _boxType=[keyed decodeIntForKey:@"NSBoxType"];
     _borderType=[keyed decodeIntForKey:@"NSBorderType"];
     _titlePosition=[keyed decodeIntForKey:@"NSTitlePosition"];
@@ -45,35 +45,35 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     _titleCell=[[keyed decodeObjectForKey:@"NSTitleCell"] retain];
     // There is a key NSTransparent, but as far as I can tell it is always NO
     _isTransparent=[keyed decodeBoolForKey:@"NSFullyTransparent"];
-    
+
     [[_subviews lastObject] setAutoresizingMask: NSViewWidthSizable| NSViewHeightSizable];
     [[_subviews lastObject] setAutoresizesSubviews:YES];
-	   
-    if (_boxType == NSBoxCustom)
-	{
-		id obj;
-		_customData = [[NSMutableDictionary alloc] init];
-		
-		obj = [keyed decodeObjectForKey:@"NSBorderWidth2"];
-		if (obj == nil) obj = [NSNumber numberWithDouble:1];
-		[_customData setObject:obj forKey:@"NSBorderWidth2"];
-		
-		obj = [keyed decodeObjectForKey:@"NSCornerRadius2"];
-		if (obj == nil) obj = [NSNumber numberWithDouble:0];
 
-		[_customData setObject:obj forKey:@"NSCornerRadius2"];
-		
-		obj = [keyed decodeObjectForKey:@"NSBorderColor2"];
-		if (obj == nil) obj = [NSColor colorWithCalibratedWhite:0.000 alpha:0.420];
-		[_customData setObject:obj forKey:@"NSBorderColor2"];
-		
-		obj = [keyed decodeObjectForKey:@"NSFillColor2"];
-		if (obj == nil) obj = [NSColor colorWithCalibratedWhite:0.000 alpha:0.000];
-		[_customData setObject:obj forKey:@"NSFillColor2"];
+    if (_boxType == NSBoxCustom)
+        {
+                id obj;
+                _customData = [[NSMutableDictionary alloc] init];
+
+                obj = [keyed decodeObjectForKey:@"NSBorderWidth2"];
+                if (obj == nil) obj = [NSNumber numberWithDouble:1];
+                [_customData setObject:obj forKey:@"NSBorderWidth2"];
+
+                obj = [keyed decodeObjectForKey:@"NSCornerRadius2"];
+                if (obj == nil) obj = [NSNumber numberWithDouble:0];
+
+                [_customData setObject:obj forKey:@"NSCornerRadius2"];
+
+                obj = [keyed decodeObjectForKey:@"NSBorderColor2"];
+                if (obj == nil) obj = [NSColor colorWithCalibratedWhite:0.000 alpha:0.420];
+                [_customData setObject:obj forKey:@"NSBorderColor2"];
+
+                obj = [keyed decodeObjectForKey:@"NSFillColor2"];
+                if (obj == nil) obj = [NSColor colorWithCalibratedWhite:0.000 alpha:0.000];
+                [_customData setObject:obj forKey:@"NSFillColor2"];
    }
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",isa,[coder class]];
+    [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",[self class],[coder class]];
    }
    return self;
 }
@@ -82,7 +82,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   NSView *contentview;
 
   [super initWithFrame: frame];
-   
+
    _isTransparent = YES;
    _titleCell = [[NSTextFieldCell alloc] initTextCell:@""];
    _borderType = NSLineBorder;
@@ -96,7 +96,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   [self setAutoresizesSubviews:YES];
   return self;
 }
-  
+
 -(void)dealloc {
    [_customData release];
    [_titleCell release];
@@ -206,16 +206,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(NSRect)titleRect {
    // Obtain the size the title cell prefers
-   NSSize size = [_titleCell cellSize]; 
+   NSSize size = [_titleCell cellSize];
    NSRect bounds=[self bounds];
    NSRect result=NSZeroRect;
-   
+
    result.origin.x=10+TEXTGAP;
    result.size.height=ceil(size.height);
-    
+
     //result.size.width=ceil(size.width); // // NSTextField cell must be bugged we get too low values for the width here
     result.size.width = bounds.size.width - result.origin.x;  // use the whole width until the text field cell size is fixed
-    
+
    switch(_titlePosition){
 
     case NSNoTitle:
@@ -274,7 +274,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
    if([self isTransparent])
     return;
-    
+
    switch(_titlePosition){
 
     case NSNoTitle:
@@ -306,37 +306,37 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
      break;
    }
 
-	if (_boxType != NSBoxSeparator) {
-		// Separator are transparent except for drawing a line
-		[[NSColor controlColor] setFill];
-		NSRectFill(grooveRect);
-	}
+        if (_boxType != NSBoxSeparator) {
+                // Separator are transparent except for drawing a line
+                [[NSColor controlColor] setFill];
+                NSRectFill(grooveRect);
+        }
 
-	if (_boxType == NSBoxCustom){
-		
-		// Ignoring corner radius for now.
-		[[self fillColor] set];
-		NSRectFill(rect);
-		
-		if (_borderType != NSNoBorder)
-		{
-			[[self borderColor] set];
-			NSFrameRectWithWidth(_bounds,[self borderWidth]);
-		}
-	} else if (_boxType == NSBoxSeparator) {
-		// These are just the simple divider lines
-		[[NSColor grayColor] set];
-		NSBezierPath* line = [NSBezierPath bezierPath];
-		if (NSWidth(grooveRect) > NSHeight(grooveRect)) {
-			[line moveToPoint: NSMakePoint(NSMinX(grooveRect), NSMidY(grooveRect))];
-			[line lineToPoint: NSMakePoint(NSMaxX(grooveRect), NSMidY(grooveRect))];
-		} else {
-			[line moveToPoint: NSMakePoint(NSMidX(grooveRect), NSMinY(grooveRect))];
-			[line lineToPoint: NSMakePoint(NSMidX(grooveRect), NSMaxY(grooveRect))];
-		}
-		[line stroke];
-	}
-	else{
+        if (_boxType == NSBoxCustom){
+
+                // Ignoring corner radius for now.
+                [[self fillColor] set];
+                NSRectFill(rect);
+
+                if (_borderType != NSNoBorder)
+                {
+                        [[self borderColor] set];
+                        NSFrameRectWithWidth(_bounds,[self borderWidth]);
+                }
+        } else if (_boxType == NSBoxSeparator) {
+                // These are just the simple divider lines
+                [[NSColor grayColor] set];
+                NSBezierPath* line = [NSBezierPath bezierPath];
+                if (NSWidth(grooveRect) > NSHeight(grooveRect)) {
+                        [line moveToPoint: NSMakePoint(NSMinX(grooveRect), NSMidY(grooveRect))];
+                        [line lineToPoint: NSMakePoint(NSMaxX(grooveRect), NSMidY(grooveRect))];
+                } else {
+                        [line moveToPoint: NSMakePoint(NSMidX(grooveRect), NSMinY(grooveRect))];
+                        [line lineToPoint: NSMakePoint(NSMidX(grooveRect), NSMaxY(grooveRect))];
+                }
+                [line stroke];
+        }
+        else{
    switch(_borderType){
     case NSNoBorder:
      break;
@@ -353,7 +353,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
      [[self graphicsStyle] drawBoxWithGrooveInRect:grooveRect clipRect:rect];
      break;
    }
-	}
+        }
    if(drawTitle){
 #if 0
     [[NSColor windowBackgroundColor] setFill];
@@ -363,8 +363,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #endif
     titleRect.origin.x+=TEXTGAP;
 
-	// Ask the cell to draw itself now
-	// TODO: Should we be doing some sort of clipping setup here?
+        // Ask the cell to draw itself now
+        // TODO: Should we be doing some sort of clipping setup here?
     [_titleCell setControlView:self];
     [_titleCell drawWithFrame: titleRect inView: self];
    }
@@ -372,12 +372,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (CGFloat)borderWidth
 {
-	return [[_customData objectForKey:@"NSBorderWidth2"] doubleValue];
+        return [[_customData objectForKey:@"NSBorderWidth2"] doubleValue];
 }
 
 - (CGFloat)cornerRadius;
 {
-	return [[_customData objectForKey:@"NSCornerRadius2"] doubleValue];
+        return [[_customData objectForKey:@"NSCornerRadius2"] doubleValue];
 }
 
 - (NSColor *)borderColor;
@@ -393,12 +393,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (void)setBorderWidth:(CGFloat)value
 {
-	[_customData setObject:[NSNumber numberWithDouble:value] forKey:@"NSBorderWidth2"];
+        [_customData setObject:[NSNumber numberWithDouble:value] forKey:@"NSBorderWidth2"];
 }
 
 - (void)setCornerRadius:(CGFloat)value
 {
-	[_customData setObject:[NSNumber numberWithDouble:value] forKey:@"NSCornerRadius2"];
+        [_customData setObject:[NSNumber numberWithDouble:value] forKey:@"NSCornerRadius2"];
 }
 
 - (void)setBorderColor:(NSColor *)value

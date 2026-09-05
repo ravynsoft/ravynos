@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2007 Christopher J. W. Lloyd
- * Copyright (C) 2022-2024 Zoe Knox
+ * Copyright (C) 2022-2026 Zoe Knox
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -7,6 +7,9 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#import <sys/param.h>
+#import <mach/mach.h>
+#import <servers/bootstrap.h>
 #import <Foundation/NSSocket_bsd.h>
 #import <Foundation/NSSelectInputSource.h>
 #import <AppKit/NSApplication.h>
@@ -68,9 +71,9 @@ NSString * const NSApplicationWillTerminateNotification=@"NSApplicationWillTermi
 
 NSString * const NSApplicationDidChangeScreenParametersNotification=@"NSApplicationDidChangeScreenParametersNotification";
 
-@interface NSDocumentController(forward) 
--(void)_updateRecentDocumentsMenu; 
-@end 
+@interface NSDocumentController(forward)
+-(void)_updateRecentDocumentsMenu;
+@end
 
 @interface NSMenu(private)
 -(NSMenu *)_menuWithName:(NSString *)name;
@@ -104,9 +107,9 @@ id NSApp=nil;
     NSSize    imageSize=[image size];
     NSWindow *splash=[[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,imageSize.width,imageSize.height) styleMask:NSBorderlessWindowMask backing:NSBackingStoreBuffered defer:NO];
     [splash setLevel:NSFloatingWindowLevel];
-    
+
     NSImageView *view=[[NSImageView alloc] initWithFrame:NSMakeRect(0,0,imageSize.width,imageSize.height)];
-    
+
     [view setImage:image];
     [splash setContentView:view];
     [view release];
@@ -119,11 +122,11 @@ id NSApp=nil;
 
 -(void)_closeSplashImage {
    int i;
-   
+
    for(i=0;i<[_windows count];i++){
     NSWindow *check=[_windows objectAtIndex:i];
     NSView   *contentView=[check contentView];
-    
+
     if([contentView isKindOfClass:[NSImageView class]])
      if([[[(NSImageView *)contentView image] name] isEqual:@"splash"]){
       [check close];
@@ -182,7 +185,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                                 [md setObject:[NSNumber numberWithInt:_id] forKey:@"WindowID"];
                                 [md setObject:[NSNumber numberWithInt:data->state] forKey:@"State"];
 
-                                [[NSNotificationCenter defaultCenter] 
+                                [[NSNotificationCenter defaultCenter]
                                     postNotificationName:@"WSWindowDidChangeState" object:nil
                                     userInfo:md];
 
@@ -311,14 +314,14 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                         }
                         case CODE_STATUS_ITEM_ADDED:
                         {
-			    uint32_t handle;
-			    if(msg.len != sizeof(handle)) {
-				NSLog(@"weirdness detected! expected size %d, got %d", sizeof(handle), msg.len);
-				break;
-			    }
-			    memcpy(&handle, msg.data, sizeof(handle));
-			    NSLog(@"ZMK DEBUG: status item added with handle %u", handle);
-			}
+                uint32_t handle;
+                if(msg.len != sizeof(handle)) {
+                NSLog(@"weirdness detected! expected size %d, got %d", sizeof(handle), msg.len);
+                break;
+                }
+                memcpy(&handle, msg.data, sizeof(handle));
+                NSLog(@"ZMK DEBUG: status item added with handle %u", handle);
+            }
                         case CODE_MENU_FOR_APP:
                         {
                             if([bundleID isEqualToString:@"com.ravynos.SystemUIServer"]) {
@@ -351,7 +354,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                                 [md setObject:[NSNumber numberWithInt:msg.pid] forKey:@"ProcessID"];
                                 [md setObject:[NSString stringWithCString:msg.bundleID] forKey:@"BundleID"];
 
-                                [[NSNotificationCenter defaultCenter] 
+                                [[NSNotificationCenter defaultCenter]
                                     postNotificationName:@"NSMenuDidUpdate" object:nil
                                     userInfo:md];
                                 [o release];
@@ -367,7 +370,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                                 [md setObject:[NSString stringWithCString:msg.bundleID] forKey:@"BundleID"];
                                 [md setObject:[NSString stringWithCString:msg.data] forKey:@"Path"];
 
-                                [[NSNotificationCenter defaultCenter] 
+                                [[NSNotificationCenter defaultCenter]
                                     postNotificationName:@"NSApplicationDidQuit" object:nil
                                     userInfo:md];
                             }
@@ -381,7 +384,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                                 [md setObject:[NSString stringWithCString:msg.bundleID] forKey:@"BundleID"];
                                 [md setObject:[NSString stringWithCString:msg.data] forKey:@"Path"];
 
-                                [[NSNotificationCenter defaultCenter] 
+                                [[NSNotificationCenter defaultCenter]
                                     postNotificationName:@"NSApplicationDidLaunch" object:nil
                                     userInfo:md];
                             }
@@ -413,7 +416,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                             if(data.active == 1 && data.windowID != 0) {
                                 NSWindow *win = [self windowWithWindowNumber:data.windowID];
                                 if(win)
-                                    [win showForActivation]; 
+                                    [win showForActivation];
                             }
                             if(data.active && !_isActive)
                                 [[NSNotificationCenter defaultCenter]
@@ -431,7 +434,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                                 [md setObject:[NSNumber numberWithInt:msg.pid] forKey:@"ProcessID"];
                                 [md setObject:[NSString stringWithCString:msg.bundleID] forKey:@"BundleID"];
 
-                                [[NSNotificationCenter defaultCenter] 
+                                [[NSNotificationCenter defaultCenter]
                                     postNotificationName: (_isActive ? NSApplicationDidBecomeActiveNotification
                                                                      : NSApplicationDidResignActiveNotification)
                                                                object:nil
@@ -546,11 +549,11 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
 
    _dockTile=[[NSDockTile alloc] initWithOwner:self];
    _modalStack=[NSMutableArray new];
-    
+
    _lock=NSZoneMalloc(NULL,sizeof(pthread_mutex_t));
 
    pthread_mutex_init(_lock,NULL);
-   
+
    // We can't display the splash until WindowServer gives us a real display to use. This will
    // come as a mach msg processed by the service loop. Keep polling display until it is ready
    // FIXME: need a timeout here?
@@ -560,7 +563,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
     }
 
     [self _showSplashImage];
-   
+
    return NSApp;
 }
 
@@ -593,14 +596,14 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
 
 -(NSWindow *)windowWithWindowNumber:(NSInteger)number {
    int i,count=[_windows count];
-   
+
    for(i=0;i<count;i++){
     NSWindow *check=[_windows objectAtIndex:i];
 
     if((uint32_t)[check windowNumber]==(uint32_t)number)
      return check;
    }
-   
+
    return nil;
 }
 
@@ -650,7 +653,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
 
     if(check==exclude)
      continue;
-     
+
     if([check _isActive])
      return YES;
    }
@@ -663,7 +666,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
 }
 
 -(BOOL)isHidden {
-	return _isHidden;
+    return _isHidden;
 }
 
 -(BOOL)isRunning {
@@ -677,7 +680,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
 
 -(void)miniaturizeAll:sender {
    int count=[_windows count];
-   
+
    while(--count>=0)
     [[_windows objectAtIndex:count] miniaturize:sender];
 }
@@ -685,30 +688,30 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
 -(NSArray *)orderedDocuments {
    NSMutableArray *result=[NSMutableArray array];
    NSArray        *orderedWindows=[self orderedWindows];
-   
+
    for(NSWindow *checkWindow in orderedWindows){
     NSDocument *checkDocument=[[checkWindow windowController] document];
-    
+
     if(checkDocument!=nil)
      [result addObject:checkDocument];
    }
-   
+
    return result;
 }
 
 -(NSArray *)orderedWindows {
   extern NSArray *CGSOrderedWindowNumbers();
-  
+
   NSMutableArray *result=[NSMutableArray array];
   NSArray *numbers=CGSOrderedWindowNumbers();
-  
+
   for(NSNumber *number in numbers){
    NSWindow *window=[self windowWithWindowNumber:[number integerValue]];
-   
+
    if(window!=nil && ![window isKindOfClass:[NSPanel class]])
     [result addObject:window];
   }
-  
+
   return result;
 }
 
@@ -756,7 +759,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                                                selector:@selector(applicationWillTerminate:)
                                                    name: NSApplicationWillTerminateNotification object:self];
    }
-   
+
 }
 
 -(void)setDelegate:delegate {
@@ -889,15 +892,15 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     NSData *d = [NSKeyedArchiver archivedDataWithRootObject:dict];
     NSObject *o = nil;
     @try {
-	o = [NSKeyedUnarchiver unarchiveObjectWithData:d];
+    o = [NSKeyedUnarchiver unarchiveObjectWithData:d];
     }
     @catch(NSException *localException) {
-	NSLog(@"%@",localException);
+    NSLog(@"%@",localException);
     }
 
     if([d length] > sizeof(msg.data)) {
-	NSLog(@"Failed to send NSStatusItem to WS: overflow");
-	return;
+    NSLog(@"Failed to send NSStatusItem to WS: overflow");
+    return;
     }
 
     memcpy(msg.data, [d bytes], [d length]);
@@ -919,8 +922,8 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
    image=[image retain];
    [_applicationIconImage release];
    _applicationIconImage=image;
-   
-	[image setName: @"NSApplicationIcon"];
+
+    [image setName: @"NSApplicationIcon"];
 }
 
 -(void)setWindowsMenu:(NSMenu *)menu {
@@ -932,7 +935,7 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 
 -(void)addWindowsItem:(NSWindow *)window title:(NSString *)title filename:(BOOL)isFilename {
     NSMenuItem *item;
-    
+
     if ([[self windowsMenu] indexOfItemWithTarget:window andAction:@selector(makeKeyAndOrderFront:)] != -1)
         return;
 
@@ -948,30 +951,30 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 
 -(void)changeWindowsItem:(NSWindow *)window title:(NSString *)title filename:(BOOL)isFilename {
 
- 	if ([title length] == 0) {
+    if ([title length] == 0) {
     // Windows with no name aren't in the Windows menu
-		[self removeWindowsItem:window];
-	} else {
-		int itemIndex = [[self windowsMenu] indexOfItemWithTarget:window andAction:@selector(makeKeyAndOrderFront:)];
-		
-		if (itemIndex != -1) {
-			NSMenuItem *item = [[self windowsMenu] itemAtIndex:itemIndex];
-			
-			if (isFilename)
-				title = [NSString stringWithFormat:@"%@  --  %@",[title lastPathComponent], [title stringByDeletingLastPathComponent]];
-			
-			[item setTitle:title];
-			[[self windowsMenu] itemChanged:item];
-		} 
-		else
-			[self addWindowsItem:window title:title filename:isFilename];
-	}
+        [self removeWindowsItem:window];
+    } else {
+        int itemIndex = [[self windowsMenu] indexOfItemWithTarget:window andAction:@selector(makeKeyAndOrderFront:)];
+
+        if (itemIndex != -1) {
+            NSMenuItem *item = [[self windowsMenu] itemAtIndex:itemIndex];
+
+            if (isFilename)
+                title = [NSString stringWithFormat:@"%@  --  %@",[title lastPathComponent], [title stringByDeletingLastPathComponent]];
+
+            [item setTitle:title];
+            [[self windowsMenu] itemChanged:item];
+        }
+        else
+            [self addWindowsItem:window title:title filename:isFilename];
+    }
     [self sendMenusToWindowServer];
 }
 
 -(void)removeWindowsItem:(NSWindow *)window {
     int itemIndex = [[self windowsMenu] indexOfItemWithTarget:window andAction:@selector(makeKeyAndOrderFront:)];
-    
+
     if (itemIndex != -1) {
         [[self windowsMenu] removeItemAtIndex:itemIndex];
 
@@ -985,10 +988,10 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 -(void)updateWindowsItem:(NSWindow *)window {
    NSMenu *menu=[self windowsMenu];
    int     itemIndex=[[self windowsMenu] indexOfItemWithTarget:window andAction:@selector(makeKeyAndOrderFront:)];
-   
+
    if(itemIndex!=-1){
     NSMenuItem *item=[menu itemAtIndex:itemIndex];
-    
+
    }
     [self sendMenusToWindowServer];
 }
@@ -1037,21 +1040,21 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     [self reportException:localException];
    NS_ENDHANDLER
 
-	// Load the application icon if we have one
-	NSString* iconName = [[[NSBundle mainBundle] infoDictionary]
-						  objectForKey:@"CFBundleIconFile"];
-	if (iconName) {
-		iconName = [iconName stringByAppendingPathExtension: @"icns"];
-		NSImage* image = [NSImage imageNamed: iconName];
-		[self setApplicationIconImage: image];
-	}
+    // Load the application icon if we have one
+    NSString* iconName = [[[NSBundle mainBundle] infoDictionary]
+                          objectForKey:@"CFBundleIconFile"];
+    if (iconName) {
+        iconName = [iconName stringByAppendingPathExtension: @"icns"];
+        NSImage* image = [NSImage imageNamed: iconName];
+        [self setApplicationIconImage: image];
+    }
 
     /* If there are no menus loaded (e.g. we have no nib), make sure we at least have
      * the application menu
      */
     if([self mainMenu] == nil)
         [self setMenu:[NSMenu new]];
-	
+
 // Give us a first event
    [NSTimer scheduledTimerWithTimeInterval:0.1 target:nil
      selector:NULL userInfo:nil repeats:NO];
@@ -1060,8 +1063,8 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 
    NSDocumentController *controller = nil;
    id types=[[[NSBundle mainBundle]
-		 infoDictionary]
-		objectForKey:@"CFBundleDocumentTypes"];
+         infoDictionary]
+        objectForKey:@"CFBundleDocumentTypes"];
    if([types count] > 0)
        controller = [NSDocumentController sharedDocumentController];
 
@@ -1083,10 +1086,10 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
    }
 
    if(needsUntitled && controller) {
-       [controller _updateRecentDocumentsMenu]; 
+       [controller _updateRecentDocumentsMenu];
        [controller newDocument: self];
    }
-   
+
    NS_DURING
     [[NSNotificationCenter defaultCenter] postNotificationName:NSApplicationDidFinishLaunchingNotification object:self];
    NS_HANDLER
@@ -1103,12 +1106,12 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     NSWindow *check=[_windows objectAtIndex:count];
 
     if([check retainCount]==1){
-    
+
         // Use the setters here - give a chance to the observer to notice something happened
         if(check==_keyWindow) {
             [self _setKeyWindow:nil];
         }
-      
+
         if(check==_mainWindow) {
             [self _setMainWindow:nil];
         }
@@ -1209,7 +1212,7 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 
 -(NSEvent *)nextEventMatchingMask:(unsigned int)mask untilDate:(NSDate *)untilDate inMode:(NSString *)mode dequeue:(BOOL)dequeue {
    NSEvent *nextEvent=nil;
-   
+
    do {
    NSAutoreleasePool *pool=[NSAutoreleasePool new];
 
@@ -1220,7 +1223,7 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     [self _checkForReleasedWindows];
 
     [[NSApp windows] makeObjectsPerformSelector:@selector(_makeSureIsOnAScreen)];
- 
+
     [self _checkForAppActivation];
      [self _displayAllWindowsIfNeeded];
 
@@ -1230,7 +1233,7 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
       [nextEvent release];
       nextEvent=nil;
      }
-     
+
    NS_HANDLER
     [self reportException:localException];
    NS_ENDHANDLER
@@ -1257,7 +1260,7 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     pthread_mutex_lock(_lock);
      result=[_currentEvent retain];
     pthread_mutex_unlock(_lock);
-   
+
    return [result autorelease];
 }
 
@@ -1270,19 +1273,19 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 }
 
 -_searchForAction:(SEL)action responder:target {
-  // Search a responder chain 
+  // Search a responder chain
 
    while (target != nil) {
 
     if ([target respondsToSelector:action])
      return target;
-          
+
     if([target respondsToSelector:@selector(nextResponder)])
      target = [target nextResponder];
     else
      break;
    }
-  
+
    return nil;
 }
 
@@ -1298,13 +1301,13 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 // - This probably means the windowController check is duplicative, but need to make the next responder is window controller
 
    id check=[self _searchForAction:action responder:[window firstResponder]];
-   
+
    if(check!=nil)
     return check;
 
    if ([[window delegate] respondsToSelector:action])
     return [window delegate];
-    
+
    if ([[window windowController] respondsToSelector:action])
     return [window windowController];
 
@@ -1316,40 +1319,40 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 }
 
 -targetForAction:(SEL)action to:target from:sender {
-  if (target == nil) 
+  if (target == nil)
     {
       target = [self _searchForAction:action window:[self keyWindow]];
       if (target)
         return target;
-      
-      if ([self mainWindow] != [self keyWindow]) 
+
+      if ([self mainWindow] != [self keyWindow])
         {
           target = [self _searchForAction:action window:[self mainWindow]];
           if (target)
             return target;
         }
     }
-  else 
+  else
     {
       target = [self _searchForAction:action responder:target];
       if (target)
         return target;
     }
-  
+
   NSDocumentController *documentController = [NSDocumentController sharedDocumentController];
   if ([[documentController currentDocument] respondsToSelector:action])
     return [documentController currentDocument];
-  
+
   if([self respondsToSelector:action])
     return self;
-  
+
   if([[self delegate] respondsToSelector:action])
     return [self delegate];
-  
+
   if([documentController respondsToSelector:action])
     return documentController;
-  
-  return nil; 
+
+  return nil;
 }
 
 -(BOOL)sendAction:(SEL)action to:target from:sender {
@@ -1358,30 +1361,30 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
       [target performSelector:action withObject:sender];
       return YES;
     }
-  
+
   target=[self targetForAction:action to:target from:sender];
-  if (target != nil) 
+  if (target != nil)
     {
       [target performSelector:action withObject:sender];
       return YES;
     }
-  
+
   return NO;
 }
 
 -(BOOL)tryToPerform:(SEL)selector with:object {
-  if ([self respondsToSelector:selector]) 
+  if ([self respondsToSelector:selector])
     {
       [self performSelector:selector withObject:object];
       return YES;
     }
-  
-  if ([[self delegate] respondsToSelector:selector]) 
+
+  if ([[self delegate] respondsToSelector:selector])
     {
       [[self delegate] performSelector:selector withObject:object];
       return YES;
     }
-  
+
   return NO;
 }
 
@@ -1424,19 +1427,19 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     while([session stopCode]==NSRunContinuesResponse) {
         NSAutoreleasePool *pool=[NSAutoreleasePool new];
         NSEvent           *event=[self nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate date] inMode:NSModalPanelRunLoopMode dequeue:YES];
-        
+
         if(event==nil){
             [pool release];
             break;
         }
-        
+
         NSWindow          *window=[event window];
-        
-        
+
+
         // in theory this could get weird, but all we want is the ESC-cancel keybinding, afaik NSApp doesn't respond to any other doCommandBySelectors...
         if([event type]==NSKeyDown && window == [session modalWindow])
             [self interpretKeyEvents:[NSArray arrayWithObject:event]];
-        
+
         if(window==[session modalWindow] || [window worksWhenModal])
             [self sendEvent:event];
         else if([event type]==NSLeftMouseDown)
@@ -1446,16 +1449,16 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
             // The particular case we need to handle is mouse down. run modal. then actually receive the mouse up when the modal is done.
             // So we know this works in Cocoa, save the mouse up here.
             // We don't want to save mouse moved or such.
-            // There is kind of adhoc, probably a better way to do it, find out which combinations should work (e.g. mouse enter, do we get mouse exit?) 
+            // There is kind of adhoc, probably a better way to do it, find out which combinations should work (e.g. mouse enter, do we get mouse exit?)
             if([[session unprocessedEvents] count]==0){
-                
+
                 switch([event type]){
-                        
+
                     case NSLeftMouseUp:
                     case NSRightMouseUp:
                         [session addUnprocessedEvent: event];
                         break;
-                        
+
                     default:
                         // don't save
                         break;
@@ -1464,19 +1467,19 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
         }
         [pool release];
     }
-    
-    
+
+
     return [session stopCode];
 }
 
 -(void)endModalSession:(NSModalSession)session {
-    if(session!=[_modalStack lastObject])   
-        [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] modal session %@ is not the current one %@",isa,sel_getName(_cmd),session,[_modalStack lastObject]];
-    
+    if(session!=[_modalStack lastObject])
+        [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] modal session %@ is not the current one %@",[self class],sel_getName(_cmd),session,[_modalStack lastObject]];
+
     for(NSEvent *requeue in [session unprocessedEvents]){
         [self postEvent:requeue atStart:YES];
     }
-    
+
     [[session modalWindow] _showMenuViewIfNeeded];
     [_modalStack removeLastObject];
 }
@@ -1488,7 +1491,7 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 
 -(void)_mainThreadRunModalForWindow:(NSMutableDictionary *)values {
    NSWindow *window=[values objectForKey:@"NSWindow"];
-   
+
    NSModalSession session=[self beginModalSessionForWindow:window];
    int result;
 
@@ -1496,7 +1499,7 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     //NSDate *date = [NSDate dateWithTimeIntervalSinceNow:0.1];
     [[NSRunLoop currentRunLoop] runMode:NSModalPanelRunLoopMode beforeDate:[NSDate distantFuture]];
    }
-   
+
    [self endModalSession:session];
 
    [values setObject:[NSNumber numberWithInteger:result] forKey:@"result"];
@@ -1504,13 +1507,13 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 
 -(int)runModalForWindow:(NSWindow *)window {
    NSMutableDictionary *values=[NSMutableDictionary dictionary];
-   
+
    [values setObject:window forKey:@"NSWindow"];
-   
+
    [self performSelectorOnMainThread:@selector(_mainThreadRunModalForWindow:) withObject:values waitUntilDone:YES modes:[NSArray arrayWithObjects:NSDefaultRunLoopMode,NSModalPanelRunLoopMode,nil]];
-   
+
    NSNumber *result=[values objectForKey:@"result"];
-   
+
    return [result integerValue];
 }
 
@@ -1532,7 +1535,7 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 -(void)beginSheet:(NSWindow *)sheet modalForWindow:(NSWindow *)window modalDelegate:modalDelegate didEndSelector:(SEL)didEndSelector contextInfo:(void *)contextInfo {
     NSSheetContext *context=[NSSheetContext sheetContextWithSheet:sheet modalDelegate:modalDelegate didEndSelector:didEndSelector contextInfo:contextInfo frame:[sheet frame]];
 
-	if ([[NSUserDefaults standardUserDefaults] boolForKey: @"NSRunAllSheetsAsModalPanel"]) {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey: @"NSRunAllSheetsAsModalPanel"]) {
         // Center the sheet on the window
         NSPoint windowCenter = NSMakePoint(NSMidX([window frame]), NSMidY([window frame]));
         NSPoint sheetCenter = NSMakePoint(NSMidX([sheet frame]), NSMidY([sheet frame]));
@@ -1540,56 +1543,57 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
         origin.x += windowCenter.x - sheetCenter.x;
         origin.y += windowCenter.y - sheetCenter.y;
         [sheet setFrameOrigin:origin];
-        
-		[sheet _setSheetContext: context];
-		[sheet setLevel: NSModalPanelWindowLevel];
-		NSModalSession session = [self beginModalSessionForWindow: sheet];
-		[context setModalSession: session];
-		while([NSApp runModalSession:session] == NSRunContinuesResponse){
-			[[NSRunLoop currentRunLoop] runMode:NSModalPanelRunLoopMode beforeDate:[NSDate distantFuture]];
-		}
-		[self endModalSession:session];
-	} else {
-		[window _attachSheetContextOrderFrontAndAnimate:context];
-	}
+
+        [sheet _setSheetContext: context];
+        [sheet setLevel: NSModalPanelWindowLevel];
+        NSModalSession session = [self beginModalSessionForWindow: sheet];
+        [context setModalSession: session];
+        while([NSApp runModalSession:session] == NSRunContinuesResponse){
+            [[NSRunLoop currentRunLoop] runMode:NSModalPanelRunLoopMode beforeDate:[NSDate distantFuture]];
+        }
+        [self endModalSession:session];
+    } else {
+        [window _attachSheetContextOrderFrontAndAnimate:context];
+    }
 }
 
+typedef void (*endfunction_t)(id, SEL, id, NSInteger, void *);
 -(void)endSheet:(NSWindow *)sheet returnCode:(int)returnCode {
-	
-	if ([[NSUserDefaults standardUserDefaults] boolForKey: @"NSRunAllSheetsAsModalPanel"]) {
-		NSSheetContext* context = [sheet _sheetContext];
-		NSModalSession session = [context modalSession];
-		[session stopModalWithCode: NSRunStoppedResponse];
-		IMP function=[[context modalDelegate] methodForSelector:[context didEndSelector]];
-		
-		if(function!=NULL) {
-			function([context modalDelegate],[context didEndSelector],sheet,returnCode,[context contextInfo]);
-		}
-		[sheet _setSheetContext: nil];
-		
-	} else {
-	
+
+    if ([[NSUserDefaults standardUserDefaults] boolForKey: @"NSRunAllSheetsAsModalPanel"]) {
+        NSSheetContext* context = [sheet _sheetContext];
+        NSModalSession session = [context modalSession];
+        [session stopModalWithCode: NSRunStoppedResponse];
+        IMP function=[[context modalDelegate] methodForSelector:[context didEndSelector]];
+
+        if(function!=NULL) {
+            ((endfunction_t)function)([context modalDelegate],[context didEndSelector],sheet,returnCode,[context contextInfo]);
+        }
+        [sheet _setSheetContext: nil];
+
+    } else {
+
    int count=[_windows count];
 
    while(--count>=0){
     NSWindow       *check=[_windows objectAtIndex:count];
     NSSheetContext *context=[check _sheetContext];
     IMP             function;
-    
+
     if([context sheet]==sheet){
      [[context retain] autorelease];
 
      [check _detachSheetContextAnimateAndOrderOut];
 
      function=[[context modalDelegate] methodForSelector:[context didEndSelector]];
-     
+
      if(function!=NULL)
-      function([context modalDelegate],[context didEndSelector],sheet,returnCode,[context contextInfo]);
+      ((endfunction_t)function)([context modalDelegate],[context didEndSelector],sheet,returnCode,[context contextInfo]);
 
      return;
     }
    }
-	}
+    }
 }
 
 -(void)endSheet:(NSWindow *)sheet {
@@ -1628,32 +1632,32 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 }
 
 -(void)hide:sender {//deactivates the application and hides all windows
-	if (!_isHidden)
-	{
-		[[NSNotificationCenter defaultCenter]postNotificationName:NSApplicationWillHideNotification object:self];
-		[_windows makeObjectsPerformSelector:@selector(_forcedHideForDeactivation)];//do no use orderOut here ist causes the application to quit if no window is visible
-		[[NSNotificationCenter defaultCenter]postNotificationName:NSApplicationDidHideNotification object:self];
-	}
-	_isHidden=YES;
-	
+    if (!_isHidden)
+    {
+        [[NSNotificationCenter defaultCenter]postNotificationName:NSApplicationWillHideNotification object:self];
+        [_windows makeObjectsPerformSelector:@selector(_forcedHideForDeactivation)];//do no use orderOut here ist causes the application to quit if no window is visible
+        [[NSNotificationCenter defaultCenter]postNotificationName:NSApplicationDidHideNotification object:self];
+    }
+    _isHidden=YES;
+
 }
 
 -(void)hideOtherApplications:sender {
    NSUnimplementedMethod();
 }
 
--(void)unhide:sender 
+-(void)unhide:sender
 {
-	
-	if (_isHidden)
-	{
-		[[NSNotificationCenter defaultCenter]postNotificationName:NSApplicationWillUnhideNotification object:self];
-		[_windows makeObjectsPerformSelector:@selector(_showForActivation)];//only shows previously hidden windows
-		[[NSNotificationCenter defaultCenter]postNotificationName:NSApplicationDidUnhideNotification object:self];
-	}
-	_isHidden=NO;
-	//[self activateIgnoringOtherApps:NO]
-	
+
+    if (_isHidden)
+    {
+        [[NSNotificationCenter defaultCenter]postNotificationName:NSApplicationWillUnhideNotification object:self];
+        [_windows makeObjectsPerformSelector:@selector(_showForActivation)];//only shows previously hidden windows
+        [[NSNotificationCenter defaultCenter]postNotificationName:NSApplicationDidUnhideNotification object:self];
+    }
+    _isHidden=NO;
+    //[self activateIgnoringOtherApps:NO]
+
 }
 
 -(void)unhideAllApplications:sender {
@@ -1661,14 +1665,14 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 }
 
 -(void)unhideWithoutActivation {
-	if (_isHidden)
-	{
-		
-		[[NSNotificationCenter defaultCenter]postNotificationName:NSApplicationWillUnhideNotification object:self];
-		[_windows makeObjectsPerformSelector:@selector(_showForActivation)];//only shows previously hidden windows
-		[[NSNotificationCenter defaultCenter]postNotificationName:NSApplicationDidUnhideNotification object:self];
-	}
-	_isHidden=NO;
+    if (_isHidden)
+    {
+
+        [[NSNotificationCenter defaultCenter]postNotificationName:NSApplicationWillUnhideNotification object:self];
+        [_windows makeObjectsPerformSelector:@selector(_showForActivation)];//only shows previously hidden windows
+        [[NSNotificationCenter defaultCenter]postNotificationName:NSApplicationDidUnhideNotification object:self];
+    }
+    _isHidden=NO;
 }
 
 -(void)stop:sender {
@@ -1676,13 +1680,13 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     [self stopModal];
     return;
    }
-   
+
    _isRunning=NO;
 }
 
--(void)terminate:sender 
+-(void)terminate:sender
 {
-  [[NSDocumentController sharedDocumentController] closeAllDocumentsWithDelegate:self 
+  [[NSDocumentController sharedDocumentController] closeAllDocumentsWithDelegate:self
                                                              didCloseAllSelector:@selector(_documentController:didCloseAll:contextInfo:)
                                                                      contextInfo:NULL];
 }
@@ -1699,14 +1703,14 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     }
 }
 
--(void)replyToApplicationShouldTerminate:(BOOL)terminate 
+-(void)replyToApplicationShouldTerminate:(BOOL)terminate
 {
   if (terminate == YES)
     {
       [[NSNotificationCenter defaultCenter] postNotificationName:NSApplicationWillTerminateNotification object:self];
-      
+
       //[NSClassFromString(@"Win32RunningCopyPipe") performSelector:@selector(invalidateRunningCopyPipe)];
-      
+
       exit(0);
     }
 }
@@ -1716,7 +1720,7 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 }
 
 -(void)arrangeInFront:sender {
-#define CASCADE_DELTA	20		// ? isn't there a call for this?
+#define CASCADE_DELTA   20      // ? isn't there a call for this?
     NSMutableArray *visibleWindows = [NSMutableArray new];
     NSRect rect=[[[NSScreen screens] objectAtIndex:0] frame], winRect;
     NSArray *windowsItems = [[self windowsMenu] itemArray];
@@ -1783,9 +1787,9 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 }
 
 -(void)orderFrontStandardAboutPanelWithOptions:(NSDictionary *)options {
-    NSSystemInfoPanel *standardAboutPanel = [[NSSystemInfoPanel 
-standardAboutPanel] retain]; 
-   [standardAboutPanel showInfoPanel:self withOptions:options]; 
+    NSSystemInfoPanel *standardAboutPanel = [[NSSystemInfoPanel
+standardAboutPanel] retain];
+   [standardAboutPanel showInfoPanel:self withOptions:options];
 
 }
 
@@ -1794,38 +1798,38 @@ standardAboutPanel] retain];
 }
 
 -(void)showGuessPanel:sender {
-	[[[NSSpellChecker sharedSpellChecker] spellingPanel] makeKeyAndOrderFront: self];
+    [[[NSSpellChecker sharedSpellChecker] spellingPanel] makeKeyAndOrderFront: self];
 }
 
 -(void)showHelp:sender
 {
-	NSString *helpBookFolder = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleHelpBookFolder"];
-	if(helpBookFolder != nil) {
-		BOOL isDir;
-		NSString *folder = [[NSBundle mainBundle] pathForResource:helpBookFolder ofType:nil];
-		if(folder != nil && [[NSFileManager defaultManager] fileExistsAtPath:folder isDirectory:&isDir] && isDir) {
-			NSBundle* helpBundle = [NSBundle bundleWithPath: folder];
-			if (helpBundle) {
-				NSString *helpBookName = [[helpBundle infoDictionary] objectForKey:@"CFBundleHelpTOCFile"];
-				if(helpBookName != nil) {
-					NSString* helpFilePath = [helpBundle pathForResource: helpBookName ofType: nil];
-					if (helpFilePath) {
-						if([[NSWorkspace sharedWorkspace] openFile:helpFilePath withApplication:@"Help Viewer"]==YES) {
-							return;
-						}
-					}
-				}
-				// Perhaps there's an index.html file that'll be usable?
-				NSString* helpFilePath = [helpBundle pathForResource: @"index" ofType: @"html"];
-				if (helpFilePath) {
-					if([[NSWorkspace sharedWorkspace] openFile:helpFilePath withApplication:@"Help Viewer"]==YES) {
-						return;
-					}
-				}
-			}
-		}
-	}
-	
+    NSString *helpBookFolder = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleHelpBookFolder"];
+    if(helpBookFolder != nil) {
+        BOOL isDir;
+        NSString *folder = [[NSBundle mainBundle] pathForResource:helpBookFolder ofType:nil];
+        if(folder != nil && [[NSFileManager defaultManager] fileExistsAtPath:folder isDirectory:&isDir] && isDir) {
+            NSBundle* helpBundle = [NSBundle bundleWithPath: folder];
+            if (helpBundle) {
+                NSString *helpBookName = [[helpBundle infoDictionary] objectForKey:@"CFBundleHelpTOCFile"];
+                if(helpBookName != nil) {
+                    NSString* helpFilePath = [helpBundle pathForResource: helpBookName ofType: nil];
+                    if (helpFilePath) {
+                        if([[NSWorkspace sharedWorkspace] openFile:helpFilePath withApplication:@"Help Viewer"]==YES) {
+                            return;
+                        }
+                    }
+                }
+                // Perhaps there's an index.html file that'll be usable?
+                NSString* helpFilePath = [helpBundle pathForResource: @"index" ofType: @"html"];
+                if (helpFilePath) {
+                    if([[NSWorkspace sharedWorkspace] openFile:helpFilePath withApplication:@"Help Viewer"]==YES) {
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
    NSString *processName = [[NSProcessInfo processInfo] processName];
    NSAlert *alert = [[NSAlert alloc] init];
    [alert setMessageText: NSLocalizedStringFromTableInBundle(@"Help", nil, [NSBundle bundleForClass: [NSApplication class]], @"Help alert title")];
@@ -1856,7 +1860,7 @@ standardAboutPanel] retain];
 -(void)_windowWillBecomeActive:(NSWindow *)window {
    [_attentionTimer invalidate];
    _attentionTimer=nil;
-   
+
    if(![self isActive]){
     [[NSNotificationCenter defaultCenter] postNotificationName:NSApplicationWillBecomeActiveNotification object:self];
    }
@@ -1887,7 +1891,7 @@ standardAboutPanel] retain];
 
 -(void)_windowWillBecomeDeactive:(NSWindow *)window {
    if(![self isActiveExcludingWindow:window]){
-	   [[NSNotificationCenter defaultCenter] postNotificationName:NSApplicationWillResignActiveNotification object:self];
+       [[NSNotificationCenter defaultCenter] postNotificationName:NSApplicationWillResignActiveNotification object:self];
    }
 }
 
@@ -1909,7 +1913,7 @@ standardAboutPanel] retain];
                 sizeof(msg), 0, MACH_PORT_NULL,
                 1000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
                 NSLog(@"Failed to send activation state to WS");
-        } 
+        }
         // Exposed menus are running tight event tracking loops and would remain visible when the app deactivates (making
         // the UI less than community minded) - unfortunately because they're in these tracking loops they're waiting
         // on events and even though they could receive the notification sent here they can't deal with it until an event is
@@ -1917,7 +1921,7 @@ standardAboutPanel] retain];
         // deactivation
         NSEvent* appKitEvent = [NSEvent otherEventWithType: NSAppKitDefined location: NSZeroPoint modifierFlags: 0 timestamp: 0 windowNumber: 0 context: nil subtype: NSApplicationDeactivated data1: 0 data2: 0];
         [self postEvent: appKitEvent atStart: YES];
-	   
+
         [[NSNotificationCenter defaultCenter] postNotificationName:NSApplicationDidResignActiveNotification object:self];
     }
 }

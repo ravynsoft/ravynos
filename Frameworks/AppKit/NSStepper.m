@@ -5,6 +5,8 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#import <sys/param.h>
 #import <AppKit/NSStepper.h>
 #import <AppKit/NSStepperCell.h>
 #import <AppKit/NSImage.h>
@@ -75,7 +77,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)mouseDown:(NSEvent *)event {
     BOOL sendAction=NO;
-    
+
     if (![self isEnabled])
         return;
 
@@ -97,7 +99,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     [self lockFocus];
     [[self selectedCell] moveUp:sender];
     [self unlockFocus];
-    
+
     [self setNeedsDisplay:YES];
 }
 
@@ -105,7 +107,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     [self lockFocus];
     [[self selectedCell] moveDown:sender];
     [self unlockFocus];
-    
+
     [self setNeedsDisplay:YES];
 }
 

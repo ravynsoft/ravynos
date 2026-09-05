@@ -18,7 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -initWithCoder:(NSCoder *)coder {
    if([coder allowsKeyedCoding]){
     NSKeyedUnarchiver *keyed=(NSKeyedUnarchiver *)coder;
-    
+
     _size.width=[keyed decodeFloatForKey:@"NSWidth"];
     _size.height=1e7;
     _textView=[keyed decodeObjectForKey:@"NSTextView"];
@@ -30,7 +30,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
        _heightTracksTextView = (flags & 2) != 0;
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",[self class],sel_getName(_cmd),coder];
    }
    return self;
 }
@@ -47,8 +47,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (void)dealloc
 {
-	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	[super dealloc];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [super dealloc];
 }
 -(NSSize)containerSize {
    return _size;
@@ -99,8 +99,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)_textViewFrameDidChange:(NSNotification *)notification
 {
-	if ([notification object] == _textView) {
-		NSSize newSize = _size;
+    if ([notification object] == _textView) {
+        NSSize newSize = _size;
         NSSize textViewSize = [_textView frame].size;
         if (_widthTracksTextView) {
             newSize.width = textViewSize.width;
@@ -108,46 +108,46 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         if (_heightTracksTextView) {
             newSize.height = textViewSize.height;
         }
-		[self setContainerSize:newSize];
-	}
+        [self setContainerSize:newSize];
+    }
 }
 
 -(void)setWidthTracksTextView:(BOOL)flag {
-	if (flag != _widthTracksTextView) {
-		_widthTracksTextView=flag;
-		if (_textView) {
-			if (_widthTracksTextView) {
-				if (_heightTracksTextView == NO) {
-					// Observe our textView frame changes
-					[_textView setPostsFrameChangedNotifications:YES];
-					[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_textViewFrameDidChange:) name:NSViewFrameDidChangeNotification object:_textView];
-				}
-			} else {
-				if (_heightTracksTextView == NO) {
-					[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:_textView];
-				}
-			}
-		}
-	}
+    if (flag != _widthTracksTextView) {
+        _widthTracksTextView=flag;
+        if (_textView) {
+            if (_widthTracksTextView) {
+                if (_heightTracksTextView == NO) {
+                    // Observe our textView frame changes
+                    [_textView setPostsFrameChangedNotifications:YES];
+                    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_textViewFrameDidChange:) name:NSViewFrameDidChangeNotification object:_textView];
+                }
+            } else {
+                if (_heightTracksTextView == NO) {
+                    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:_textView];
+                }
+            }
+        }
+    }
 }
 
 -(void)setHeightTracksTextView:(BOOL)flag {
-	if (flag != _heightTracksTextView) {
-		_heightTracksTextView=flag;
-		if (_textView) {
-			if (_heightTracksTextView) {
-				if (_widthTracksTextView == NO) {
-					// Observe our textView frame changes
-					[_textView setPostsFrameChangedNotifications:YES];
-					[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_textViewFrameDidChange:) name:NSViewFrameDidChangeNotification object:_textView];
-				}
-			} else {
-				if (_widthTracksTextView == NO) {
-					[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:_textView];
-				}
-			}
-		}
-	}	
+    if (flag != _heightTracksTextView) {
+        _heightTracksTextView=flag;
+        if (_textView) {
+            if (_heightTracksTextView) {
+                if (_widthTracksTextView == NO) {
+                    // Observe our textView frame changes
+                    [_textView setPostsFrameChangedNotifications:YES];
+                    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_textViewFrameDidChange:) name:NSViewFrameDidChangeNotification object:_textView];
+                }
+            } else {
+                if (_widthTracksTextView == NO) {
+                    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:_textView];
+                }
+            }
+        }
+    }
 }
 
 -(void)setLayoutManager:(NSLayoutManager *)layoutManager {
@@ -169,7 +169,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                break;
             }
         }
-        
+
         // Update our textStorage to use the new layout manager instead of the old one
         NSTextStorage *textStorage = [currentLayoutManager textStorage];
         [textStorage addLayoutManager: layoutManager];
@@ -195,7 +195,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         .size = _size
     };
     NSRect result=proposed;
-    
+
     // We don't want to render outside of our rect
     r.origin.x += _lineFragmentPadding;
     r.size.width -= _lineFragmentPadding;
@@ -209,7 +209,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
     if(result.size.width<=0)
         result=NSZeroRect;
-    
+
     if(result.size.height<=0)
         result=NSZeroRect;
 

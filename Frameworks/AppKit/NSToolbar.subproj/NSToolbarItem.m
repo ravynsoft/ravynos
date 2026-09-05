@@ -5,6 +5,8 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#import <sys/param.h>
 #import <AppKit/NSToolbarItem.h>
 #import <AppKit/NSToolbar.h>
 #import <AppKit/NSToolbarItemView.h>
@@ -48,22 +50,22 @@ extern NSSize _NSToolbarIconSizeSmall;
 -(void)_configureAsStandardItemIfNeeded {
    if ([_itemIdentifier isEqualToString:NSToolbarSeparatorItemIdentifier]){
     NSSize size;
-    
+
     [self setLabel:@""];
-	[self setPaletteLabel: NSLocalizedStringFromTableInBundle(@"Separator", nil, [NSBundle bundleForClass: [NSToolbarItem class]], @"Describes a toolbar separator item")];
+    [self setPaletteLabel: NSLocalizedStringFromTableInBundle(@"Separator", nil, [NSBundle bundleForClass: [NSToolbarItem class]], @"Describes a toolbar separator item")];
     [self setEnabled:NO];
-    
+
     size = [self minSize];
     size.width = floor(size.width/2);
     [self setMinSize:size];
     size = [self maxSize];
     size.width = floor(size.width/2);
     [self setMaxSize:size];
-    
+
    }
    else if ([_itemIdentifier isEqualToString:NSToolbarSpaceItemIdentifier]){
     NSSize size;
-    
+
     [self setLabel:@""];
     [self setPaletteLabel: NSLocalizedStringFromTableInBundle(@"Space", nil, [NSBundle bundleForClass: [NSToolbarItem class]], @"Describes a toolbar space item")];
     [self setEnabled:NO];
@@ -74,21 +76,21 @@ extern NSSize _NSToolbarIconSizeSmall;
     size = [self maxSize];
     size.width /= 2;
     [self setMaxSize:size];
-    
+
    }
    else if ([_itemIdentifier isEqualToString:NSToolbarFlexibleSpaceItemIdentifier]){
     NSSize size;
-    
+
     [self setLabel:@""];
     [self setPaletteLabel: NSLocalizedStringFromTableInBundle(@"Flexible Space", nil, [NSBundle bundleForClass: [NSToolbarItem class]], @"Describes a toolbar flexible space item")];
     [self setEnabled:NO];
-    
+
     size = [self minSize];
     size.width /= 2;
     [self setMinSize:size];
     [self setMaxSize:NSMakeSize(-1, [self maxSize].height)];
-    
-   
+
+
    }
    else if ([_itemIdentifier isEqualToString:NSToolbarShowColorsItemIdentifier]){
     [self setLabel: NSLocalizedStringFromTableInBundle(@"Colors", nil, [NSBundle bundleForClass: [NSToolbarItem class]], @"Reveals a color picker")];
@@ -115,8 +117,8 @@ extern NSSize _NSToolbarIconSizeSmall;
     [self setToolTip: NSLocalizedStringFromTableInBundle(@"Customize this toolbar.", nil, [NSBundle bundleForClass: [NSToolbarItem class]], @"Reveals a toolbar customization dialog")];
    }
    else if ([_itemIdentifier isEqualToString:NSToolbarPrintItemIdentifier]){
-	[self setLabel: NSLocalizedStringFromTableInBundle(@"Print", nil, [NSBundle bundleForClass: [NSToolbarItem class]], @"")];
-	[self setPaletteLabel: NSLocalizedStringFromTableInBundle(@"Print Document", nil, [NSBundle bundleForClass: [NSToolbarItem class]], @"")];
+    [self setLabel: NSLocalizedStringFromTableInBundle(@"Print", nil, [NSBundle bundleForClass: [NSToolbarItem class]], @"")];
+    [self setPaletteLabel: NSLocalizedStringFromTableInBundle(@"Print Document", nil, [NSBundle bundleForClass: [NSToolbarItem class]], @"")];
     [self setTarget:nil];
     [self setAction:@selector(printDocument:)];
     [self setImage:[NSImage imageNamed:NSToolbarPrintItemIdentifier]];
@@ -142,17 +144,17 @@ extern NSSize _NSToolbarIconSizeSmall;
    _autovalidates=NO;
    _isEnabled=YES;
    [self _configureAsStandardItemIfNeeded];
-   
+
    return self;
 }
 
 -(void)dealloc {
    [_itemIdentifier release];
-   _toolbar=nil;   
+   _toolbar=nil;
    [_image release];
    [_label release];
    [_paletteLabel release];
-   [_menuFormRepresentation release];    
+   [_menuFormRepresentation release];
    [_view release];
    [super dealloc];
 }
@@ -167,8 +169,8 @@ extern NSSize _NSToolbarIconSizeSmall;
    copy->_label=[_label copy];
    copy->_paletteLabel=[_paletteLabel copy];
    copy->_menuFormRepresentation=[_menuFormRepresentation copy];
-   copy->_view=[_view copy]; 
-    
+   copy->_view=[_view copy];
+
    return copy;
 }
 
@@ -206,7 +208,7 @@ extern NSSize _NSToolbarIconSizeSmall;
         [_menuFormRepresentation setTarget:[self target]];
         [_menuFormRepresentation setRepresentedObject:self];
     }
-    
+
     return _menuFormRepresentation;
 }
 
@@ -235,9 +237,9 @@ extern NSSize _NSToolbarIconSizeSmall;
 }
 
 -(void)_didChange {
-	// Changing a toolbar item doesn't change the height of the toolbar - so this call is not helping
-	// [_toolbar itemSizeDidChange];
-	
+    // Changing a toolbar item doesn't change the height of the toolbar - so this call is not helping
+    // [_toolbar itemSizeDidChange];
+
    [_enclosingView setNeedsDisplay:YES];
 }
 
@@ -308,14 +310,14 @@ extern NSSize _NSToolbarIconSizeSmall;
 -target {
    if ([_view respondsToSelector:@selector(target)])
     return [(id)_view target];
-    
+
    return _target;
 }
 
 -(SEL)action {
    if ([_view respondsToSelector:@selector(action)])
     return [(id)_view action];
-    
+
    return _action;
 }
 
@@ -329,7 +331,7 @@ extern NSSize _NSToolbarIconSizeSmall;
 -(BOOL)isEnabled {
    if([_view respondsToSelector:@selector(isEnabled)])
     return [(id)_view isEnabled];
-    
+
    return _isEnabled;
 }
 
@@ -341,11 +343,11 @@ extern NSSize _NSToolbarIconSizeSmall;
    image=[image retain];
    [_image release];
    _image=image;
-    
-	if([_view respondsToSelector:@selector(setImage:)]) {
-		[(id)_view setImage:image];
-	}
-	[self _didChange];
+
+    if([_view respondsToSelector:@selector(setImage:)]) {
+        [(id)_view setImage:image];
+    }
+    [self _didChange];
 }
 
 -(void)setTarget:target {
@@ -384,9 +386,9 @@ extern NSSize _NSToolbarIconSizeSmall;
 -(void)validate
 {
     BOOL enabled = NO;
-    
+
     id target=[NSApp targetForAction:[self action] to:[self target] from:nil];
-    
+
     if ([self action] == nil && [self view] != nil) {
         // Views can be arbitrarily complex - so let's not try to figure out what they
         // want. Apple docs say use a subclass to do more sophisticated validation in this case.
@@ -409,9 +411,9 @@ extern NSSize _NSToolbarIconSizeSmall;
    switch ([_toolbar displayMode]) {
     case NSToolbarDisplayModeIconOnly:
      return NSZeroSize;
-            
+
     case NSToolbarDisplayModeLabelOnly:
-    case NSToolbarDisplayModeIconAndLabel: 
+    case NSToolbarDisplayModeIconAndLabel:
     case NSToolbarDisplayModeDefault:
     default:
      return [_label sizeWithAttributes:[_toolbar _labelAttributesForSizeMode:[_toolbar sizeMode]]];
@@ -421,18 +423,18 @@ extern NSSize _NSToolbarIconSizeSmall;
 
 -(NSSize)sizeForSizeMode:(NSToolbarSizeMode)sizeMode displayMode:(NSToolbarDisplayMode)displayMode minSize:(NSSize)minSize maxSize:(NSSize)maxSize {
    NSSize result;
-   
+
    switch (sizeMode) {
     case NSToolbarSizeModeSmall:
      result = _NSToolbarSizeSmall;
      break;
-            
+
     case NSToolbarSizeModeRegular:
     case NSToolbarSizeModeDefault:
     default:
      result = _NSToolbarSizeRegular;
      break;
-   }        
+   }
 
    if (minSize.width > 0 && result.width < minSize.width)
     result.width = minSize.width;
@@ -445,18 +447,18 @@ extern NSSize _NSToolbarIconSizeSmall;
 
    NSSize labelSize=[_label sizeWithAttributes:[_toolbar _labelAttributesForSizeMode:sizeMode]];
    labelSize.width+=8; // label margins
-   
+
    switch (displayMode) {
     case NSToolbarDisplayModeIconOnly:
      break;
-            
+
     case NSToolbarDisplayModeLabelOnly:
      result.height=labelSize.height;
      if(result.width<labelSize.width)
       result.width=labelSize.width;
      break;
 
-    case NSToolbarDisplayModeIconAndLabel: 
+    case NSToolbarDisplayModeIconAndLabel:
     case NSToolbarDisplayModeDefault:
     default:
      result.height+=labelSize.height;
@@ -484,33 +486,33 @@ extern NSSize _NSToolbarIconSizeSmall;
    if([self view]!=nil){
     return MIN(width,_maxSize.width);
    }
-    
+
    if([_itemIdentifier isEqualToString:NSToolbarFlexibleSpaceItemIdentifier])
     return width;
-   
+
    return [self constrainedSize].width;
 }
 
 -(void)drawInRect:(NSRect)bounds highlighted:(BOOL)highlighted {
-      
+
    if([_itemIdentifier isEqualToString:NSToolbarSeparatorItemIdentifier]){
     bounds.origin.x = floor(bounds.origin.x + (bounds.size.width/2));
     bounds.size.width = 1;
     [[NSColor blackColor] set];
     NSDottedFrameRect(bounds);
-    
+
     return;
    }
    CGFloat labelHeight=0;
    CGFloat padding=4;
-   
 
-   if([_toolbar displayMode]!=NSToolbarDisplayModeIconOnly){  
+
+   if([_toolbar displayMode]!=NSToolbarDisplayModeIconOnly){
     NSMutableDictionary *attributes=[NSMutableDictionary dictionaryWithDictionary:[_toolbar _labelAttributes]];
     NSColor             *color=[self isEnabled]?[NSColor controlTextColor]:[NSColor disabledControlTextColor];
-   
+
     [attributes setObject:color forKey:NSForegroundColorAttributeName];
-   
+
     NSRect labelRect;
     labelRect.size=[_label sizeWithAttributes:attributes];
     labelRect.origin.x=floor((bounds.size.width-labelRect.size.width)/2);
@@ -519,14 +521,14 @@ extern NSSize _NSToolbarIconSizeSmall;
     if(!highlighted){
      NSMutableDictionary *shadowAttributes=[[attributes mutableCopy] autorelease];
      NSRect shadowRect=labelRect;
-     
+
      [shadowAttributes setObject:[NSColor whiteColor] forKey:NSForegroundColorAttributeName];
-     
+
      shadowRect.origin.y--;
-     
+
      [_label _clipAndDrawInRect:shadowRect withAttributes:shadowAttributes];
     }
-    
+
     [_label _clipAndDrawInRect:labelRect withAttributes:attributes];
     labelHeight=labelRect.size.height;
     labelHeight+=padding;
@@ -541,7 +543,7 @@ extern NSSize _NSToolbarIconSizeSmall;
       imageRect.size=_NSToolbarIconSizeSmall;
      else
       imageRect.size=_NSToolbarIconSizeRegular;
-          
+
         imageRect.origin.y=bounds.origin.y+labelHeight;
         imageRect.origin.x=bounds.origin.x+floor((bounds.size.width-imageRect.size.width)/2);
         CGContextRef ctx = NULL;
@@ -570,10 +572,10 @@ extern NSSize _NSToolbarIconSizeSmall;
     NSUnimplementedMethod();
    else {
     _itemIdentifier=[[coder decodeObjectForKey:@"NSToolbarItemIdentifier"] retain];
-      
+
     _enclosingView=[[NSToolbarItemView alloc] init];
     [_enclosingView setToolbarItem:self];
-    [self setView:[coder decodeObjectForKey:@"NSToolbarItemView"]];      
+    [self setView:[coder decodeObjectForKey:@"NSToolbarItemView"]];
     [self setTarget:[coder decodeObjectForKey:@"NSToolbarItemTarget"]];
     [self setAction:NSSelectorFromString([coder decodeObjectForKey:@"NSToolbarItemAction"])];
 
@@ -585,14 +587,14 @@ extern NSSize _NSToolbarIconSizeSmall;
     _minSize=[coder decodeSizeForKey:@"NSToolbarItemMinSize"];
     [self setEnabled:[coder decodeBoolForKey:@"NSToolbarItemEnabled"]];
     [self setTag:[coder decodeIntForKey:@"NSToolbarItemTag"]];
-      
+
     [self setAutovalidates:[coder decodeBoolForKey:@"NSToolbarItemAutovalidates"]];
     [self setToolTip:[coder decodeObjectForKey:@"NSToolbarItemToolTip"]];
     [self setVisibilityPriority:[coder decodeIntForKey:@"NSToolbarItemVisibilityPriority"]];
-      
+
       /*
        NSToolbarIsUserRemovable = 1;
-       */      
+       */
     [self _configureAsStandardItemIfNeeded];
    }
 
@@ -618,4 +620,3 @@ extern NSSize _NSToolbarIconSizeSmall;
 
 @implementation NSToolbarSeparatorItem
 @end
-

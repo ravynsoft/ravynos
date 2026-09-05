@@ -13,26 +13,26 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSIndexSet.h>
 
 void NSStringKVCSplitOnDot(NSString *self,NSString **before,NSString **after){
-	NSRange range=[self rangeOfString:@"."];
-	if(range.location!=NSNotFound)
-	{
-		*before=[self substringToIndex:range.location];
-		*after=[self substringFromIndex:range.location+1];
-	}
-	else
-	{
-		*before=self;
-		*after=nil;
-	}
+        NSRange range=[self rangeOfString:@"."];
+        if(range.location!=NSNotFound)
+        {
+                *before=[self substringToIndex:range.location];
+                *after=[self substringFromIndex:range.location+1];
+        }
+        else
+        {
+                *before=self;
+                *after=nil;
+        }
 }
 
-@implementation _NSObservationProxy 
+@implementation _NSObservationProxy
 
 -initWithKeyPath:(NSString *)keyPath observer:(id)observer object:(id)object {
    _keyPath=[keyPath retain];
    _observer=observer;
    _object=object;
-	return self;
+        return self;
 }
 
 -(void)dealloc {
@@ -41,7 +41,7 @@ void NSStringKVCSplitOnDot(NSString *self,NSString **before,NSString **after){
 }
 
 -observer {
-	return _observer;
+        return _observer;
 }
 
 -keyPath {
@@ -63,13 +63,13 @@ void NSStringKVCSplitOnDot(NSString *self,NSString **before,NSString **after){
 
 - (BOOL)isEqual:(id)other
 {
-	if([other isMemberOfClass:isa])
-	{
-		_NSObservationProxy *o=other;
-		if(o->_observer==_observer && [o->_keyPath isEqual:_keyPath] && [o->_object isEqual:_object])
-			return YES;
-	}
-	return NO;
+        if([other isMemberOfClass:[self class]])
+        {
+                _NSObservationProxy *o=other;
+                if(o->_observer==_observer && [o->_keyPath isEqual:_keyPath] && [o->_object isEqual:_object])
+                        return YES;
+        }
+        return NO;
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
@@ -81,7 +81,6 @@ void NSStringKVCSplitOnDot(NSString *self,NSString **before,NSString **after){
 }
 
 -(NSString *)description {
-	return [NSString stringWithFormat:@"observation proxy for %@ on key path %@", _observer, _keyPath];
+        return [NSString stringWithFormat:@"observation proxy for %@ on key path %@", _observer, _keyPath];
 }
 @end
-

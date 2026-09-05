@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/NSColor.h>
 #import <AppKit/NSWindow.h>
 #import <AppKit/NSMatrix.h>
-#import <AppKit/NSPopUpButton.h>	// for indexOfSelectedItem definition
+#import <AppKit/NSPopUpButton.h>    // for indexOfSelectedItem definition
 #import <Foundation/NSKeyedArchiver.h>
 #import <AppKit/NSGraphicsStyle.h>
 #import <AppKit/NSRaise.h>
@@ -42,10 +42,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     _type=(flags&0x7);
 
    switch (_type) {
-	   case NSTopTabsBezelBorder:
-	   case NSLeftTabsBezelBorder:
-	   case NSBottomTabsBezelBorder:
-	   case NSRightTabsBezelBorder: {
+       case NSTopTabsBezelBorder:
+       case NSLeftTabsBezelBorder:
+       case NSBottomTabsBezelBorder:
+       case NSRightTabsBezelBorder: {
     // adjust the layout rectangle
     NSRect frame=[self frame];
     frame.origin.x += 8;
@@ -67,16 +67,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     }
     [self setFrame:frame];
    }
-		   
-	   case NSNoTabsBezelBorder:
-	   case NSNoTabsLineBorder:
-	   case NSNoTabsNoBorder:
-	   default:
-		   break;
+
+       case NSNoTabsBezelBorder:
+       case NSNoTabsLineBorder:
+       case NSNoTabsNoBorder:
+       default:
+           break;
    }
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",[self class],sel_getName(_cmd),coder];
    }
 
    return self;
@@ -119,7 +119,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
             if (count == 0)
                 break;
-            
+
             finalSize = [[_items objectAtIndex:0] sizeOfLabel:_allowsTruncatedLabels];
             for (i = 1; i < count; ++i)
                 finalSize.width += [[_items objectAtIndex:i] sizeOfLabel:_allowsTruncatedLabels].width;
@@ -134,7 +134,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             break;
     }
 
-    return NSMakeSize(0,0);	// correct?
+    return NSMakeSize(0,0); // correct?
 }
 
 -(NSRect)rectForBorder {
@@ -226,7 +226,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -(NSArray *)tabViewItems {
     return _items;
 }
-	
+
 -(NSTabViewItem *)tabViewItemAtIndex:(int)index {
     return [_items objectAtIndex:index];
 }
@@ -290,18 +290,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(void)removeTabViewItem:(NSTabViewItem *)item {
-	int selectedIndex = [self indexOfTabViewItem:_selectedItem];
-	if (item == _selectedItem) {
+    int selectedIndex = [self indexOfTabViewItem:_selectedItem];
+    if (item == _selectedItem) {
         int newIndex = selectedIndex - 1;
-		
+
         if (newIndex < 0) {
             newIndex = selectedIndex + 1;
-			
+
             if (newIndex >= [self numberOfTabViewItems]) {
                 newIndex = NSNotFound;
             }
         }
-		
+
         if (newIndex == NSNotFound) {
             [[_selectedItem view] removeFromSuperview];
             _selectedItem = nil;
@@ -309,8 +309,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             [self selectTabViewItemAtIndex:newIndex];
         }
     }
-	
-	[_items removeObject:item];
+
+    [_items removeObject:item];
 
     if ([_delegate respondsToSelector:@selector(tabViewDidChangeNumberOfTabViewItems:)])
         [_delegate tabViewDidChangeNumberOfTabViewItems:self];
@@ -347,7 +347,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 {
     if(item == _selectedItem){
         NSView  *itemView = [item view];
-        
+
         if(itemView != nil){
             [self addSubview:itemView];
             [itemView setFrame:[self contentRect]];
@@ -362,12 +362,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         BOOL selectItem=YES;
 
         if ([_delegate respondsToSelector:@selector(tabView:shouldSelectTabViewItem:)])
-            selectItem=[_delegate tabView:self shouldSelectTabViewItem:item];        
+            selectItem=[_delegate tabView:self shouldSelectTabViewItem:item];
 
         if (selectItem) {
             if ([_delegate respondsToSelector:@selector(tabView:willSelectTabViewItem:)])
                 [_delegate tabView:self willSelectTabViewItem:item];
-            
+
             [[_selectedItem view] removeFromSuperview];
             if([item view]!=nil){
              [self addSubview:[item view]];
@@ -459,23 +459,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             }
             break;
         }
-            
+
         case NSNoTabsBezelBorder:
             NSDrawButton([self rectForBorder],rect);
             break;
-            
+
         case NSNoTabsLineBorder:
             [[NSColor blackColor] setStroke];
             NSFrameRect([self rectForBorder]);
             break;
-            
+
         case NSNoTabsNoBorder:
             if (_drawsBackground) {
                 [[NSColor controlColor] setFill];
                 NSRectFill([self rectForBorder]);
             }
             break;
-            
+
         default:
             break;
     }
@@ -499,7 +499,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         do {
             event=[[self window] nextEventMatchingMask:NSLeftMouseUpMask|NSLeftMouseDraggedMask];
         } while([event type]!=NSLeftMouseUp);
-        
+
         [_selectedItem setTabState:NSSelectedTab];
     }
     [[self superview] setNeedsDisplay:YES];

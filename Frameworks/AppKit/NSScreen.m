@@ -26,7 +26,7 @@
 #import <AppKit/NSDisplay.h>
 #import <AppKit/NSApplication.h>
 #import <AppKit/NSWindow.h>
-
+#import <Onyx2D/O2ColorSpace.h>
 
 NSString * const NSScreenColorSpaceDidChangeNotification = @"NSScreenColorSpaceDidChangeNotification";
 
@@ -103,7 +103,7 @@ NSString * const NSScreenColorSpaceDidChangeNotification = @"NSScreenColorSpaceD
 
 +(NSScreen *)deepestScreen {
     NSArray *screens = [self screens];
-    
+
     // This function must always return a screen
     if(screens == nil || [screens count] == 0)
         return [[NSScreen alloc] initWithFrame:NSZeroRect visibleFrame:NSZeroRect];
