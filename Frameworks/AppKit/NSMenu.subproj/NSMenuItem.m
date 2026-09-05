@@ -36,7 +36,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     NSKeyedUnarchiver *keyed=(NSKeyedUnarchiver *)coder;
     NSString          *title=[keyed decodeObjectForKey:@"NSTitle"];
     NSString          *keyEquivalent=[keyed decodeObjectForKey:@"NSKeyEquiv"];
-    
+
     SEL action = NULL;
     NSString *actionString = [coder decodeObjectForKey: @"NSAction"];
     if (actionString) {
@@ -49,7 +49,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     [self setKeyEquivalentModifierMask:[keyed decodeIntForKey:@"NSKeyEquivModMask"]];
     [self setSubmenu:[keyed decodeObjectForKey:@"NSSubmenu"]];
     _tag=[keyed decodeIntForKey:@"NSTag"];
-	_hidden = [keyed decodeBoolForKey:@"NSIsHidden"];
+    _hidden = [keyed decodeBoolForKey:@"NSIsHidden"];
     _image = [[coder decodeObjectForKey:@"NSImage"] retain];
    if([keyed decodeBoolForKey:@"NSIsSeparator"]){
      [_title release];
@@ -57,14 +57,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     }
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",isa,[coder class]];
+    [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",[self class],[coder class]];
    }
 
    return self;
 }
 
 -initWithTitle:(NSString *)title action:(SEL)action keyEquivalent:(NSString *)keyEquivalent {
-	_title= [title copy];
+    _title= [title copy];
    _target=nil;
    _action=action;
    _keyEquivalent=[keyEquivalent copy];
@@ -81,7 +81,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(void)dealloc {
-	[_title release];
+    [_title release];
    [_atitle release];
    [_keyEquivalent release];
    [_submenu release];
@@ -94,18 +94,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -copyWithZone:(NSZone *)zone {
-	NSMenuItem *copy=NSCopyObject(self, 0, zone);
-	
-	copy->_title=[_title copyWithZone:zone];
-	copy->_atitle=[_atitle copyWithZone:zone];
-	copy->_submenu=[_submenu copyWithZone:zone];
-	copy->_keyEquivalent=[_keyEquivalent copyWithZone:zone];;
-	copy->_image=[_image retain];
-	copy->_onStateImage=[_onStateImage retain];
-	copy->_mixedStateImage=[_mixedStateImage retain];
-	copy->_offStateImage=[_offStateImage retain];
-	copy->_representedObject=[_representedObject retain];
-	return copy;
+    NSMenuItem *copy=NSCopyObject(self, 0, zone);
+
+    copy->_title=[_title copyWithZone:zone];
+    copy->_atitle=[_atitle copyWithZone:zone];
+    copy->_submenu=[_submenu copyWithZone:zone];
+    copy->_keyEquivalent=[_keyEquivalent copyWithZone:zone];;
+    copy->_image=[_image retain];
+    copy->_onStateImage=[_onStateImage retain];
+    copy->_mixedStateImage=[_mixedStateImage retain];
+    copy->_offStateImage=[_offStateImage retain];
+    copy->_representedObject=[_representedObject retain];
+    return copy;
 }
 
 -(NSMenu *)menu {
@@ -143,7 +143,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(NSInteger)indentationLevel
 {
-	return _indentationLevel;
+    return _indentationLevel;
 }
 
 -(int)tag {
@@ -199,11 +199,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(BOOL)isHidden {
-	return _hidden;
+    return _hidden;
 }
 
 -(void)setTitle:(NSString *)title {
-	title=[title copy];
+    title=[title copy];
     [_title release];
     _title=title;
 }
@@ -212,7 +212,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    title=[title copy];
    [_atitle release];
    _atitle=title;
-	[self setTitle: [title string]];
+    [self setTitle: [title string]];
 }
 
 -(void)setTitleWithMnemonic:(NSString *)mnemonic {
@@ -235,7 +235,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)setIndentationLevel:(NSInteger)indentationLevel
 {
-	_indentationLevel = indentationLevel;
+    _indentationLevel = indentationLevel;
 }
 
 -(void)setTag:(int)tag {
@@ -283,10 +283,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(void)setSubmenu:(NSMenu *)submenu {
-	submenu=[submenu retain];
+    submenu=[submenu retain];
    [_submenu release];
    _submenu=submenu;
-	[submenu setSupermenu:_menu];
+    [submenu setSupermenu:_menu];
 }
 
 -(void)setEnabled:(BOOL)flag {

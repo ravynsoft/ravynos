@@ -6,6 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#import <sys/param.h>
 #import <AppKit/NSDatePickerCell.h>
 #import <AppKit/NSColor.h>
 #import <AppKit/NSStringDrawing.h>
@@ -21,19 +22,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    [super initWithCoder:coder];
 
    if(![coder allowsKeyedCoding]){
-    [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",isa,[coder class]];
+    [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",[self class],[coder class]];
     return self;
    }
-   
+
    _elements=[coder decodeIntegerForKey:@"NSDatePickerElements"];
    _minDate=[[coder decodeObjectForKey:@"NSMinDate"] copy];
    _backgroundColor=[[coder decodeObjectForKey:@"NSBackgroundColor"] copy];
    _textColor=[[coder decodeObjectForKey:@"NSTextColor"] copy];
    _timeInterval=[coder decodeDoubleForKey:@"NSTimeInterval"];
    _calendar=[[NSCalendar currentCalendar] copy];
-   // NSDatePicker has an NSEnabled field, 
+   // NSDatePicker has an NSEnabled field,
    [self setEnabled:YES];
-   
+
    return self;
 }
 
@@ -171,11 +172,11 @@ static NSSize maxDigitSize(NSDictionary *attributes){
 
    for(i=0;i<10;i++){
     NSSize check=[digits[i] sizeWithAttributes:attributes];
-    
+
     result.width=MAX(result.width,check.width);
     result.height=MAX(result.height,check.height);
    }
-   
+
    return result;
 }
 
@@ -190,7 +191,7 @@ static void drawRoundedSelection(NSRect rect){
    NSMutableParagraphStyle *style=[[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
    NSMutableDictionary     *attributes=[NSMutableDictionary dictionary];
    NSMutableDictionary     *separatorAttributes;
-   
+
    [style setAlignment:NSRightTextAlignment];
    [attributes setObject:style forKey:NSParagraphStyleAttributeName];
    if([self font]!=nil)
@@ -199,9 +200,9 @@ static void drawRoundedSelection(NSRect rect){
 
    NSSize digitSize=maxDigitSize(attributes);
    CGFloat digitWidth=digitSize.width;
-   
+
    separatorAttributes=[[attributes mutableCopy] autorelease];
-   
+
    if((_elements&NSYearMonthDayDatePickerElementFlag)==NSYearMonthDayDatePickerElementFlag){
     NSUInteger        flags=NSYearCalendarUnit|NSMonthCalendarUnit|NSDayCalendarUnit;
     NSDateComponents *components=[_calendar components:flags fromDate:[self dateValue]];
@@ -209,23 +210,23 @@ static void drawRoundedSelection(NSRect rect){
     NSString *month=[NSString stringWithFormat:@"%d",[components month]];
     NSString *day=[NSString stringWithFormat:@"%d",[components day]];
     NSString *year=[NSString stringWithFormat:@"%d",[components year]];
-    
+
     [attributes setObject:[NSNumber numberWithUnsignedInteger:[components month]] forKey:@"_value"];
     [attributes setObject:[NSNumber numberWithUnsignedInteger:1] forKey:@"_min"];
     [attributes setObject:[NSNumber numberWithUnsignedInteger:12] forKey:@"_max"];
     [attributes setObject:[NSNumber numberWithUnsignedInteger:NSMonthCalendarUnit] forKey:@"_unit"];
     [attributes setObject:[NSNumber numberWithFloat:digitWidth*2] forKey:@"_width"];
     [result addObject:[[[NSAttributedString alloc] initWithString:month attributes:attributes] autorelease]];
-    
+
     [result addObject:[[[NSAttributedString alloc] initWithString:@"/" attributes:separatorAttributes] autorelease]];
-    
+
     [attributes setObject:[NSNumber numberWithUnsignedInteger:[components day]] forKey:@"_value"];
     [attributes setObject:[NSNumber numberWithUnsignedInteger:1] forKey:@"_min"];
     [attributes setObject:[NSNumber numberWithUnsignedInteger:31] forKey:@"_max"];
     [attributes setObject:[NSNumber numberWithUnsignedInteger:NSDayCalendarUnit] forKey:@"_unit"];
     [attributes setObject:[NSNumber numberWithFloat:digitWidth*2] forKey:@"_width"];
     [result addObject:[[[NSAttributedString alloc] initWithString:day attributes:attributes] autorelease]];
-    
+
     [result addObject:[[[NSAttributedString alloc] initWithString:@"/" attributes:separatorAttributes] autorelease]];
 
     [attributes setObject:[NSNumber numberWithUnsignedInteger:[components year]] forKey:@"_value"];
@@ -235,20 +236,20 @@ static void drawRoundedSelection(NSRect rect){
     [attributes setObject:[NSNumber numberWithFloat:digitWidth*4] forKey:@"_width"];
     [result addObject:[[[NSAttributedString alloc] initWithString:year attributes:attributes] autorelease]];
    }
-  
+
    return result;
 }
 
 static void getRectsInFrameForAttributesStrings(NSRect *rects,NSRect frame,NSArray *array){
    NSInteger i,count=[array count];
    CGFloat   maxHeight=0;
-   
+
    for(i=0;i<count;i++){
     NSAttributedString *check=[array objectAtIndex:i];
     NSSize              size=[check size];
     NSDictionary       *attributes=[check attributesAtIndex:0 effectiveRange:NULL];
     NSNumber           *width=[attributes objectForKey:@"_width"];
-    
+
     if(width==nil)
      rects[i].size=size;
     else {
@@ -257,11 +258,11 @@ static void getRectsInFrameForAttributesStrings(NSRect *rects,NSRect frame,NSArr
     }
     maxHeight=MAX(maxHeight,rects[i].size.height);
    }
-   
+
    NSPoint origin=frame.origin;
-   
+
    origin.y+=floor((frame.size.height-maxHeight)/2);
-   
+
    for(i=0;i<count;i++){
     rects[i].origin=origin;
     origin.x+=rects[i].size.width;
@@ -279,7 +280,7 @@ static void getRectsInFrameForAttributesStrings(NSRect *rects,NSRect frame,NSArr
 -(NSRect)_bezelFrameForFrame:(NSRect)frame {
    NSRect stepper=[self _stepperFrameForFrame:frame];
    NSRect bezel=frame;
-   
+
    bezel.size.width-=stepper.size.width;
    bezel=NSInsetRect(bezel,1,3);
    return bezel;
@@ -289,20 +290,20 @@ static void getRectsInFrameForAttributesStrings(NSRect *rects,NSRect frame,NSArr
    NSArray  *array=[self _attributedStrings];
    NSInteger i,count=[array count];
    NSRect    rects[count];
-   
+
    frame=[self _bezelFrameForFrame:[view bounds]];
 
    getRectsInFrameForAttributesStrings(rects,NSInsetRect(frame,2,0),array);
-   
+
    for(i=0;i<count;i++){
     NSAttributedString *string=[array objectAtIndex:i];
     NSDictionary       *attributes=[string attributesAtIndex:0 effectiveRange:NULL];
     NSNumber           *unit=[attributes objectForKey:@"_unit"];
-    
+
     if([unit unsignedIntegerValue]&_selectedUnit){
      drawRoundedSelection(rects[i]);
     }
-     
+
     [string drawInRect:rects[i]];
    }
 }
@@ -311,19 +312,19 @@ static void getRectsInFrameForAttributesStrings(NSRect *rects,NSRect frame,NSArr
    NSArray          *array=[self _attributedStrings];
    NSInteger         i,count=[array count];
    NSDateComponents *components=[[[NSDateComponents alloc] init] autorelease];
-   
+
    for(i=0;i<count;i++){
     NSAttributedString *string=[array objectAtIndex:i];
     NSDictionary       *attributes=[string attributesAtIndex:0 effectiveRange:NULL];
     NSUInteger          unit=[[attributes objectForKey:@"_unit"] unsignedIntegerValue];
-    
+
     if(unit==0)
      continue;
-     
+
     NSUInteger          value=[[attributes objectForKey:@"_value"] unsignedIntegerValue];
     NSUInteger          min=[[attributes objectForKey:@"_min"] unsignedIntegerValue];
     NSUInteger          max=[[attributes objectForKey:@"_max"] unsignedIntegerValue];
-    
+
     if(unit==_selectedUnit){
      value*=multiply;
      value+=addValue;
@@ -333,23 +334,23 @@ static void getRectsInFrameForAttributesStrings(NSRect *rects,NSRect frame,NSArr
      if(value<min)
       value=min;
     }
-    
+
     switch(unit){
      case NSYearCalendarUnit:
       [components setYear:value];
       break;
-      
+
      case NSMonthCalendarUnit:
       [components setMonth:value];
       break;
-      
+
      case NSDayCalendarUnit:
       [components setDay:value];
       break;
     }
-    
+
    }
-   
+
    NSDate *date=[_calendar dateFromComponents:components];
 
    [self setDateValue:date];
@@ -376,11 +377,11 @@ static void getRectsInFrameForAttributesStrings(NSRect *rects,NSRect frame,NSArr
 -(void)drawWithFrame:(NSRect)frame inView:(NSView *)view {
    NSRect stepper=[self _stepperFrameForFrame:frame];
    NSRect bezel=[self _bezelFrameForFrame:frame];
-      
+
    NSDrawWhiteBezel(bezel,bezel);
-   
+
    [self drawInteriorWithFrame:frame inView:view];
-   
+
    [[_controlView graphicsStyle] drawStepperButtonInRect:[self _upArrowFrameForStepperFrame:stepper] clipRect:stepper enabled:[self isEnabled] highlighted:_isUpHighlighted upNotDown:YES];
    [[_controlView graphicsStyle] drawStepperButtonInRect:[self _downArrowFrameForStepperFrame:stepper] clipRect:stepper enabled:[self isEnabled] highlighted:_isDownHighlighted upNotDown:NO];
 }
@@ -392,9 +393,9 @@ static void getRectsInFrameForAttributesStrings(NSRect *rects,NSRect frame,NSArr
    NSRect    frame=[self _bezelFrameForFrame:[view bounds]];
 
    getRectsInFrameForAttributesStrings(rects,NSInsetRect(frame,2,0),array);
-   
+
    for(i=0;i<count;i++){
-    
+
     if(NSMouseInRect(point,rects[i],[view isFlipped])){
      NSAttributedString *string=[array objectAtIndex:i];
      NSDictionary       *attributes=[string attributesAtIndex:0 effectiveRange:NULL];
@@ -412,12 +413,12 @@ static void getRectsInFrameForAttributesStrings(NSRect *rects,NSRect frame,NSArr
    NSRect stepper=[self _stepperFrameForFrame:[view bounds]];
    NSRect checkUp=[self _upArrowFrameForStepperFrame:stepper];
    NSRect checkDown=[self _downArrowFrameForStepperFrame:stepper];
- 
+
    if(NSMouseInRect(point,checkUp,[view isFlipped]))
-    [self _multiplyCurrentUnitBy:1 add:1];  
-    
+    [self _multiplyCurrentUnitBy:1 add:1];
+
    if(NSMouseInRect(point,checkDown,[view isFlipped]))
-    [self _multiplyCurrentUnitBy:1 add:-1];  
+    [self _multiplyCurrentUnitBy:1 add:-1];
 }
 
 -(BOOL)startTrackingAt:(NSPoint)startPoint inView:(NSView *)view {
@@ -436,12 +437,12 @@ static void getRectsInFrameForAttributesStrings(NSRect *rects,NSRect frame,NSArr
 -(void)insertText:(NSString *)text {
    NSInteger i,length=[text length];
    unichar   buffer[length];
-   
+
    [text getCharacters:buffer];
-   
+
    for(i=0;i<length;i++){
     unichar check=buffer[i];
-    
+
     if(check>='0' && check<='9')
      [self _multiplyCurrentUnitBy:10 add:check-'0'];
    }

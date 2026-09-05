@@ -7,6 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#import <sys/param.h>
 #import <AppKit/NSAlert.h>
 #import <AppKit/NSImage.h>
 #import <AppKit/NSRaise.h>
@@ -24,22 +25,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 @implementation NSAlert
 
-/* 
+/*
  NSWarningAlertStyle - app icon
  NSInformationalAlertStyle - app icon
  NSCriticalAlertStyle - large yellow /!\ triangle w/ small app icon
  */
- 
+
 -init {
    _style=NSWarningAlertStyle;
    _icon=[[NSImage imageNamed:@"NSAlertPanelExclamation"] retain];
-	_messageText=[NSLocalizedStringFromTableInBundle(@"Alert", nil, [NSBundle bundleForClass: [NSAlert class]], @"Default message text for NSAlert") copy];
+   _messageText=[NSLocalizedStringFromTableInBundle(@"Alert", nil, [NSBundle bundleForClass: [NSAlert class]], @"Default message text for NSAlert") copy];
    _informativeText=@"";
    _accessoryView=nil;
    _showsHelp=NO;
    _showsSuppressionButton=NO;
    _helpAnchor=nil;
-   _buttons=[NSMutableArray new];   
+   _buttons=[NSMutableArray new];
    _window=[[NSPanel alloc] initWithContentRect:NSMakeRect(0,0,10,10) styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
    _suppressionButton=[[NSButton alloc] init];
  //  [_suppressionButton setButtonType:NSSwitchButton];
@@ -65,16 +66,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    NSString *defaultTitle=([titles count]>0)?[titles objectAtIndex:0]:nil;
    NSString *alternateTitle=([titles count]>1)?[titles objectAtIndex:1]:nil;
    NSString *otherTitle=([titles count]>2)?[titles objectAtIndex:2]:nil;
-   
+
    NSAlert *result=[[[self alloc] init] autorelease];
-   
+
    [result setMessageText:[error localizedDescription]];
    [result setInformativeText:[error localizedRecoverySuggestion]];
    int i,count=[titles count];
    for(i=0;i<count;i++)
     [result addButtonWithTitle:[titles objectAtIndex:i]];
-    
-   return result;    
+
+   return result;
 }
 
 +(NSAlert *)alertWithMessageText:(NSString *)messageText defaultButton:(NSString *)defaultTitle alternateButton:(NSString *)alternateTitle otherButton:(NSString *)otherTitle informativeTextWithFormat:(NSString *)format,... {
@@ -84,9 +85,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    va_start(arguments,format);
 
    informativeText=[[[NSString alloc] initWithFormat:format arguments:arguments] autorelease];
-   
+
    NSAlert *result=[[[self alloc] init] autorelease];
-   
+
    [result setMessageText:messageText];
    [result setInformativeText:informativeText];
    if(defaultTitle==nil)
@@ -96,7 +97,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     [result addButtonWithTitle:alternateTitle];
    if(otherTitle!=nil)
     [result addButtonWithTitle:otherTitle];
-    
+
    return result;
 }
 
@@ -181,11 +182,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)setAccessoryView:(NSView *)value {
    value=[value retain];
-   
+
    [_accessoryView removeFromSuperview];
    [_accessoryView release];
    _accessoryView=value;
-   
+
    // We must add it as a subview here such that a makeFirstResponder: immediately after
    // works properly by setting up the field editor
    [[_window contentView] addSubview:_accessoryView];
@@ -334,7 +335,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   if(_icon!=nil){
    NSRect       frame;
    NSImageView *imageView;
-   
+
    frame.origin.x=LEFT_MARGIN;
    frame.origin.y=panelSize.height-TOP_MARGIN-iconSize.height;
    frame.size=iconSize;
@@ -342,11 +343,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    [imageView setImage:_icon];
    [[_window contentView] addSubview:imageView];
   }
-  
+
   if(_messageText!=nil){
    NSRect       frame;
    NSTextField *textField;
-   
+
    frame.origin.x=LEFT_MARGIN+iconSize.width+ICON_MAIN_GAP;
    frame.origin.y=panelSize.height-TOP_MARGIN-messageSize.height;
    frame.size=messageSize;
@@ -357,11 +358,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    [textField setBordered:NO];
    [[_window contentView] addSubview:textField];
   }
-  
+
   if(_informativeText!=nil){
    NSRect       frame;
    NSTextField *textField;
-   
+
    frame.origin.x=LEFT_MARGIN+iconSize.width+ICON_MAIN_GAP;
    frame.origin.y=panelSize.height-TOP_MARGIN-messageSize.height-messageInformativeGap-informativeSize.height;
    frame.size=informativeSize;
@@ -375,7 +376,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
   if(_showsSuppressionButton){
    NSRect frame;
-   
+
    frame.origin.x=LEFT_MARGIN+iconSize.width+ICON_MAIN_GAP;
    frame.origin.y=panelSize.height-TOP_MARGIN-messageSize.height-messageInformativeGap-informativeSize.height-informativeSuppressionGap-frame.size.height;
    frame.size=supressionSize;
@@ -385,18 +386,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
   if(_accessoryView!=nil){
    NSRect frame=[_accessoryView frame];
-   
+
    frame.origin.x=LEFT_MARGIN+iconSize.width+ICON_MAIN_GAP;
    frame.origin.y=panelSize.height-TOP_MARGIN-messageSize.height-messageInformativeGap-informativeSize.height-informativeSuppressionGap-supressionSize.height-suppressionAccessoryGap-frame.size.height;
    [_accessoryView setFrame:frame];
   }
 
   NSPoint origin={panelSize.width-RIGHT_MARGIN,BOTTOM_MARGIN};
-  
+
   for(i=0;i<count;i++){
    NSButton *button=[_buttons objectAtIndex:i];
    NSSize    bSize=[button frame].size;
-   
+
    origin.x-=bSize.width;
    [button setFrameOrigin:origin];
    origin.x-=INTERBUTTON_GAP;
@@ -409,11 +410,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
   NSRect frame=[_window frameRectForContentRect:contentRect];
 
-	// This stops the platform window from trying to impose a different size on us
-	// Which for some reason it wants to do.
-	[_window setMinSize: frame.size]; 
-	[_window setMaxSize: frame.size];
-	
+   // This stops the platform window from trying to impose a different size on us
+   // Which for some reason it wants to do.
+   [_window setMinSize: frame.size];
+   [_window setMaxSize: frame.size];
+
   [_window setFrame:frame display:NO];
   _needsLayout=NO;
 }
@@ -424,7 +425,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if([_buttons count]==0){
      [self addButtonWithTitle:NSLocalizedStringFromTableInBundle(@"OK", nil, [NSBundle bundleForClass: [NSAlert class]], @"Default button title for NSAlert")];
     }
-    
+
     [self layout];
    }
 }
@@ -451,7 +452,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(NSInteger)runModal {
-	[_window setLevel: NSModalPanelWindowLevel];
+   [_window setLevel: NSModalPanelWindowLevel];
    [_window setStyleMask:NSTitledWindowMask];
    [self layoutIfNeeded];
    [_window setDefaultButtonCell:[[_buttons objectAtIndex:0] cell]];

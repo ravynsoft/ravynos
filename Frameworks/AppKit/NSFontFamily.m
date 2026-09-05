@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/NSGraphicsContext.h>
 #import <AppKit/NSDisplay.h>
 
-@interface NSFontFamily () 
+@interface NSFontFamily ()
 +(NSMutableArray *)fontFamilies;
 +(void)buildFontFamilies;
 @end
@@ -21,12 +21,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 +(NSMutableArray *)fontFamilies {
    static NSMutableArray *shared=nil;
-   
+
    if(shared==nil) {
       shared=[NSMutableArray new];
       [self buildFontFamilies];
    }
-   
+
    return shared;
 }
 
@@ -112,19 +112,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -initWithName:(NSString *)name {
-	_name=[name copy];
-	_typefaces=[NSMutableArray new];
-	return self;
+   _name=[name copy];
+   _typefaces=[NSMutableArray new];
+   return self;
 }
 
 -(void)dealloc {
-	[_name release];
+   [_name release];
    [_typefaces release];
    [super dealloc];
 }
 
 -(NSString *)name {
-	return _name;
+   return _name;
 }
 
 -(NSFontTypeface *)typefaceWithName:(NSString *)name {
@@ -165,6 +165,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(NSString *)description {
-	return [NSString stringWithFormat:@"<%@ 0x%x %@ %@>",isa,self,_name,_typefaces];
+   return [NSString stringWithFormat:@"<%@ 0x%x %@ %@>",[self class],self,_name,_typefaces];
 }
 @end

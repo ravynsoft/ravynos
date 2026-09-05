@@ -41,7 +41,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     NSKeyedUnarchiver *keyed=(NSKeyedUnarchiver *)coder;
     unsigned           flags=[keyed decodeIntForKey:@"NSBrFlags"];
     NSString          *firstTitle=[keyed decodeObjectForKey:@"NSFirstColumnTitle"];
-    
+
     _explicitTitles=[NSMutableArray new];
     if(firstTitle!=nil)
      [_explicitTitles addObject:firstTitle];
@@ -51,14 +51,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     _scrollViews=[NSMutableArray new];
 
     _backgroundColor=[[NSColor whiteColor] copy];
-    
+
     _matrixClass=[NSMatrix class];
     _cellClass=[[self class] cellClass];
     _cellPrototype=nil;
-    
+
     _numberOfVisibleColumns=[keyed decodeIntForKey:@"NSNumberOfVisibleColumns"];
     _selectedColumn=-1;
-    
+
     _allowsMultipleSelection=(flags&0x80000000)?YES:NO;
     _allowsEmptySelection=(flags&0x00020000)?NO:YES;
     _allowsBranchSelection=(flags&0x40000000)?YES:NO;
@@ -75,7 +75,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     [self tile];
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",[self class],sel_getName(_cmd),coder];
    }
    return self;
 }
@@ -465,7 +465,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if(_selectedColumn==[self lastVisibleColumn])
      [self scrollColumnsRightBy:1];
    }
-   else if(_cell!=nil)	// valid cell, no following branch
+   else if(_cell!=nil)  // valid cell, no following branch
     [self _unloadAfterColumn:_selectedColumn];
 
    [self scrollColumnToVisible:_selectedColumn];
@@ -481,7 +481,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if([self allowsMultipleSelection]){
      NSBrowserCell *theLuckyCell = [matrix cellAtRow:row column:0];
 
-     // branch selection logic. "whether the user can 
+     // branch selection logic. "whether the user can
      // select branch items when multiple selection is enabled"
      if ([self selectedCells] > 0 && theLuckyCell != [self selectedCell])
       if (![theLuckyCell isLeaf])
@@ -490,7 +490,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     }
 #endif
 
-    [matrix selectCellAtRow:row column:0];       
+    [matrix selectCellAtRow:row column:0];
     [matrix scrollRectToVisible:[matrix cellFrameAtRow:row column:0]];
 
     [self _reloadSelectionInColumn:column];
@@ -535,11 +535,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)viewWillDraw {
     // This should be a flag really
-    
+
     if([_matrices count]==0 || [[_matrices objectAtIndex:0] numberOfRows]==0){
     [self loadColumnZero];
    }
-   
+
    [super viewWillDraw];
 }
 
@@ -570,19 +570,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
      [scrollView setDocumentView:matrix];
     }
 #endif
- 
+
     [_titles addObject:[NSNull null]];
     [_matrices addObject:matrix];
    }
 
     if(column>=[self firstVisibleColumn] && column<=[self lastVisibleColumn]){
         NSScrollView *scrollView=[_scrollViews objectAtIndex:column-[self firstVisibleColumn]];
-        
+
         [scrollView setDocumentView:[_matrices objectAtIndex:column]];
         [scrollView setLineScroll:[[_matrices objectAtIndex:column] cellSize].height];
         [scrollView setPageScroll:[[scrollView contentView] frame].size.height];
     }
-    
+
    [self updateScroller];
    return [_matrices objectAtIndex:column];
 }
@@ -639,10 +639,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)setLastColumn:(NSInteger)column {
    [self _reloadColumn:column preserveSelection:YES];
-   
+
    while([_matrices count]>column+1)
     [_matrices removeLastObject];
-    
+
    [self tile];
 }
 
@@ -667,13 +667,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)scrollColumnsLeftBy:(NSInteger)offset {
     NSInteger i, scrollViewIndex = 0;
-    
+
     if (_firstVisibleColumn - offset < 0)
         offset = _firstVisibleColumn;
 
     if (offset < 1)
         return;
-    
+
     _firstVisibleColumn -= offset;
 
     for (i = _firstVisibleColumn; i <= [self lastVisibleColumn] && i<[_matrices count]; i++){
@@ -687,13 +687,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)scrollColumnsRightBy:(NSInteger)offset {
     NSInteger i, scrollViewIndex = 0;
-    
-    if ([self lastVisibleColumn] + offset >= [_matrices count]) 
+
+    if ([self lastVisibleColumn] + offset >= [_matrices count])
         offset = [_matrices count] - [self lastVisibleColumn] - 1;
 
     if (offset < 1)
         return;
-       
+
     _firstVisibleColumn += offset;
 
     // NB here we swap in reverse, since a view doesn't display properly if it is
@@ -702,13 +702,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     for (i = [self lastVisibleColumn]; i >= _firstVisibleColumn; --i){
         [[_scrollViews objectAtIndex:scrollViewIndex--] setDocumentView:[_matrices objectAtIndex:i]];
     }
-        
+
     [self updateScroller];
 }
 
 -(void)scrollColumnToVisible:(NSInteger)column {
     if (column >= [self firstVisibleColumn] && column <= [self lastVisibleColumn])
-        return;	// already visible
+        return; // already visible
 
     if (column < _firstVisibleColumn)
         [self scrollColumnsLeftBy:_firstVisibleColumn-column];
@@ -822,12 +822,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    [_backgroundColor setFill];
    NSRectFill(rect);
 
-   if([self isTitled]){    
+   if([self isTitled]){
     for(i=[self firstVisibleColumn];i<=[self lastVisibleColumn];i++){
      NSRect titleRect=[self titleFrameOfColumn:i];
 
      [[self graphicsStyle] drawBrowserTitleBackgroundInRect:titleRect];
-     
+
      titleRect=NSInsetRect(titleRect,2,2);
 
      [self drawTitleOfColumn:i inRect:titleRect];
@@ -859,7 +859,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if (selectedRow > 0) {
         if (!([[[self window] currentEvent] modifierFlags] & NSShiftKeyMask))
             [[self matrixInColumn:_selectedColumn] deselectAllCells];
-        
+
         [self selectRow:selectedRow - 1 inColumn:_selectedColumn];
         [self doClick:[self matrixInColumn:_selectedColumn]];
     }
@@ -890,7 +890,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             [self _unloadAfterColumn:_selectedColumn];
         if ([self allowsEmptySelection] == YES)
             [[self matrixInColumn:_selectedColumn] deselectAllCells];
-        
+
 //        [self selectRow:0 inColumn:_selectedColumn - 1];
         _selectedColumn--;
         //NSLog(@"selectedColumn %d count %d", _selectedColumn, [_matrices count]);
@@ -900,7 +900,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)moveRight:sender {
     if (![[self selectedCell] isLeaf]) {
-        [self selectRow:0 inColumn:_selectedColumn + 1];	// nb this changes _selectedColumn
+        [self selectRow:0 inColumn:_selectedColumn + 1];    // nb this changes _selectedColumn
         [self doClick:[self matrixInColumn:_selectedColumn]];
     }
 }

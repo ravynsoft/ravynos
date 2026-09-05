@@ -6,6 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#import <sys/param.h>
 #import <AppKit/NSMatrix.h>
 #import <AppKit/NSCell.h>
 #import <AppKit/NSFont.h>
@@ -30,7 +31,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     NSKeyedUnarchiver *keyed=(NSKeyedUnarchiver *)coder;
     int flags=[keyed decodeIntForKey:@"NSMatrixFlags"];
     NSString *name;
-    
+
     _numberOfRows=[keyed decodeIntForKey:@"NSNumRows"];
     _numberOfColumns=[keyed decodeIntForKey:@"NSNumCols"];
     _cellSize=[keyed decodeSizeForKey:@"NSCellSize"];
@@ -67,7 +68,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       _selectedIndex=-1;
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",[self class],sel_getName(_cmd),coder];
    }
    return self;
 }
@@ -95,31 +96,31 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -initWithFrame:(NSRect)frame mode:(int)mode prototype:(NSCell *)prototype numberOfRows:(int)rows numberOfColumns:(int)columns {
    int i;
-   
+
    [self initWithFrame:frame];
-   
+
    _mode=mode;
    _prototype=[prototype copy];
    _numberOfRows=rows;
    _numberOfColumns=columns;
    for(i=0;i<rows*columns;i++)
     [_cells addObject:[[_prototype copy] autorelease]];
-    
+
    return self;
 }
 
 -initWithFrame:(NSRect)frame mode:(int)mode cellClass:(Class)cls numberOfRows:(int)rows numberOfColumns:(int)columns {
    int i;
-   
+
    [self initWithFrame:frame];
-   
+
    _mode=mode;
    _cellClass=cls;
    _numberOfRows=rows;
    _numberOfColumns=columns;
    for(i=0;i<rows*columns;i++)
     [_cells addObject:[[[cls alloc] init] autorelease]];
-    
+
    return self;
 }
 
@@ -197,7 +198,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
       [cell resetCursorRect:frame inView:self];
      }
-    } 
+    }
 }
 
 -(NSFont *)font {
@@ -410,7 +411,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -(void)setDelegate:delegate {
    if(_delegate==delegate)
     return;
-    
+
    NSNotificationCenter *center=[NSNotificationCenter defaultCenter];
    struct {
     SEL       selector;
@@ -519,7 +520,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
    for(i=0;i<_numberOfColumns;i++)
     [_cells insertObject:[cells objectAtIndex:i] atIndex:row*_numberOfColumns+i];
-    
+
    _numberOfRows++;
 }
 
@@ -617,23 +618,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     cell=nil;
    else if(column<0 || column>=_numberOfColumns)
     cell=nil;
-   else 
+   else
     cell=[_cells objectAtIndex:row*_numberOfColumns+column];
 
    [self selectCell:cell];
 }
 
 -(void)_setSelectedIndexFromCell:(NSCell *)select {
-	[self willChangeValueForKey:@"selectedTag"];
-	[self willChangeValueForKey:@"selectedIndex"];
+    [self willChangeValueForKey:@"selectedTag"];
+    [self willChangeValueForKey:@"selectedIndex"];
    if(select==nil)
     _selectedIndex=-1;
    else
     _selectedIndex=[_cells indexOfObjectIdenticalTo:select];
 
    _keyCellIndex=_selectedIndex;
-	[self didChangeValueForKey:@"selectedIndex"];
-	[self didChangeValueForKey:@"selectedTag"];
+    [self didChangeValueForKey:@"selectedIndex"];
+    [self didChangeValueForKey:@"selectedTag"];
 }
 
 -(void)_selectCell:(NSCell *)select deselectOthers:(BOOL)deselectOthers {
@@ -673,7 +674,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(void)setSelectionFrom:(int)from to:(int)to anchor:(int)anchor highlight:(BOOL)highlight {
-    if (anchor != -1) {	// no anchor, i.e., no selected cell
+    if (anchor != -1) { // no anchor, i.e., no selected cell
         if (anchor < from)
             from = anchor;
         if (anchor > to)
@@ -683,7 +684,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     [self _deselectAllCells];
     while (from < to) {
         NSCell *cell = [_cells objectAtIndex:from];
-        
+
         [self _selectCell:cell deselectOthers:NO];
         if (highlight)
             [cell setHighlighted:YES];
@@ -745,7 +746,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
    if(cell!=nil){
     NSRect frame=[self cellFrameAtRow:row column:column];
-    
+
     [cell setState:state];
     [self setNeedsDisplayInRect:frame];
    }
@@ -878,7 +879,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       [cell setControlView:self];
       [cell drawWithFrame:frame inView:self];
      }
-    } 
+    }
 }
 
 -(void)_fieldEditCell:(NSCell *)cell row:(int)row column:(int)column {
@@ -971,7 +972,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
      result=YES;
      [cell highlight:YES withFrame:cellFrame inView:self];
- 
+
      [cell setState:nextState];
 
      if([cell trackMouse:lastMouse inRect:cellFrame ofView:self untilMouseUp:NO]){
@@ -1109,7 +1110,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    }
 
    [NSEvent startPeriodicEventsAfterDelay:0.1 withPeriod:0.2];
- 
+
    switch([self mode]){
     case NSRadioModeMatrix:     sendAction=[self _mouseDownRadio:event]; break;
     case NSHighlightModeMatrix: sendAction=[self _mouseDownHighlight:event]; break;
@@ -1132,14 +1133,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 // n.b. now moves to next/previous view on last/first cell, should not wrap (according to spec)
 - (void)insertTab:sender {
     BOOL selectNextKeyView = YES;
-    
+
     if ([self tabKeyTraversesCells] && [self mode] != NSRadioModeMatrix){
         _keyCellIndex++;
         if(_keyCellIndex >= [_cells count])
             _keyCellIndex = [_cells count]-1;
         else
             selectNextKeyView = NO;
-        
+
         [self setNeedsDisplay:YES];
     }
 
@@ -1149,14 +1150,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (void)insertBacktab:sender {
     BOOL selectPreviousKeyView = YES;
-    
+
     if ([self tabKeyTraversesCells] && [self mode] != NSRadioModeMatrix){
         _keyCellIndex--;
         if(_keyCellIndex < 0)
             _keyCellIndex = 0;
         else
             selectPreviousKeyView = NO;
-        
+
         [self setNeedsDisplay:YES];
     }
 
@@ -1201,7 +1202,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if (nextCell) {
         if ([self mode] == NSRadioModeMatrix)
             [self selectCell:nextCell];
-        
+
         [self setKeyCell:nextCell];
     }
     else if ([[self keyCell] respondsToSelector:@selector(moveUp:)])
@@ -1226,7 +1227,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if (nextCell) {
         if ([self mode] == NSRadioModeMatrix)
             [self selectCell:nextCell];
-        
+
         [self setKeyCell:nextCell];
     }
     else if ([[self keyCell] respondsToSelector:@selector(moveDown:)])
@@ -1251,7 +1252,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if (nextCell) {
         if ([self mode] == NSRadioModeMatrix)
             [self selectCell:nextCell];
-        
+
         [self setKeyCell:nextCell];
     }
     else if ([[self keyCell] respondsToSelector:@selector(moveLeft:)])
@@ -1276,7 +1277,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if (nextCell) {
         if ([self mode] == NSRadioModeMatrix)
             [self selectCell:nextCell];
-        
+
         [self setKeyCell:nextCell];
     }
     else if ([[self keyCell] respondsToSelector:@selector(moveRight:)])
@@ -1326,17 +1327,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (int)_selectedIndex
 {
-	return _selectedIndex;
+    return _selectedIndex;
 }
 
 - (void)_setSelectedIndex:(int)index
 {
-	if (_selectedIndex != index) {
-		if (index < [_cells count]) {
-			NSCell* cell = [_cells objectAtIndex: index];
-			[self selectCell: cell];
-		}
-	}
+    if (_selectedIndex != index) {
+        if (index < [_cells count]) {
+            NSCell* cell = [_cells objectAtIndex: index];
+            [self selectCell: cell];
+        }
+    }
 }
 
 - (int) _selectedTag {

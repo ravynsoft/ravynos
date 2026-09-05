@@ -47,18 +47,18 @@ int NSBindingDebugLogLevel = 0; // Defaults to no logging
 
 void NSDetermineBindingDebugLoggingLevel(void)
 {
-	static BOOL loggingLevelDetermined = NO;
-	if (loggingLevelDetermined == NO) {
-		NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-		NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-		
-		NSBindingDebugLogLevel = [defaults integerForKey: @"NSBindingDebugLogLevel"];
-		if (NSBindingDebugLogLevel > 0) {
-			NSLog(@"set NSBindingDebugLogLevel to: '%d'", NSBindingDebugLogLevel);
-		}
-		[pool drain];
-		loggingLevelDetermined = YES;
-	}
+        static BOOL loggingLevelDetermined = NO;
+        if (loggingLevelDetermined == NO) {
+                NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+                NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+
+                NSBindingDebugLogLevel = [defaults integerForKey: @"NSBindingDebugLogLevel"];
+                if (NSBindingDebugLogLevel > 0) {
+                        NSLog(@"set NSBindingDebugLogLevel to: '%d'", NSBindingDebugLogLevel);
+                }
+                [pool drain];
+                loggingLevelDetermined = YES;
+        }
 }
 
 
@@ -67,28 +67,28 @@ void NSDetermineBindingDebugLoggingLevel(void)
    if(defaultBindingOptions==nil) {
     NSBundle *bundle=[NSBundle bundleForClass:[_NSKVOBinder class]];
     NSString *path=[bundle pathForResource:@"defaultBindingOptions" ofType:@"plist"];
-    
+
     if((defaultBindingOptions=[[NSDictionary alloc] initWithContentsOfFile:path])==nil)
      defaultBindingOptions=[NSDictionary new];
    }
-   
+
    NSString     *className=NSStringFromClass(self);
    NSString     *bindingKey=[[className stringByAppendingString:@"."] stringByAppendingString:binding];
    NSDictionary *defaults=[defaultBindingOptionsCache objectForKey:bindingKey];
-   
+
    if(defaults==nil){
     NSMutableDictionary *values;
 
-   	if(self==[NSObject class])
+        if(self==[NSObject class])
      values=[NSMutableDictionary dictionary];
     else
      values=[[[[self superclass] _defaultBindingOptionsForBinding:binding] mutableCopy] autorelease];
 
     [values addEntriesFromDictionary:[defaultBindingOptions objectForKey:bindingKey]];
-    
+
     if(defaultBindingOptionsCache==nil)
      defaultBindingOptionsCache=[NSMutableDictionary new];
-     
+
     [defaultBindingOptionsCache setObject:values forKey:bindingKey];
     defaults=values;
    }
@@ -97,116 +97,116 @@ void NSDetermineBindingDebugLoggingLevel(void)
 }
 
 -(NSDictionary *)_defaultBindingOptionsForBinding:(NSString *)binding {
-	return [isa _defaultBindingOptionsForBinding:binding];
+        return [[self class] _defaultBindingOptionsForBinding:binding];
 }
 
 
 +(Class)_binderClassForBinding:(id)binding
 {
-	//return [_NSBinder class];
-	return [_NSKVOBinder class];
+        //return [_NSBinder class];
+        return [_NSKVOBinder class];
 }
 
 -(id)_binderForBinding:(id)binding;
 {
-	return [self _binderForBinding:binding create:NO];
+        return [self _binderForBinding:binding create:NO];
 }
 
 -(id)_binderForBinding:(id)binding create:(BOOL)create
 {
-	if(!bindersForObjects)
-		bindersForObjects=[NSMutableDictionary new];
-	
-	id key = [NSValue valueWithNonretainedObject:self];
-	id ownBinders = [bindersForObjects objectForKey:key];
-	
-	if(!ownBinders)
-	{
-		ownBinders = [NSMutableDictionary dictionary];
-		[bindersForObjects setObject:ownBinders forKey:key];
-	}
-	
-	id binder=[ownBinders objectForKey:binding];
-	
-	if(!binder && create)
-	{
-		binder = [[[isa _binderClassForBinding:binding] new] autorelease];
-		[ownBinders setObject:binder forKey:binding];
-	}
+        if(!bindersForObjects)
+                bindersForObjects=[NSMutableDictionary new];
 
-	return binder;
+        id key = [NSValue valueWithNonretainedObject:self];
+        id ownBinders = [bindersForObjects objectForKey:key];
+
+        if(!ownBinders)
+        {
+                ownBinders = [NSMutableDictionary dictionary];
+                [bindersForObjects setObject:ownBinders forKey:key];
+        }
+
+        id binder=[ownBinders objectForKey:binding];
+
+        if(!binder && create)
+        {
+                binder = [[[[self class] _binderClassForBinding:binding] new] autorelease];
+                [ownBinders setObject:binder forKey:binding];
+        }
+
+        return binder;
 }
 
 -(id)_replacementKeyPathForBinding:(id)binding
 {
-	if([binding isEqual:@"value"]) {
-		return @"objectValue";
-	}
+        if([binding isEqual:@"value"]) {
+                return @"objectValue";
+        }
    // FIX: actually try and detect these
-	if([binding hasPrefix:@"displayPatternValue"]) {
-		NSBindingDebugLog(kNSBindingDebugLogLevel3, @"display pattern binding: %@ was unprocessed", binding);
-		return @"objectValue";
-	}
-	
-	return binding;
+        if([binding hasPrefix:@"displayPatternValue"]) {
+                NSBindingDebugLog(kNSBindingDebugLogLevel3, @"display pattern binding: %@ was unprocessed", binding);
+                return @"objectValue";
+        }
+
+        return binding;
 }
 
 -(void)bind:(id)binding toObject:(id)destination withKeyPath:(NSString*)keyPath options:(NSDictionary*)options
 {
-	NSBindingDebugLog(kNSBindingDebugLogLevel1, @"binding: %@\n   toObject: %@\n   withKeyPath: %@\n   options: %@", binding, destination, keyPath, options);
+        NSBindingDebugLog(kNSBindingDebugLogLevel1, @"binding: %@\n   toObject: %@\n   withKeyPath: %@\n   options: %@", binding, destination, keyPath, options);
 
-	if(![isa _binderClassForBinding:binding]){
-		NSBindingDebugLog(kNSBindingDebugLogLevel1, @"no binder class for binding: '%@'", binding);
-		return;
+        if(![[self class] _binderClassForBinding:binding]){
+                NSBindingDebugLog(kNSBindingDebugLogLevel1, @"no binder class for binding: '%@'", binding);
+                return;
     }
-	
-	id binder=[self _binderForBinding:binding create:NO];
 
-	if(binder) {
-		NSBindingDebugLog(kNSBindingDebugLogLevel2, @"unbinding binding: '%@' before rebinding", binding);
-		[binder unbind];
-	} else {
-		NSBindingDebugLog(kNSBindingDebugLogLevel2, @"creating new binder for binding: '%@'", binding);
-		binder=[self _binderForBinding:binding create:YES];
-	}
-	
-	[binder setSource:self];
-	[binder setDestination:destination];
-	[binder setKeyPath:keyPath];
-	[binder setBinding:binding];
-	[binder setOptions:options];
-	
-	[binder bind];
+        id binder=[self _binderForBinding:binding create:NO];
+
+        if(binder) {
+                NSBindingDebugLog(kNSBindingDebugLogLevel2, @"unbinding binding: '%@' before rebinding", binding);
+                [binder unbind];
+        } else {
+                NSBindingDebugLog(kNSBindingDebugLogLevel2, @"creating new binder for binding: '%@'", binding);
+                binder=[self _binderForBinding:binding create:YES];
+        }
+
+        [binder setSource:self];
+        [binder setDestination:destination];
+        [binder setKeyPath:keyPath];
+        [binder setBinding:binding];
+        [binder setOptions:options];
+
+        [binder bind];
 }
 
 -(void)unbind:(id)binding
 {
-	NSBindingDebugLog(kNSBindingDebugLogLevel1, @"binding: %@", binding);
-	id key = [NSValue valueWithNonretainedObject:self];
-	id ownBinders = [bindersForObjects objectForKey:key];
-	
-	id binder=[ownBinders objectForKey:binding];
-	[binder unbind];
-	
-	[ownBinders removeObjectForKey:binding];
-	if([ownBinders count]==0) {
-		NSBindingDebugLog(kNSBindingDebugLogLevel2, @"Removing binders for key: %@", key);
-		[bindersForObjects removeObjectForKey:key];
-	}
+        NSBindingDebugLog(kNSBindingDebugLogLevel1, @"binding: %@", binding);
+        id key = [NSValue valueWithNonretainedObject:self];
+        id ownBinders = [bindersForObjects objectForKey:key];
+
+        id binder=[ownBinders objectForKey:binding];
+        [binder unbind];
+
+        [ownBinders removeObjectForKey:binding];
+        if([ownBinders count]==0) {
+                NSBindingDebugLog(kNSBindingDebugLogLevel2, @"Removing binders for key: %@", key);
+                [bindersForObjects removeObjectForKey:key];
+        }
 }
 
 -(void)_unbindAllBindings
 {
-	id key = [NSValue valueWithNonretainedObject:self];
-	id ownBinders = [bindersForObjects objectForKey:key];
-	id binder=nil;
-	id en=[[ownBinders allValues] objectEnumerator];
-	while((binder=[en nextObject]))
-	{
-		[binder unbind];
-	}
+        id key = [NSValue valueWithNonretainedObject:self];
+        id ownBinders = [bindersForObjects objectForKey:key];
+        id binder=nil;
+        id en=[[ownBinders allValues] objectEnumerator];
+        while((binder=[en nextObject]))
+        {
+                [binder unbind];
+        }
 
-	[bindersForObjects removeObjectForKey:key];
+        [bindersForObjects removeObjectForKey:key];
 }
 
 -(NSDictionary *)infoForBinding:(id)binding {
@@ -216,19 +216,19 @@ void NSDetermineBindingDebugLoggingLevel(void)
       [binder keyPath],NSObservedKeyPathKey,
       [binder options],NSOptionsKey,
       nil];
-      
-	return result;	
+
+        return result;
 }
 
 +(void)exposeBinding:(id)binding
 {
-	
+
 }
 
 -(NSArray *)_allUsedBinders {
    NSValue      *key=[NSValue valueWithNonretainedObject:self];
    NSDictionary *ownBinders=[bindersForObjects objectForKey:key];
-   
+
    return [ownBinders allValues];
 }
 

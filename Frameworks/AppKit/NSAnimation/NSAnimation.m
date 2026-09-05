@@ -5,6 +5,8 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#import <sys/param.h>
 #import <AppKit/NSAnimation.h>
 #import <Foundation/NSString.h>
 #import <AppKit/NSRaise.h>
@@ -42,14 +44,14 @@ NSString *NSAnimationRunLoopMode=@"NSAnimationRunLoopMode";
 
 -copyWithZone:(NSZone *)zone {
    NSAnimation *result=NSCopyObject(self,0,zone);
-   
+
    result->_currentValue=0;
    result->_currentProgress=0;
    result->_progressMarks=[_progressMarks mutableCopy];
    result->_runLoopModes=[_runLoopModes copy];
    result->_isAnimating=NO;
    result->_timer=nil;
-   
+
    return result;
 }
 
@@ -108,7 +110,7 @@ NSString *NSAnimationRunLoopMode=@"NSAnimationRunLoopMode";
     mark=0;
    else if(mark>1)
     mark=1;
-   
+
    [_progressMarks addObject:[NSNumber numberWithFloat:mark]];
    NSUnimplementedMethod();
 }
@@ -127,7 +129,7 @@ NSString *NSAnimationRunLoopMode=@"NSAnimationRunLoopMode";
 
 -(BOOL)isAnimating {
    return _isAnimating;
-} 
+}
 
 -(NSArray *)runLoopModesForAnimating {
    return _runLoopModes;
@@ -146,17 +148,17 @@ NSString *NSAnimationRunLoopMode=@"NSAnimationRunLoopMode";
 }
 
 -(void)_setCurrentProgressAndEndIfNeeded:(NSAnimationProgress)progress {
-	if(_isAnimating){
-		progress=MAX(0.0,MIN(1.0,progress));
-		[self setCurrentProgress:progress];
-		
-		if(progress>=1.0){
-			if([_delegate respondsToSelector:@selector(animationDidEnd:)])
-				[_delegate performSelector:@selector(animationDidEnd:) withObject:self];
-			
-			[self stopAnimation];
-		}
-	}
+   if(_isAnimating){
+      progress=MAX(0.0,MIN(1.0,progress));
+      [self setCurrentProgress:progress];
+
+      if(progress>=1.0){
+         if([_delegate respondsToSelector:@selector(animationDidEnd:)])
+            [_delegate performSelector:@selector(animationDidEnd:) withObject:self];
+
+         [self stopAnimation];
+      }
+   }
 }
 
 -(void)timer:(NSTimer *)timer {
@@ -169,48 +171,48 @@ NSString *NSAnimationRunLoopMode=@"NSAnimationRunLoopMode";
 
 -(void)startAnimation {
    if(!_isAnimating){
-   
+
     if([_delegate respondsToSelector:@selector(animationShouldStart:)])
      if(![_delegate animationShouldStart:self])
       return;
-      
+
     [self retain];
     _isAnimating=YES;
     _startTime=[NSDate timeIntervalSinceReferenceDate];
-    
+
     switch(_blockingMode){
-    
+
      case NSAnimationBlocking:
       _timer=[NSTimer timerWithTimeInterval:1.0/_frameRate target:self selector:@selector(timer:) userInfo:nil repeats:YES];
-      
+
       [[NSRunLoop currentRunLoop] addTimer:_timer forMode:NSAnimationRunLoopMode];
-      
+
       while(_isAnimating)
        [[NSRunLoop currentRunLoop] runMode:NSAnimationRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:_duration]];
-      
+
       [self _setCurrentProgressAndEndIfNeeded:1.0];
       break;
-      
+
      case NSAnimationNonblocking:
       _timer=[NSTimer scheduledTimerWithTimeInterval:1.0/_frameRate target:self selector:@selector(timer:) userInfo:nil repeats:YES];
       break;
-     
+
      case NSAnimationNonblockingThreaded:
       NSUnimplementedMethod();
       break;
    }
-    
+
 }
 
 }
 
 -(void)stopAnimation {
-	if(_isAnimating){
-		_isAnimating=NO;
-		[_timer invalidate];
-		_timer=nil;
-		[self autorelease];
-	}
+   if(_isAnimating){
+      _isAnimating=NO;
+      [_timer invalidate];
+      _timer=nil;
+      [self autorelease];
+   }
 }
 
 -(void)startWhenAnimation:(NSAnimation *)animation reachesProgress:(NSAnimationProgress)progress {

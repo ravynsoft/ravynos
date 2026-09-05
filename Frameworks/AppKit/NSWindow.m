@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sys/param.h>
 #include <sys/types.h>
 #include <sys/mman.h>
 
@@ -123,17 +124,17 @@ const float WSWindowEdgePad = 2;
 
 +(void)addKeyViewPositionsWithView:(NSView *)view toArray:(NSMutableArray *)array {
     [array addObject:[[[_NSKeyViewPosition alloc] initWithView:view] autorelease]];
-    
+
     for(NSView *child in [view subviews])
         [self addKeyViewPositionsWithView:child toArray:array];
 }
 
 +(NSArray *)sortedKeyViewPositionsWithView:(NSView *)view {
     NSMutableArray *result=[NSMutableArray array];
-    
+
     [self addKeyViewPositionsWithView:view toArray:result];
     [result sortUsingSelector:@selector(compareKeyViewPosition:)];
-    
+
     return result;
 }
 
@@ -152,7 +153,7 @@ const float WSWindowEdgePad = 2;
     // Sort by larger Y (cartesian coordinates)
     if(NSMaxY(_rect)<NSMaxY(other->_rect))
         return NSOrderedDescending;
-    else {    
+    else {
         // Then sort by smaller X
         if(NSMinX(_rect)<NSMinX(other->_rect))
             return NSOrderedAscending;
@@ -219,7 +220,7 @@ const float WSWindowEdgePad = 2;
 }
 
 -initWithCoder:(NSCoder *)coder {
-  [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
+  [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",[self class],sel_getName(_cmd),coder];
    return self;
 }
 
@@ -248,12 +249,12 @@ const float WSWindowEdgePad = 2;
    backgroundFrame.origin=NSMakePoint(0,0);
    backgroundFrame.size=_frame.size;
    contentViewFrame=[self contentRectForFrameRect:backgroundFrame];
-   
+
    _savedFrame = _frame;
-	
+
    _backingType=backing;
    _minSize=NSMakeSize(0,0);
-	// "The default maximum size of a window is {FLT_MAX, FLT_MAX}"
+    // "The default maximum size of a window is {FLT_MAX, FLT_MAX}"
    _maxSize=NSMakeSize(FLT_MAX,FLT_MAX);
 
    _title=@"";
@@ -261,7 +262,7 @@ const float WSWindowEdgePad = 2;
 
    _menu=nil;
 
-   _backgroundView=[[[isa frameViewClassForStyleMask:styleMask] alloc] initWithFrame:backgroundFrame];
+   _backgroundView=[[[[self class] frameViewClassForStyleMask:styleMask] alloc] initWithFrame:backgroundFrame];
    [_backgroundView setAutoresizesSubviews:YES];
    [_backgroundView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
    [_backgroundView _setWindow:self];
@@ -303,16 +304,16 @@ const float WSWindowEdgePad = 2;
 
    _resizeIncrements=NSMakeSize(1,1);
    _contentResizeIncrements=NSMakeSize(1,1);
-   
+
    _autosaveFrameName=nil;
 
    _threadToContext=[[NSMutableDictionary alloc] init];
-   
+
    [_backgroundView addSubview:_contentView];
    [_backgroundView setNeedsDisplay:YES];
-	if (!(_styleMask & NSAppKitPrivateWindow)) {
-		[[NSApplication sharedApplication] _addWindow:self];
-	}
+    if (!(_styleMask & NSAppKitPrivateWindow)) {
+        [[NSApplication sharedApplication] _addWindow:self];
+    }
 
     _deviceDictionary = [NSMutableDictionary new];
     //_cglContext = NULL;
@@ -385,7 +386,7 @@ const float WSWindowEdgePad = 2;
         bufsize = depth * _frame.size.width * _frame.size.height;
 
         if(shmfd >= 0) {
-            buffer = mmap(NULL, bufsize, PROT_WRITE|PROT_READ, MAP_SHARED|MAP_NOCORE, shmfd, 0);
+            buffer = mmap(NULL, bufsize, PROT_WRITE|PROT_READ, MAP_SHARED, shmfd, 0);
             close(shmfd);
         }
 
@@ -424,27 +425,27 @@ const float WSWindowEdgePad = 2;
 }
 
 /* FIXME: I have no idea why this is using a different store for the context
- * than is used in NSGraphicsContext.m. _threadToContext only seems to be 
+ * than is used in NSGraphicsContext.m. _threadToContext only seems to be
  * used here. Leave it for now but also set the other one, because NSThemeFrame
  * and others use that.
  */
 -(NSGraphicsContext *)graphicsContext {
    NSValue           *key=[NSValue valueWithPointer:[NSThread currentThread]];
    NSGraphicsContext *result=[_threadToContext objectForKey:key];
-   
+
    if(result==nil){
     result=[NSGraphicsContext graphicsContextWithWindow:self];
     [_threadToContext setObject:result forKey:key];
     [NSGraphicsContext setCurrentContext:result];
    }
-   
+
    return result;
-} 
+}
 
 -(NSDictionary *)deviceDescription {
    NSValue *resolution=[NSValue valueWithSize:NSMakeSize(96.0,96.0)];
    NSValue *size=[NSValue valueWithSize:[self frame].size];
-   
+
    return [NSDictionary dictionaryWithObjectsAndKeys:
     resolution,NSDeviceResolution,
     NSDeviceRGBColorSpace,NSDeviceColorSpaceName,
@@ -569,8 +570,8 @@ const float WSWindowEdgePad = 2;
 }
 
 -(BOOL)worksWhenModal {
-	// We do work when we're running a modal session
-	return (_sheetContext && [_sheetContext modalSession] != nil);
+    // We do work when we're running a modal session
+    return (_sheetContext && [_sheetContext modalSession] != nil);
 }
 
 -(BOOL)isSheet {
@@ -789,7 +790,7 @@ const float WSWindowEdgePad = 2;
        if(changed){
         [self setFrame:frame display:YES];
        }
-       
+
     _makeSureIsOnAScreen=NO;
    }
 }
@@ -802,19 +803,19 @@ const float WSWindowEdgePad = 2;
 {
     NSRect frame = [self frame];
     NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:context, @"NSWindowAnimationContext", nil];
-    
+
     if (_animationContext == nil)
         _animationContext = [context retain];
-    
-    if (_animationContext != context) 
+
+    if (_animationContext != context)
         [NSException raise:NSInvalidArgumentException
                     format:@"-[%@ %@]: attempt to animate frame while animation still in progress",
             [self class], NSStringFromSelector(_cmd)];
-    
+
     [[NSNotificationCenter defaultCenter] postNotificationName:NSWindowWillAnimateNotification object:self userInfo:userInfo];
-    
+
     [context decrement];
-    
+
     if ([context stepCount] > 0) {
         frame.origin.x += [context stepRect].origin.x;
         frame.origin.y += [context stepRect].origin.y;
@@ -823,17 +824,17 @@ const float WSWindowEdgePad = 2;
     }
     else
         frame = [context targetRect];
-    
+
     [self setFrame:frame display:[context display]];
-    
+
     [[NSNotificationCenter defaultCenter] postNotificationName:NSWindowAnimatingNotification object:self userInfo:userInfo];
-    
+
     if ([context stepCount] > 0) {
         [self performSelector:_cmd withObject:context afterDelay:[context stepInterval]];
     }
     else {
         [[NSNotificationCenter defaultCenter] postNotificationName:NSWindowDidAnimateNotification object:self userInfo:userInfo];
-        
+
         [_animationContext release];
         _animationContext = nil;
 #if 0
@@ -908,7 +909,7 @@ const float WSWindowEdgePad = 2;
 
     BOOL didSize=NSEqualSizes(newFrame.size,_frame.size)?NO:YES;
     BOOL didMove=NSEqualPoints(newFrame.origin,_frame.origin)?NO:YES;
-   
+
     _frame=newFrame;
     _makeSureIsOnAScreen=YES;
 
@@ -934,7 +935,7 @@ const float WSWindowEdgePad = 2;
     // If you setFrame:display:YES before rearranging views with only setFrame:
     // calls (which do not mark the view for display) Cocoa will properly
     // redisplay the views So, doing a hard display right here is not the right
-    // thing to do, delay it 
+    // thing to do, delay it
 
     if(display)
         [_backgroundView setNeedsDisplay:YES];
@@ -946,7 +947,7 @@ const float WSWindowEdgePad = 2;
 
         [self _animateWithContext:context];
     }
-   
+
     [self _setSheetOriginAndFront];
     [_childWindows makeObjectsPerformSelector:@selector(_parentWindowDidChangeFrame:) withObject:self];
     [_drawers makeObjectsPerformSelector:@selector(parentWindowDidChangeFrame:) withObject:self];
@@ -1058,7 +1059,7 @@ const float WSWindowEdgePad = 2;
     if(_isDocumentEdited)
         winTitle=[@"* " stringByAppendingString:_title];
     else
-        winTitle = _title; 
+        winTitle = _title;
 
     [self _updateWSState];
 
@@ -1081,7 +1082,7 @@ const float WSWindowEdgePad = 2;
 
    [_contentView removeFromSuperview];
    [_contentView release];
-   
+
    _contentView=view;
 
    [_backgroundView addSubview:_contentView];
@@ -1122,14 +1123,14 @@ const float WSWindowEdgePad = 2;
    NSView    *toolbarView=[_toolbar _view];
    NSUInteger mask=[[self contentView] autoresizingMask];
    NSRect     frame=[self frame];
-   
+
    [_toolbar layoutFrameSizeWithWidth:NSWidth([[self _backgroundView] bounds])];
    newHeight=(_toolbar==nil)?0:[_toolbar visibleHeight];
    contentHeightDelta=newHeight-oldHeight;
 
    frame.size.height+=contentHeightDelta;
    frame.origin.y-=contentHeightDelta;
-   
+
    NSPoint toolbarOrigin;
    NSRect backgroundBounds=[self _backgroundView].bounds;
    toolbarOrigin.x=backgroundBounds.origin.x;
@@ -1138,16 +1139,16 @@ const float WSWindowEdgePad = 2;
 
    [[self contentView] setAutoresizingMask:NSViewNotSizable];
    [self setFrame:frame display:NO animate:NO];
-   
+
    [[self contentView] setAutoresizingMask:mask];
 }
 
 -(void)setToolbar:(NSToolbar *)toolbar {
    if(toolbar!=_toolbar){
     CGFloat oldHeight=0;
-   
+
     toolbar=[toolbar retain];
-   
+
     if(_toolbar!=nil){
      oldHeight=[_toolbar visibleHeight];
      [_toolbar _setWindow:nil];
@@ -1155,9 +1156,9 @@ const float WSWindowEdgePad = 2;
      [_toolbar release];
      [[self _backgroundView] setNeedsDisplay:YES];
     }
-   
+
     _toolbar = toolbar;
-   
+
     if(_toolbar!=nil){
      [_toolbar _setWindow:self];
      [[self _backgroundView] addSubview:[_toolbar _view]];
@@ -1179,7 +1180,7 @@ const float WSWindowEdgePad = 2;
 /*
    Cocoa does not setReleasedWhenClosed:NO when setWindowController: is called.
    The NSWindowController class does setReleasedWhenClosed:NO in conjunction with setWindowController:
-   
+
    However, there is one application (AC), which calls setWindowController: standalone and does
    _something else_ which also does setReleasedWhenClosed:NO. Perhaps some byproduct of NSDOcument, NSWindowController or NSWindow.
    THis hasn't been figured out yet. So, in the meantime we do setReleasedWhenClosed:NO since all cases which do call setWindowCOntroller: also
@@ -1304,10 +1305,10 @@ const float WSWindowEdgePad = 2;
 -(BOOL)setFrameUsingName:(NSString *)name force:(BOOL)force {
    NSString *key=[self _autosaveFrameKeyWithName:name];
    NSString *value=[[NSUserDefaults standardUserDefaults] objectForKey:key];
-   
+
    if([value length]==0)
     return NO;
-    
+
    [self setFrameFromString:value];
 
    return YES;
@@ -1342,7 +1343,7 @@ const float WSWindowEdgePad = 2;
    if([name length]>0){
     NSString *key=[self _autosaveFrameKeyWithName:name];
     NSString *value=[self stringWithSavedFrame];
-    
+
     [[NSUserDefaults standardUserDefaults] setObject:value forKey:key];
    }
 }
@@ -1350,7 +1351,7 @@ const float WSWindowEdgePad = 2;
 -(void)setFrameFromString:(NSString *)value {
    NSRect rect=NSRectFromString(value);
 
-   if(!NSIsEmptyRect(rect)){   
+   if(!NSIsEmptyRect(rect)){
     [self setFrame:rect display:YES];
    }
 }
@@ -1457,8 +1458,8 @@ const float WSWindowEdgePad = 2;
 }
 
 -(BOOL)isZoomed {
-	NSRect zoomedFrame = [self zoomedFrame];
-	return NSEqualRects( _frame, zoomedFrame );
+    NSRect zoomedFrame = [self zoomedFrame];
+    return NSEqualRects( _frame, zoomedFrame );
 }
 
 -(BOOL)isVisible {
@@ -1487,12 +1488,12 @@ const float WSWindowEdgePad = 2;
 }
 
 -(BOOL)canBecomeKeyWindow {
-	// The NSWindow implementation returns YES if the window has a title bar or a resize bar, or NO otherwise
+    // The NSWindow implementation returns YES if the window has a title bar or a resize bar, or NO otherwise
     return (_styleMask & (NSTitledWindowMask|NSResizableWindowMask)) != 0;
 }
 
 -(BOOL)canBecomeMainWindow {
-	// The NSWindow implementation returns YES if the window is visible and has a title bar or a resize mechanism. Otherwise it returns NO
+    // The NSWindow implementation returns YES if the window is visible and has a title bar or a resize mechanism. Otherwise it returns NO
     return [self isVisible] && (_styleMask & (NSTitledWindowMask|NSResizableWindowMask));
 }
 
@@ -1526,7 +1527,7 @@ const float WSWindowEdgePad = 2;
 
 -(NSRect)frameRectForContentRect:(NSRect)contentRect {
    NSRect result=CGOutsetRectForNativeWindowBorder(contentRect,[self styleMask]);
-    
+
    if([_toolbar _view]!=nil && ![[_toolbar _view] isHidden])
     result.size.height+=[[_toolbar _view] frame].size.height;
 
@@ -1535,10 +1536,10 @@ const float WSWindowEdgePad = 2;
 
 -(NSRect)contentRectForFrameRect:(NSRect)frameRect {
    NSRect result=CGInsetRectForNativeWindowBorder(frameRect,[self styleMask]);
-       
+
    if([_toolbar _view]!=nil && ![[_toolbar _view] isHidden])
     result.size.height-=[[_toolbar _view] frame].size.height;
-   
+
    return result;
 }
 
@@ -1572,7 +1573,7 @@ const float WSWindowEdgePad = 2;
 -(void)addChildWindow:(NSWindow *)child ordered:(NSWindowOrderingMode)ordered {
    if(_childWindows==nil)
     _childWindows=[NSMutableArray new];
-    
+
    [_childWindows addObject:child];
    [child setParentWindow:self];
    [child makeKeyAndOrderFront:nil];
@@ -1613,7 +1614,7 @@ const float WSWindowEdgePad = 2;
 
 -(BOOL)makeFirstResponder:(NSResponder *)responder {
 
-   if(_firstResponder==responder || 
+   if(_firstResponder==responder ||
       ([responder isKindOfClass:[NSControl class]] && _firstResponder==[(NSControl *)responder currentEditor]))
     return YES;
 
@@ -1626,16 +1627,16 @@ const float WSWindowEdgePad = 2;
     return YES;
 
    _firstResponder=self;
-   
+
    return NO;
 }
 
 -(void)makeKeyWindow {
     if(!_hasBeenOnScreen){
         _hasBeenOnScreen=YES;
-        
+
         // Ref. http://www.cocoadev.com/index.pl?KeyViewLoopGuidelines
-        
+
         // If there is an initial first responder there is a manual key view loop and we don't calculate one
         if([self initialFirstResponder]!=nil)
             [self makeFirstResponder:[self initialFirstResponder]];
@@ -1655,25 +1656,25 @@ const float WSWindowEdgePad = 2;
 }
 
 -(void)becomeKeyWindow {
-	
-	// The platform should always be told to become key when we want to 
-	// become key
-	[self makeKeyWindow];
-	
+
+    // The platform should always be told to become key when we want to
+    // become key
+    [self makeKeyWindow];
+
    if([self isKeyWindow]) // if we don't return early we may resign ourself
     return;
 
 // Become key window before the previous key window resigns so that the new key window is valid
 // before NSWindowDidResignKeyNotification is sent.
    NSWindow *keyWindow=[NSApp keyWindow];
-   
+
    [NSApp _setKeyWindow:self];
-      
+
    [keyWindow resignKeyWindow];
 
    if(_firstResponder!=self && [_firstResponder respondsToSelector:_cmd])
     [_firstResponder performSelector:_cmd];
- 
+
    [self postNotificationName:NSWindowDidBecomeKeyNotification];
 }
 
@@ -1691,7 +1692,7 @@ const float WSWindowEdgePad = 2;
     NSWindow *mainWindow=[NSApp mainWindow];
     [NSApp _setMainWindow:self];
     [mainWindow resignMainWindow];
-   
+
     [self postNotificationName:NSWindowDidBecomeMainNotification];
 }
 
@@ -1721,7 +1722,7 @@ const float WSWindowEdgePad = 2;
 
 -(void)selectKeyViewFollowingView:(NSView *)view {
    NSView *next=[view nextValidKeyView];
-      
+
    [self makeFirstResponder:next];
 }
 
@@ -1734,13 +1735,13 @@ const float WSWindowEdgePad = 2;
 -(void)recalculateKeyViewLoopIfNeeded {
     if(YES){
       //  _needsKeyViewLoop=NO;
-        
+
         NSArray *sorted=[_NSKeyViewPosition sortedKeyViewPositionsWithView:_contentView];
         NSUInteger i,count=[sorted count];
-        
+
         for(i=0;i<count;i++){
             _NSKeyViewPosition *position=[sorted objectAtIndex:i];
-            
+
             if(i+1<count){
                 [[position view] setNextKeyView:[[sorted objectAtIndex:i+1] view]];
             }
@@ -1774,22 +1775,22 @@ const float WSWindowEdgePad = 2;
    NSTextView *newFieldEditor = nil;
    if([_delegate respondsToSelector:@selector(windowWillReturnFieldEditor:toObject:)])
       newFieldEditor = [_delegate windowWillReturnFieldEditor:self toObject:object];
-   
+
    if(create && newFieldEditor == nil && _sharedFieldEditor == nil)
       newFieldEditor = _sharedFieldEditor = [[NSTextView alloc] init];
-   
+
    if (newFieldEditor)
-      _currentFieldEditor = newFieldEditor;   
+      _currentFieldEditor = newFieldEditor;
    else
       _currentFieldEditor = _sharedFieldEditor;
-   
+
    if (_currentFieldEditor) {
       [_currentFieldEditor setHorizontallyResizable:NO];
       [_currentFieldEditor setVerticallyResizable:NO];
       [_currentFieldEditor setFieldEditor:YES];
       [_currentFieldEditor setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
    }
-   
+
    return _currentFieldEditor;
 }
 
@@ -1821,11 +1822,11 @@ const float WSWindowEdgePad = 2;
 -(void)setViewsNeedDisplay:(BOOL)flag {
    if(flag && !_viewsNeedDisplay){
     // NSApplication does a _displayAllWindowsIfNeeded before every event, but there are some things which wont generate
-    // an event such as performOnMainThread, so we do the callout here too. There is probably a better way to do this	   
-	   [[NSRunLoop currentRunLoop] cancelPerformSelector:@selector(_displayAllWindowsIfNeeded) target:NSApp argument:nil]; // Be sure we don't accumulate unneeded perform operations
-	   [[NSRunLoop currentRunLoop] performSelector:@selector(_displayAllWindowsIfNeeded) target:NSApp argument:nil order:0 modes:[NSArray arrayWithObjects:NSDefaultRunLoopMode, NSModalPanelRunLoopMode, NSEventTrackingRunLoopMode, nil]];
+    // an event such as performOnMainThread, so we do the callout here too. There is probably a better way to do this
+       [[NSRunLoop currentRunLoop] cancelPerformSelector:@selector(_displayAllWindowsIfNeeded) target:NSApp argument:nil]; // Be sure we don't accumulate unneeded perform operations
+       [[NSRunLoop currentRunLoop] performSelector:@selector(_displayAllWindowsIfNeeded) target:NSApp argument:nil order:0 modes:[NSArray arrayWithObjects:NSDefaultRunLoopMode, NSModalPanelRunLoopMode, NSEventTrackingRunLoopMode, nil]];
    }
-	_viewsNeedDisplay=flag;
+    _viewsNeedDisplay=flag;
 }
 
 -(void)disableFlushWindow {
@@ -1857,18 +1858,18 @@ const float WSWindowEdgePad = 2;
    if([self isVisible] && ![self isMiniaturized] && [self viewsNeedDisplay]){
     NSAutoreleasePool *pool=[NSAutoreleasePool new];
 
-	if ([NSGraphicsContext quartzDebuggingIsEnabled] == YES) {
+    if ([NSGraphicsContext quartzDebuggingIsEnabled] == YES) {
 
-		// Show all the views getting redrawn
-	   [NSGraphicsContext setQuartzDebugMode: YES];
-	   [self disableFlushWindow];
-	   [_backgroundView displayIfNeeded];
-	   [self enableFlushWindow];
-	   [self flushWindowIfNeeded];
-	}
+        // Show all the views getting redrawn
+       [NSGraphicsContext setQuartzDebugMode: YES];
+       [self disableFlushWindow];
+       [_backgroundView displayIfNeeded];
+       [self enableFlushWindow];
+       [self flushWindowIfNeeded];
+    }
 
-	[NSGraphicsContext setQuartzDebugMode: NO];
-	   
+    [NSGraphicsContext setQuartzDebugMode: NO];
+
     [self disableFlushWindow];
     [_backgroundView displayIfNeeded];
     [self enableFlushWindow];
@@ -1884,19 +1885,19 @@ const float WSWindowEdgePad = 2;
    if([self isVisible]){
     NSAutoreleasePool *pool=[NSAutoreleasePool new];
 
-	if ([NSGraphicsContext quartzDebuggingIsEnabled] == YES) {
+    if ([NSGraphicsContext quartzDebuggingIsEnabled] == YES) {
 
-		// Show all the views getting redrawn
-	   [NSGraphicsContext setQuartzDebugMode: YES];
-	   [self disableFlushWindow];
-	   [_backgroundView display];
-	   [self enableFlushWindow];
-	   [self flushWindowIfNeeded];
-	}
+        // Show all the views getting redrawn
+       [NSGraphicsContext setQuartzDebugMode: YES];
+       [self disableFlushWindow];
+       [_backgroundView display];
+       [self enableFlushWindow];
+       [self flushWindowIfNeeded];
+    }
 
-	[NSGraphicsContext setQuartzDebugMode: NO];
+    [NSGraphicsContext setQuartzDebugMode: NO];
 
-	[self disableFlushWindow];
+    [self disableFlushWindow];
     [_backgroundView display];
     [self enableFlushWindow];
     [self flushWindowIfNeeded];
@@ -1992,7 +1993,7 @@ const float WSWindowEdgePad = 2;
     NSMutableArray *collectedAreas=[[NSMutableArray alloc] init];
     [[self _backgroundView] _collectTrackingAreasForWindowInto:collectedAreas];
     _trackingAreas=collectedAreas;
-    
+
     count=[_trackingAreas count];
     while(--count>=0){
      NSTrackingArea *area=[_trackingAreas objectAtIndex:count];
@@ -2012,7 +2013,7 @@ const float WSWindowEdgePad = 2;
    }
 }
 
--(void)close {   
+-(void)close {
     [self orderOut:nil];
 
     [_childWindows makeObjectsPerformSelector:@selector(_parentWindowDidClose:) withObject:self];
@@ -2063,7 +2064,7 @@ const float WSWindowEdgePad = 2;
      if(![self isKindOfClass:[NSPanel class]] && ![self isExcludedFromWindowsMenu]) {
          [NSApp changeWindowsItem:self title:_title filename:NO];
      }
-     
+
      break;
 
     case NSWindowBelow:
@@ -2078,7 +2079,7 @@ const float WSWindowEdgePad = 2;
      }
      break;
 
-    case NSWindowOut:   
+    case NSWindowOut:
      _isVisible=NO;
      [self _updateWSState];
      if (![self isKindOfClass:[NSPanel class]]) {
@@ -2137,7 +2138,7 @@ const float WSWindowEdgePad = 2;
 }
 
 -(void)sendEvent:(NSEvent *)event {
-    
+
     // Some events can cause our window to be destroyed
     // So make sure self lives at least through this current run loop...
     [[self retain] autorelease];
@@ -2154,7 +2155,7 @@ const float WSWindowEdgePad = 2;
                 case NSLeftMouseDown:
                     [[[self toolbar] _view] mouseDown:event];
                     break;
-                    
+
                 case NSLeftMouseUp:
                     [[[self toolbar] _view] mouseUp:event];
                     break;
@@ -2162,11 +2163,11 @@ const float WSWindowEdgePad = 2;
                 case NSLeftMouseDragged:
                     [[[self toolbar] _view] mouseDragged:event];
                     break;
-                                        
+
                 default:
                     break;
             }
-			return;
+            return;
         }
         else if ([event type] == NSPlatformSpecific){
             //[self _setSheetOriginAndFront];
@@ -2175,18 +2176,18 @@ const float WSWindowEdgePad = 2;
     }
 
     BOOL shouldValidateToolbarItems = YES;
-	// OK let's see if anyone else wants it
+    // OK let's see if anyone else wants it
    switch([event type]){
 
     case NSLeftMouseDown:{
         NSView *view=[_backgroundView hitTest:[event locationInWindow]];
-        
+
         if([view acceptsFirstResponder]){
             if([view needsPanelToBecomeKey]) {
                 [self makeFirstResponder:view];
             }
         }
-        
+
         // Event goes to view, not first responder
         [view mouseDown:event];
         _mouseDownLocationInWindow=[event locationInWindow];
@@ -2218,7 +2219,7 @@ const float WSWindowEdgePad = 2;
      }
      break;
 
-    case NSLeftMouseDragged:    
+    case NSLeftMouseDragged:
      [[_backgroundView hitTest:_mouseDownLocationInWindow] mouseDragged:event];
      break;
 
@@ -2256,7 +2257,7 @@ const float WSWindowEdgePad = 2;
     case NSAppKitDefined:
      // Nothing special to do
      break;
-           
+
     default:
      shouldValidateToolbarItems = NO;
      NSUnimplementedMethod();
@@ -2273,15 +2274,15 @@ const float WSWindowEdgePad = 2;
    [NSApp postEvent:event atStart:atStart];
 }
 
--(BOOL)tryToPerform:(SEL)selector with:object {   
+-(BOOL)tryToPerform:(SEL)selector with:object {
    if([super tryToPerform:selector with:object])
     return YES;
-   
+
    if([_delegate respondsToSelector:selector]){
     [_delegate performSelector:selector withObject:object];
     return YES;
    }
-   
+
    return NO;
 }
 
@@ -2289,19 +2290,19 @@ const float WSWindowEdgePad = 2;
    BOOL    reposition = NO;
    NSSize  screenSize = [[self screen] frame].size;
    NSRect  frame = [self frame];
-   
+
    if (frame.origin.x < 0.0 || screenSize.width  <= frame.origin.x + frame.size.width)
    {
       frame.origin.x = 2.0;
       reposition = YES;
    }
-   
+
    if (frame.origin.y < 0.0 || screenSize.height <= frame.origin.y + frame.size.height)
    {
       frame.origin.y = 2.0;
       reposition = YES;
    }
-   
+
    if (topLeftPoint.x != 0.0 && topLeftPoint.x + frame.size.width + 20.0 < screenSize.width)
    {
       topLeftPoint.x += 18.0;
@@ -2310,7 +2311,7 @@ const float WSWindowEdgePad = 2;
    }
    else
       topLeftPoint.x = frame.origin.x;
-   
+
    if (topLeftPoint.y != 0.0 && topLeftPoint.y - frame.size.height - 23.0 >= 0.0)
    {
       topLeftPoint.y -= 21.0;
@@ -2319,7 +2320,7 @@ const float WSWindowEdgePad = 2;
    }
    else
       topLeftPoint.y = frame.origin.y + frame.size.height;
-   
+
    if (reposition)
       [self setFrame:frame display:YES];
 
@@ -2368,8 +2369,8 @@ const float WSWindowEdgePad = 2;
 
    [self orderWindow:NSWindowAbove relativeTo:0];
 
-	if([self canBecomeKeyWindow])
-		[self makeKeyWindow];
+    if([self canBecomeKeyWindow])
+        [self makeKeyWindow];
 
    if([self canBecomeMainWindow])
     [self makeMainWindow];
@@ -2387,7 +2388,7 @@ const float WSWindowEdgePad = 2;
    [self orderWindow:NSWindowOut relativeTo:0];
 }
 
--(void)performClose:sender 
+-(void)performClose:sender
 {
   if([_delegate respondsToSelector:@selector(windowShouldClose:)])
     {
@@ -2399,18 +2400,18 @@ const float WSWindowEdgePad = 2;
       if (![self windowShouldClose:self])
         return;
     }
-  
+
   NSDocument * document = [_windowController document];
   if (document)
     {
-      [document shouldCloseWindowController:_windowController 
-                                   delegate:self 
+      [document shouldCloseWindowController:_windowController
+                                   delegate:self
                         shouldCloseSelector:@selector(_document:shouldClose:contextInfo:)
                                 contextInfo:NULL];
     }
   else
     {
-	// Clicking the close button on a Window generates a performClose:, in a non-modal case we just close the window. If the window is a modal window, we abort the session, but do not close the window. So far it looks like we should not close the window too.
+    // Clicking the close button on a Window generates a performClose:, in a non-modal case we just close the window. If the window is a modal window, we abort the session, but do not close the window. So far it looks like we should not close the window too.
 
         if([NSApp modalWindow]==self)
             [NSApp abortModal];
@@ -2433,48 +2434,48 @@ const float WSWindowEdgePad = 2;
 }
 
 -(void)performZoom:sender {
-	[self zoom: sender];
+    [self zoom: sender];
 }
 
-- (NSRect) zoomedFrame; 
+- (NSRect) zoomedFrame;
 {
-	NSScreen *screen = [self screen];
-	NSRect zoomedFrame = [screen visibleFrame];
-	
-	if (_delegate && [_delegate respondsToSelector: @selector(windowWillUseStandardFrame:defaultFrame:)]) {
-		zoomedFrame = [_delegate windowWillUseStandardFrame: self defaultFrame: zoomedFrame];
-	} else if ([self respondsToSelector: @selector( windowWillUseStandardFrame:defaultFrame: )]) {
-		zoomedFrame = [self windowWillUseStandardFrame: self defaultFrame: zoomedFrame];
-	}
-	//	zoomedFrame = [self constrainFrameRect: zoomedFrame toScreen: screen];
+    NSScreen *screen = [self screen];
+    NSRect zoomedFrame = [screen visibleFrame];
 
-	return zoomedFrame;
+    if (_delegate && [_delegate respondsToSelector: @selector(windowWillUseStandardFrame:defaultFrame:)]) {
+        zoomedFrame = [_delegate windowWillUseStandardFrame: self defaultFrame: zoomedFrame];
+    } else if ([self respondsToSelector: @selector( windowWillUseStandardFrame:defaultFrame: )]) {
+        zoomedFrame = [self windowWillUseStandardFrame: self defaultFrame: zoomedFrame];
+    }
+    //  zoomedFrame = [self constrainFrameRect: zoomedFrame toScreen: screen];
+
+    return zoomedFrame;
 }
 
 -(void)zoom:sender {
-	NSRect zoomedFrame = [self zoomedFrame];
-	if (NSEqualRects( _frame, zoomedFrame )) zoomedFrame = _savedFrame;
-	
-	// Make sure we obey our minimums
-	NSSize minSize = [self minSize];
-	if (NSWidth(zoomedFrame) < minSize.width) {
-		zoomedFrame.size.width = minSize.width;
-	}
-	if (NSHeight(zoomedFrame) < minSize.height) {
-		zoomedFrame.size.height = minSize.height;
-	}
-	
-	BOOL shouldZoom = YES;
-	if (_delegate && [_delegate respondsToSelector: @selector( windowShouldZoom:toFrame: )]) {
-		shouldZoom = [_delegate windowShouldZoom: self toFrame: zoomedFrame];
-	} else if ([self respondsToSelector: @selector( windowShouldZoom:toFrame: )]) {
-		shouldZoom = [self windowShouldZoom: self toFrame: zoomedFrame];
-	}
-	
-	if (shouldZoom) {
-		_savedFrame = [self frame];
-		[self setFrame: zoomedFrame display: YES];
-	}
+    NSRect zoomedFrame = [self zoomedFrame];
+    if (NSEqualRects( _frame, zoomedFrame )) zoomedFrame = _savedFrame;
+
+    // Make sure we obey our minimums
+    NSSize minSize = [self minSize];
+    if (NSWidth(zoomedFrame) < minSize.width) {
+        zoomedFrame.size.width = minSize.width;
+    }
+    if (NSHeight(zoomedFrame) < minSize.height) {
+        zoomedFrame.size.height = minSize.height;
+    }
+
+    BOOL shouldZoom = YES;
+    if (_delegate && [_delegate respondsToSelector: @selector( windowShouldZoom:toFrame: )]) {
+        shouldZoom = [_delegate windowShouldZoom: self toFrame: zoomedFrame];
+    } else if ([self respondsToSelector: @selector( windowShouldZoom:toFrame: )]) {
+        shouldZoom = [self windowShouldZoom: self toFrame: zoomedFrame];
+    }
+
+    if (shouldZoom) {
+        _savedFrame = [self frame];
+        [self setFrame: zoomedFrame display: YES];
+    }
 }
 
 -(void)miniaturize:sender {
@@ -2492,7 +2493,7 @@ const float WSWindowEdgePad = 2;
    [_backgroundView print:sender];
 }
 
--(void)toggleToolbarShown:sender {    
+-(void)toggleToolbarShown:sender {
     [_toolbar setVisible:![_toolbar isVisible]];
     [sender setTitle:[NSString stringWithFormat:@"%@ Toolbar", [_toolbar isVisible] ? @"Hide" : @"Show"]];
 }
@@ -2541,7 +2542,7 @@ const float WSWindowEdgePad = 2;
     _isVisible = NO;
     [self _updateWSState];
 }
- 
+
 -(void)_hideForDeactivation {
    if([self hidesOnDeactivate] && [self isVisible] && ![self isMiniaturized]){
     _hiddenForDeactivate=YES;
@@ -2549,10 +2550,10 @@ const float WSWindowEdgePad = 2;
 }
 
 -(void)_forcedHideForDeactivation {
-	if([self isVisible]){
-		_hiddenForDeactivate=YES;
-		//_hiddenKeyWindow=[self isKeyWindow];
-	}
+    if([self isVisible]){
+        _hiddenForDeactivate=YES;
+        //_hiddenKeyWindow=[self isKeyWindow];
+    }
 }
 
 -(BOOL)performKeyEquivalent:(NSEvent *)event {
@@ -2622,10 +2623,10 @@ const float WSWindowEdgePad = 2;
    origin.y=frame.origin.y+(frame.size.height-sheetFrame.size.height);
    origin.x=frame.origin.x+floor((frame.size.width-sheetFrame.size.width)/2);
 
-   
+
    if ([self toolbar] != nil) {
        origin.y -= [[[self toolbar] _view] frame].size.height;
-       
+
        // Depending on the final border types used on the toolbar and the sheets, the sheet placement
        // sometimes looks better with a little "adjustment"....
        origin.y++;
@@ -2653,10 +2654,10 @@ const float WSWindowEdgePad = 2;
    _sheetContext=[sheetContext retain];
 
    [(NSThemeFrame *)[sheet _backgroundView] setWindowBorderType:NSWindowSheetBorderType];
-   
+
    [self _setSheetOrigin];
-   sheetFrame = [sheet frame];   
-   
+   sheetFrame = [sheet frame];
+
    sheet->_isVisible=YES;
    [sheet display];
    [[sheet platformWindow] sheetOrderFrontFromFrame:NSMakeRect(sheetFrame.origin.x,NSMaxY(sheetFrame),sheetFrame.size.width,0) aboveWindow:[self platformWindow]];
@@ -2665,9 +2666,9 @@ const float WSWindowEdgePad = 2;
 
 - (void)_setSheetContext:(NSSheetContext *)sheetContext
 {
-	[sheetContext retain];
-	[_sheetContext release];
-	_sheetContext = sheetContext;
+    [sheetContext retain];
+    [_sheetContext release];
+    _sheetContext = sheetContext;
 }
 
 -(NSSheetContext *)_sheetContext {
@@ -2680,7 +2681,7 @@ const float WSWindowEdgePad = 2;
 
     sheet->_isVisible=NO;
     [[sheet platformWindow] sheetOrderOutToFrame:NSMakeRect(sheetFrame.origin.x,NSMaxY(sheetFrame),sheetFrame.size.width,0)];
-    
+
     [_sheetContext release];
     _sheetContext=nil;
 }
@@ -2693,7 +2694,7 @@ const float WSWindowEdgePad = 2;
 #if 0 // This seems all backwards for WindowServer
 -(void)platformWindowActivated:(CGWindow *)window displayIfNeeded:(BOOL)displayIfNeeded {
    [NSApp _windowWillBecomeActive:self];
-   
+
    [self _setSheetOriginAndFront];
    [_childWindows makeObjectsPerformSelector:@selector(_parentWindowDidActivate:) withObject:self];
    [_drawers makeObjectsPerformSelector:@selector(parentWindowDidActivate:) withObject:self];
@@ -2709,13 +2710,13 @@ const float WSWindowEdgePad = 2;
     [self displayIfNeeded];
 
    [NSApp _windowDidBecomeActive:self];
-   
+
    [NSApp updateWindows];
 }
 
 -(void)platformWindowDeactivated:(CGWindow *)window checkForAppDeactivation:(BOOL)checkForAppDeactivation {
    [NSApp _windowWillBecomeDeactive:self];
-   
+
    [_childWindows makeObjectsPerformSelector:@selector(_parentWindowDidDeactivate:) withObject:self];
    [_drawers makeObjectsPerformSelector:@selector(parentWindowDidDeactivate:) withObject:self];
 
@@ -2728,7 +2729,7 @@ const float WSWindowEdgePad = 2;
     [NSApp performSelector:@selector(_checkForAppActivation)];
 
    [NSApp _windowDidBecomeDeactive:self];
-   
+
    [NSApp updateWindows];
 }
 
@@ -2743,12 +2744,12 @@ const float WSWindowEdgePad = 2;
 
 -(void)platformWindowMiniaturized:(CGWindow *)window {
     _isActive=NO;
-    
+
    [self _updatePlatformWindowTitle];
    if(_sheetContext!=nil){
     [[_sheetContext sheet] orderWindow:NSWindowOut relativeTo:0];
    }
-   
+
    [self postNotificationName:NSWindowDidMiniaturizeNotification];
 
    if([self isKeyWindow])
@@ -2773,7 +2774,7 @@ const float WSWindowEdgePad = 2;
    if(_resizeIncrements.width!=1 || _resizeIncrements.height!=1){
     NSSize vertical=size;
     NSSize horizontal=size;
-    
+
     vertical.width=vertical.height*(_resizeIncrements.width/_resizeIncrements.height);
     horizontal.height=horizontal.width*(_resizeIncrements.height/_resizeIncrements.width);
     if(vertical.width*vertical.height>horizontal.width*horizontal.height)
@@ -2781,7 +2782,7 @@ const float WSWindowEdgePad = 2;
     else
      size=horizontal;
    }
-   
+
 
    if([_delegate respondsToSelector:@selector(windowWillResize:toSize:)])
     size=[_delegate windowWillResize:self toSize:size];
@@ -2828,7 +2829,7 @@ const float WSWindowEdgePad = 2;
    NSMutableArray *entered=[NSMutableArray array];
    NSMutableArray *moved=[NSMutableArray array];
    NSMutableArray *update=[NSMutableArray array];
-   
+
    BOOL        cursorIsSet=NO;
    BOOL        raiseToolTipWindow=NO;
    NSUInteger  i,count;
@@ -2845,40 +2846,40 @@ const float WSWindowEdgePad = 2;
     BOOL mouseIsInside=NSPointInRect(mousePoint,[area _rectInWindow]);
     id owner=[area owner];
 
-	   if([area _isToolTip]==YES){
-		   NSToolTipWindow *toolTipWindow=[NSToolTipWindow sharedToolTipWindow];
-		   
-		   if([self isKeyWindow]==NO || [self _sheetContext]!=nil)
-			   mouseIsInside=NO;
-		   
-		   if(mouseWasInside==YES && mouseIsInside==NO && [toolTipWindow _trackingArea]==area){
-			   [NSObject cancelPreviousPerformRequestsWithTarget:toolTipWindow selector:@selector(orderFront:) object:nil];
-			   [toolTipWindow orderOut:nil];
-		   }
-		   if(mouseWasInside==NO && mouseIsInside==YES){ // AllowsToolTipsWhenApplicationIsInactive
-			   // is handled when rebuilding areas.
-			   [NSObject cancelPreviousPerformRequestsWithTarget:toolTipWindow selector:@selector(orderFront:) object:nil];
-			   [toolTipWindow orderOut:nil];
-			   NSString *tooltip = nil;
-			   
-			   if([owner respondsToSelector:@selector(view:stringForToolTip:point:userData:)]==YES) {
-				   NSPoint pt =[[area _view] convertPoint:mousePoint fromView:nil];
-				   tooltip = [owner view:[area _view] stringForToolTip:area point:pt userData:[area userInfo]];
-			   } else {
-				   tooltip = [owner description];
-			   }
-               
+       if([area _isToolTip]==YES){
+           NSToolTipWindow *toolTipWindow=[NSToolTipWindow sharedToolTipWindow];
+
+           if([self isKeyWindow]==NO || [self _sheetContext]!=nil)
+               mouseIsInside=NO;
+
+           if(mouseWasInside==YES && mouseIsInside==NO && [toolTipWindow _trackingArea]==area){
+               [NSObject cancelPreviousPerformRequestsWithTarget:toolTipWindow selector:@selector(orderFront:) object:nil];
+               [toolTipWindow orderOut:nil];
+           }
+           if(mouseWasInside==NO && mouseIsInside==YES){ // AllowsToolTipsWhenApplicationIsInactive
+               // is handled when rebuilding areas.
+               [NSObject cancelPreviousPerformRequestsWithTarget:toolTipWindow selector:@selector(orderFront:) object:nil];
+               [toolTipWindow orderOut:nil];
+               NSString *tooltip = nil;
+
+               if([owner respondsToSelector:@selector(view:stringForToolTip:point:userData:)]==YES) {
+                   NSPoint pt =[[area _view] convertPoint:mousePoint fromView:nil];
+                   tooltip = [owner view:[area _view] stringForToolTip:area point:pt userData:[area userInfo]];
+               } else {
+                   tooltip = [owner description];
+               }
+
                if (tooltip) {
                    [toolTipWindow setToolTip:tooltip];
-                   
+
                    // This gives us some protection when ToolTip areas overlap:
                    [toolTipWindow _setTrackingArea:area];
-                   
+
                    raiseToolTipWindow=YES;
                }
-		   }
-	   }
-	   else{ // not ToolTip
+           }
+       }
+       else{ // not ToolTip
      NSTrackingAreaOptions options=[area options];
 
      // Options by view activation.
@@ -2897,11 +2898,11 @@ const float WSWindowEdgePad = 2;
       // This does not do hit testing, it just checks if it's inside the visible rect,
       // child views will cause the test to fail if they aren't tracking anything
       NSPoint check=[[area _view] convertPoint:mousePoint fromView:nil];
-      
+
       if(!NSMouseInRect(check,[[area _view] visibleRect],[[area _view] isFlipped]))
        mouseIsInside=NO;
      }
-     
+
 //FIXME:
      if(options&NSTrackingEnabledDuringMouseDrag){
       // NSLog(@"NSTrackingEnabledDuringMouseDrag handling unimplemented.");
@@ -2932,14 +2933,14 @@ const float WSWindowEdgePad = 2;
 
 // Exited events need to be sent before entered events
 // The order of the other two is not specific at this time
-   
+
    for(NSTrackingArea *check in exited){
     id owner=[check owner];
-    
+
        if([check options]&NSTrackingCursorUpdate){
            [[NSCursor arrowCursor] set];
        }
-       
+
     if([owner respondsToSelector:@selector(mouseExited:)]){
       NSEvent *event=[NSEvent enterExitEventWithType:NSMouseExited
                                             location:mousePoint
@@ -2953,10 +2954,10 @@ const float WSWindowEdgePad = 2;
       [owner mouseExited:event];
      }
    }
-   
+
    for(NSTrackingArea *check in entered){
     id owner=[check owner];
-    
+
     if([owner respondsToSelector:@selector(mouseEntered:)]){
       NSEvent *event=[NSEvent enterExitEventWithType:NSMouseEntered
                                             location:mousePoint
@@ -2970,10 +2971,10 @@ const float WSWindowEdgePad = 2;
       [owner mouseEntered:event];
      }
    }
-   
+
    for(NSTrackingArea *check in moved){
     id owner=[check owner];
-    
+
     if([owner respondsToSelector:@selector(mouseMoved:)]){
       NSEvent *event=[NSEvent mouseEventWithType:NSMouseMoved
                                         location:mousePoint
@@ -2987,10 +2988,10 @@ const float WSWindowEdgePad = 2;
       [owner mouseMoved:event];
      }
    }
-   
+
    for(NSTrackingArea *check in update){
     id owner=[check owner];
-    
+
     if([owner respondsToSelector:@selector(cursorUpdate:)]){
       NSEvent *event=[NSEvent enterExitEventWithType:NSCursorUpdate
                                             location:mousePoint
@@ -3004,7 +3005,7 @@ const float WSWindowEdgePad = 2;
       [owner cursorUpdate:event];
      }
    }
-   
+
    if(raiseToolTipWindow==YES){
     NSTimeInterval delay=((NSTimeInterval)[[NSUserDefaults standardUserDefaults] integerForKey:@"NSInitialToolTipDelay"])/1000.;
 
@@ -3012,12 +3013,12 @@ const float WSWindowEdgePad = 2;
      delay=2.;
     [[NSToolTipWindow sharedToolTipWindow] performSelector:@selector(orderFront:) withObject:nil afterDelay:delay];
    }
-   
+
    if(!cursorIsSet){
     NSPoint check=[_contentView convertPoint:mousePoint fromView:nil];
-    
+
     // we set the cursor to the current cursor if it is inside the content area, this will need to be changed
-    // if we're drawing out own window frame 
+    // if we're drawing out own window frame
     if(NSMouseInRect(check,[_contentView bounds],[_contentView isFlipped])){
      if([NSCursor currentCursor]==nil)
          [[NSCursor arrowCursor] set];
@@ -3026,15 +3027,15 @@ const float WSWindowEdgePad = 2;
      cursorIsSet=YES;
     }
    }
-   
+
    return cursorIsSet;
 }
 #endif // 0
 
--(NSUndoManager *)undoManager {    
+-(NSUndoManager *)undoManager {
     if ([_delegate respondsToSelector:@selector(windowWillReturnUndoManager:)])
         return [_delegate windowWillReturnUndoManager:self];
-    
+
     // If this window is associated with a document, return the document's undo manager.
     // Apple's documentation says this is the delegate's responsibility, but that's not how it works in real life.
     if (_undoManager == nil) {
@@ -3063,14 +3064,14 @@ const float WSWindowEdgePad = 2;
         return [[self undoManager] canUndo];
     if ([item action] == @selector(redo:))
         return [[self undoManager] canRedo];
-    
+
     return YES;
 }
 
 -(void)_attachDrawer:(NSDrawer *)drawer {
     if (_drawers == nil)
         _drawers = [[NSMutableArray alloc] init];
-    
+
     [_drawers addObject:drawer];
 }
 
@@ -3208,4 +3209,3 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
             *right=2;
     }
 }
-

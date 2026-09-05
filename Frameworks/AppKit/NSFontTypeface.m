@@ -13,8 +13,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @implementation NSFontTypeface
 
 -initWithName:(NSString *)name displayName:(NSString *)displayName traitName:(NSString *)traitName traits:(NSFontTraitMask)traits {
-	_name=[name copy];
-	_displayName=[displayName copy];
+        _name=[name copy];
+        _displayName=[displayName copy];
    _traitName=[traitName copy];
    _traits=traits;
    _metrics=[NSMutableArray new];
@@ -22,24 +22,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -initWithName:(NSString *)name traitName:(NSString *)traitName traits:(NSFontTraitMask)traits {
-	return [self initWithName:name displayName:name traitName:traitName traits:traits];
+        return [self initWithName:name displayName:name traitName:traitName traits:traits];
 }
 
 
 -(void)dealloc {
-	[_name release];
-	[_displayName release];
+        [_name release];
+        [_displayName release];
    [_traitName release];
    [_metrics release];
    [super dealloc];
 }
 
 -(NSString *)name {
-	return _name;
+        return _name;
 }
 
 -(NSString *)displayName {
-	return _displayName;
+        return _displayName;
 }
 
 -(NSString *)traitName {
@@ -55,7 +55,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(NSString *)description {
-   return [NSString stringWithFormat:@"<%@ 0x%x %@ %@ %@>",isa,self,_name,_displayName,_traitName];
+   return [NSString stringWithFormat:@"<%@ 0x%x %@ %@ %@>",[self class],self,_name,_displayName,_traitName];
 }
 
 @end

@@ -1,10 +1,10 @@
 /* Copyright (c) 2008 Johannes Fortmann
    Copyright (c) 2009 Christopher J. W. Lloyd - <cjwl@objc.net>
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #import "O2Font_FT.h"
 #import <Onyx2D/O2Font_freetype.h>
@@ -19,7 +19,7 @@ O2FontRef O2FontCreateWithDataProvider_platform(O2DataProviderRef provider) {
 #else
     return nil;
 #endif
-    
+
 }
 
 @implementation O2Font(FreeType)
@@ -34,22 +34,22 @@ O2FontRef O2FontCreateWithDataProvider_platform(O2DataProviderRef provider) {
 
 FT_Library O2FontSharedFreeTypeLibrary(){
    static FT_Library library=NULL;
-   
+
    if(library==NULL){
     if(FT_Init_FreeType(&library)!=0)
      NSLog(@"FT_Init_FreeType failed");
    }
-        
+
    return library;
 }
 
 FcConfig *O2FontSharedFontConfig() {
    static FcConfig *fontConfig=NULL;
-   
+
    if(fontConfig==NULL){
     fontConfig=FcInitLoadConfigAndFonts();
    }
-   
+
    return fontConfig;
 }
 
@@ -79,15 +79,15 @@ FcConfig *O2FontSharedFontConfig() {
 -initWithFontName:(NSString *)name {
    self = [super initWithFontName:name];
 
-   NSString *filename=[isa filenameForPattern:name];
+   NSString *filename=[[self class] filenameForPattern:name];
    if(filename==nil) {
-    filename=[isa filenameForPattern:@""];
-    
+    filename=[[self class] filenameForPattern:@""];
+
     if(filename==nil) {
       filename=@"/System/Library/Fonts/TTF/NimbusSans-Regular.ttf";
     }
    }
-      
+
    FT_Error ret=FT_New_Face(O2FontSharedFreeTypeLibrary(),[filename fileSystemRepresentation],0,&_face);
 
    if(ret!=0)
@@ -98,7 +98,7 @@ FcConfig *O2FontSharedFontConfig() {
 
    if(!(_face->face_flags&FT_FACE_FLAG_SCALABLE))
     NSLog(@"FreeType font face is not scalable: %@", name);
-    
+
    _unitsPerEm=(float)_face->units_per_EM;
    _ascent=_face->ascender;
    _descent=_face->descender;
@@ -139,7 +139,7 @@ FcConfig *O2FontSharedFontConfig() {
 
    for(glyph=0;glyph<_numberOfGlyphs;glyph++){
     FT_Load_Glyph(_face, glyph, FT_LOAD_DEFAULT);
-    
+
     _advances[glyph]=_face->glyph->advance.x/(float)(2<<5);
    }
 }
@@ -177,24 +177,24 @@ FcConfig *O2FontSharedFontConfig() {
 
 + (NSString *)postscriptNameForNativeName:(NSString *)name
 {
-	return [[name stringByReplacingOccurrencesOfString:@":style="
+   return [[name stringByReplacingOccurrencesOfString:@":style="
         withString:@"-"] stringByReplacingOccurrencesOfString:@"-Regular"
         withString:@""];
 }
 
 + (NSString *)postscriptNameForDisplayName:(NSString *)name
 {
-	return name;
+   return name;
 }
 
 + (NSString *)displayNameForPostscriptName:(NSString *)name
 {
-	return name;
+   return name;
 }
 
 + (NSString *)postscriptNameForFontName:(NSString *)name
 {
-	return name;
+   return name;
 }
 
 @end

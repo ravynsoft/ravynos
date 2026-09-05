@@ -29,29 +29,29 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
          NSView *newView=[[class alloc] initWithFrame:frame];
          if([coder containsValueForKey:@"NSvFlags"]){
           unsigned vFlags=[coder decodeIntForKey:@"NSvFlags"];
-          
+
           newView->_autoresizingMask=vFlags&0x3F;
           newView->_autoresizesSubviews=(vFlags&0x100)?YES:NO;
           newView->_isHidden=(vFlags&0x80000000)?YES:NO;
          }
 // Despite the fact it appears _autoresizesSubviews is encoded in the flags, it should always be on
          newView->_autoresizesSubviews=YES;
-         
+
          if([coder containsValueForKey:@"NSTag"])
              newView->_tag=[coder decodeIntForKey:@"NSTag"];
-		  NSArray* subviews = [coder decodeObjectForKey:@"NSSubviews"];
-		  
-		  // For some unknown reason custom view subviews are presented in reverse order
-		  // in the nib - so we need to add them in reverse - this matches Cocoa behaviour
-		  NSEnumerator* reverseEnum = [subviews reverseObjectEnumerator];
-		  NSView* subview = nil;
-		  while ((subview = [reverseEnum nextObject])) {
-			  [newView->_subviews addObject: subview];
-		  }
-		  
+        NSArray* subviews = [coder decodeObjectForKey:@"NSSubviews"];
+
+        // For some unknown reason custom view subviews are presented in reverse order
+        // in the nib - so we need to add them in reverse - this matches Cocoa behaviour
+        NSEnumerator* reverseEnum = [subviews reverseObjectEnumerator];
+        NSView* subview = nil;
+        while ((subview = [reverseEnum nextObject])) {
+           [newView->_subviews addObject: subview];
+        }
+
          [newView->_subviews makeObjectsPerformSelector:@selector(_setSuperview:) withObject:newView];
          [_subviews removeAllObjects];
-         
+
          [newView setWantsLayer:[coder decodeBoolForKey:@"NSViewIsLayerTreeHost"]];
          [newView setLayerContentsRedrawPolicy:[coder decodeIntegerForKey:@"NSViewLayerContentsRedrawPolicy"]];
          [self release];
@@ -59,7 +59,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       }
    }
    else {
-      [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] does not handle %@",isa,sel_getName(_cmd),[coder class]];
+      [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] does not handle %@",[self class],sel_getName(_cmd),[coder class]];
       return self;
    }
 }

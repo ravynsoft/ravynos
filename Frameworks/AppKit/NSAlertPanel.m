@@ -5,6 +5,8 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#import <sys/param.h>
 #import <AppKit/NSAlertPanel.h>
 #import <AppKit/NSStringDrawer.h>
 #import <AppKit/NSImage.h>
@@ -60,7 +62,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     buttonHeight=MAX(otherSize.height,buttonHeight);
    }
 
-   buttonWidth+=BUTTON_MARGIN*2; 
+   buttonWidth+=BUTTON_MARGIN*2;
    buttonWidth=MAX(66,buttonWidth);
 
    buttonTotalWidth=LEFT_MARGIN;
@@ -102,8 +104,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     title= NSLocalizedStringFromTableInBundle(@"Alert", nil, [NSBundle bundleForClass: [NSAlertPanel class]], @"Alert panel title");
 
    [self setTitle:title];
-	[self setLevel: NSModalPanelWindowLevel];
-	
+   [self setLevel: NSModalPanelWindowLevel];
+
    viewFrame.origin.y=BOTTOM_MARGIN;
    viewFrame.origin.x=LEFT_MARGIN+floor((panelSize.width-buttonTotalWidth)/2);
    viewFrame.size.width=buttonWidth;
@@ -157,7 +159,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    viewFrame.origin.x+=IMAGEMESSAGE_GAP;
    viewFrame.origin.y-=messageSize.height-imageSize.height;
    viewFrame.size=messageSize;
-	viewFrame.size.width += 6; // TextField's like to shrink the title area a bit - so make sure it doesn't make it too small for the message!
+   viewFrame.size.width += 6; // TextField's like to shrink the title area a bit - so make sure it doesn't make it too small for the message!
    _messageText=[[[NSTextField alloc] initWithFrame:viewFrame] autorelease];
    [_messageText setStringValue:message];
    [_messageText setSelectable:YES];

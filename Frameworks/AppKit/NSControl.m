@@ -53,11 +53,11 @@ static NSMutableDictionary *cellClassDictionary = nil;
 
    if([coder allowsKeyedCoding]){
     NSKeyedUnarchiver *keyed=(NSKeyedUnarchiver *)coder;
-    
-	[self setCell:[keyed decodeObjectForKey:@"NSCell"]];
+
+    [self setCell:[keyed decodeObjectForKey:@"NSCell"]];
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",isa,[coder class]];
+    [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",[self class],[coder class]];
    }
 
    return self;
@@ -66,15 +66,15 @@ static NSMutableDictionary *cellClassDictionary = nil;
 -initWithFrame:(NSRect)frame {
    [super initWithFrame:frame];
 // FIX, verify in subclasses
-	[self setCell:[[[[[self class] cellClass] alloc] init] autorelease]];
+    [self setCell:[[[[[self class] cellClass] alloc] init] autorelease]];
    return self;
 }
 
 -(void)dealloc {
 
-	// Don't do anything with the cell until we've cleared the bindings!
-	[self _unbindAllBindings];
-	
+    // Don't do anything with the cell until we've cleared the bindings!
+    [self _unbindAllBindings];
+
    [_cell release];
    [super dealloc];
 }
@@ -360,9 +360,9 @@ static NSMutableDictionary *cellClassDictionary = nil;
 
 -(void)updateCell:(NSCell *)cell {
     if (_cell == cell)
-	{
+    {
             [self setNeedsDisplay:YES];
-	}
+    }
 }
 
 
@@ -392,7 +392,7 @@ static NSMutableDictionary *cellClassDictionary = nil;
         NSFormatter *formatter = [self formatter];
         if (formatter) {
             acceptsString = NO;
-            
+
             id objectValue = nil;
             NSString *error = nil;
             if ([formatter getObjectValue: &objectValue
@@ -409,7 +409,7 @@ static NSMutableDictionary *cellClassDictionary = nil;
                     NSAttributedString *string = [[[NSAttributedString alloc] initWithAttributedString:text] autorelease];
                     [[self selectedCell] setAttributedStringValue:string];
                 } else {
-                    [[self selectedCell] setStringValue:string];                    
+                    [[self selectedCell] setStringValue:string];
                 }
             } else {
                 [[self selectedCell] setStringValue:string];
@@ -425,7 +425,7 @@ static NSMutableDictionary *cellClassDictionary = nil;
 
 // we don't want delegate messages when aborting
     [_currentEditor setDelegate:nil];
-    
+
     [[self window] endEditingFor:self];
 
     if([superview isKindOfClass:[NSClipView class]])
@@ -443,7 +443,7 @@ static NSMutableDictionary *cellClassDictionary = nil;
 
 -(void)sizeToFit {
    NSSize cellSize=[[self cell] cellSize];
-   
+
    [self setFrameSize:cellSize];
 }
 
@@ -473,7 +473,7 @@ static NSMutableDictionary *cellClassDictionary = nil;
 
    [[NSNotificationCenter defaultCenter] postNotificationName:NSControlTextDidBeginEditingNotification
      object:self userInfo:[NSDictionary dictionaryWithObject:[note object] forKey:@"NSFieldEditor"]];
-  
+
    // If this control's value is bound to an object that conforms to NSEditorRegistration, register as an editor.
    NSDictionary * bindingInfo = nil; // [self infoForBinding:@"value"];
    if (bindingInfo)
@@ -497,7 +497,7 @@ static NSMutableDictionary *cellClassDictionary = nil;
 
 -(void)textDidEndEditing:(NSNotification *)note {
 // It is possible for an NSControl subclass to be the delegate of another text view
-	if([note object]!=_currentEditor)
+    if([note object]!=_currentEditor)
     return;
 
     [self validateEditing];
@@ -514,7 +514,7 @@ static NSMutableDictionary *cellClassDictionary = nil;
        if ([observedObject respondsToSelector:@selector(objectDidEndEditing:)])
          [observedObject objectDidEndEditing:self];
      }
-  
+
    [self setNeedsDisplay:YES];
 }
 

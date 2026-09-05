@@ -19,11 +19,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -initWithCoder:(NSCoder *)coder {
    if([coder allowsKeyedCoding]){
     NSKeyedUnarchiver *keyed=(NSKeyedUnarchiver *)coder;
-    
+
     _className=[[keyed decodeObjectForKey:@"NSClassName"] retain];
    }
-   else 
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] does not handle %@",isa,sel_getName(_cmd),[coder class]];
+   else
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] does not handle %@",[self class],sel_getName(_cmd),[coder class]];
 
    return self;
 }
@@ -39,7 +39,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
    if(class==Nil)
     NSLog(@"NSCustomObject unknown class %@",_className);
-   
+
    if([_className isEqualToString:@"NSApplication"]) {
       ret=[[NSApplication sharedApplication] retain];
 
@@ -56,9 +56,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
        ret = [NSThreadSharedInstanceDoNotCreate(_className) retain];
    }
    else {
-      ret=[[class alloc] init];  
+      ret=[[class alloc] init];
    }
-          
+
    return ret;
 }
 
@@ -69,21 +69,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
    if(class==Nil)
     NSLog(@"NSCustomObject unknown class %@",_className);
-   
+
    if([_className isEqualToString:@"NSApplication"]) {
       ret=[[NSApplication sharedApplication] retain];
    }
    else {
-      ret=[[class alloc] init];  
+      ret=[[class alloc] init];
    }
    [self release];
-          
+
    return ret;
 }
 #endif
 
 -(NSString *)description {
-   return [NSString stringWithFormat:@"<%@:%p:class name=%@>",isa,self,_className];
+   return [NSString stringWithFormat:@"<%@:%p:class name=%@>",[self class],self,_className];
 }
 
 @end

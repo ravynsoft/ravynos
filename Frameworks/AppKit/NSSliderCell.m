@@ -17,8 +17,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/NSGraphicsStyle.h>
 #import <AppKit/NSRaise.h>
 
-#define PIXELINSET	8
+#define PIXELINSET      8
 #define TICKHEIGHT      8
+
+#define ABS(x) ((x)>=0 ? (x) : -(x))
 
 @implementation NSSliderCell
 
@@ -31,21 +33,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
    if([coder allowsKeyedCoding]){
     NSKeyedUnarchiver *keyed=(NSKeyedUnarchiver *)coder;
-    
-	_type = [keyed decodeIntForKey:@"NSSliderType"];
+
+        _type = [keyed decodeIntForKey:@"NSSliderType"];
     _minValue=[keyed decodeDoubleForKey:@"NSMinValue"];
     _maxValue=[keyed decodeDoubleForKey:@"NSMaxValue"];
-	   if ([keyed containsValueForKey: @"NSValue"]) {
-		   // This cell prefers NSValue to NSContents
-		   [_objectValue release];
-		   _objectValue = [[keyed decodeObjectForKey: @"NSValue"] retain];
-	   }
+           if ([keyed containsValueForKey: @"NSValue"]) {
+                   // This cell prefers NSValue to NSContents
+                   [_objectValue release];
+                   _objectValue = [[keyed decodeObjectForKey: @"NSValue"] retain];
+           }
     _numberOfTickMarks=[keyed decodeIntForKey:@"NSNumberOfTickMarks"];
     _tickMarkPosition=[keyed decodeIntForKey:@"NSTickMarkPosition"];
     _allowsTickMarkValuesOnly=[keyed decodeBoolForKey:@"NSAllowsTickMarkValuesOnly"];
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",[self class], sel_getName(_cmd),coder];
    }
 
    return self;
@@ -155,16 +157,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(NSInteger)indexOfTickMarkAtPoint:(NSPoint)point {
    int i;
-   
+
    for(i=0;i<_numberOfTickMarks;i++){
     NSRect check=[self rectOfTickMarkAtIndex:i];
-    
+
     check=NSInsetRect(check,-1,-1);
-    
+
     if(NSPointInRect(point,check))
      return i;
    }
-   
+
    return NSNotFound;
 }
 
@@ -175,15 +177,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(double)closestTickMarkValueToValue:(double)value {
-	if (_numberOfTickMarks < 1) {
-		return value;
-	}
+        if (_numberOfTickMarks < 1) {
+                return value;
+        }
    double closestValue=[self tickMarkValueAtIndex:0];
    NSInteger i;
-   
+
    for(i=1;i<_numberOfTickMarks;i++){
     double check=[self tickMarkValueAtIndex:i];
-    
+
     if(ABS(value-check)<ABS(value-closestValue))
      closestValue=check;
 }
@@ -252,7 +254,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    NSRect sliderRect=[self _sliderRect];
    NSRect knobRect;
    NSSize knobSize=[[_controlView graphicsStyle] sliderKnobSizeForControlSize:[self controlSize]];
-   
+
    if ([self isVertical]) {
     knobRect.size.height=knobSize.width;
     knobRect.size.width=knobSize.height;
@@ -288,7 +290,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (void)drawLinearSliderWithFrame:(NSRect)frame inView:(NSView*)controlView
 {
     _isVertical = (frame.size.height>frame.size.width)?1:0;
-	
+
     [self drawBarInside:[self _sliderRect] flipped:[controlView isFlipped]];
     [self drawTickMarks];
     [self drawKnob];
@@ -296,100 +298,100 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (NSGradient*)circularSliderBackgroundGradient
 {
-	static NSGradient* gradient = nil;
-	if (gradient == nil) {
-		gradient = [[NSGradient alloc] initWithColorsAndLocations: [NSColor whiteColor], 0,
-					[NSColor lightGrayColor], 0.5,
-					[NSColor whiteColor], 1, nil];
-	}
-	return gradient;
+        static NSGradient* gradient = nil;
+        if (gradient == nil) {
+                gradient = [[NSGradient alloc] initWithColorsAndLocations: [NSColor whiteColor], 0,
+                                        [NSColor lightGrayColor], 0.5,
+                                        [NSColor whiteColor], 1, nil];
+        }
+        return gradient;
 }
 
 - (NSGradient*)circularSliderForegroundGradient
 {
-	static NSGradient* gradient = nil;
-	if (gradient == nil) {
-		gradient = [[NSGradient alloc] initWithColorsAndLocations: [NSColor grayColor], 0,
-					[NSColor clearColor], 0.3,
-					[NSColor clearColor], 0.7,
-					[NSColor grayColor], 1, nil];
-	}
-	return gradient;
+        static NSGradient* gradient = nil;
+        if (gradient == nil) {
+                gradient = [[NSGradient alloc] initWithColorsAndLocations: [NSColor grayColor], 0,
+                                        [NSColor clearColor], 0.3,
+                                        [NSColor clearColor], 0.7,
+                                        [NSColor grayColor], 1, nil];
+        }
+        return gradient;
 }
 
 - (NSGradient*)circularSliderKnobGradient
 {
-	static NSGradient* gradient = nil;
-	if (gradient == nil) {
-		gradient = [[NSGradient alloc] initWithColorsAndLocations: [NSColor darkGrayColor], 0,
-					[NSColor darkGrayColor], 0.49,
-					[NSColor lightGrayColor], 0.51,
-					[NSColor lightGrayColor], 1, nil];
-		
-	}
-	return gradient;
+        static NSGradient* gradient = nil;
+        if (gradient == nil) {
+                gradient = [[NSGradient alloc] initWithColorsAndLocations: [NSColor darkGrayColor], 0,
+                                        [NSColor darkGrayColor], 0.49,
+                                        [NSColor lightGrayColor], 0.51,
+                                        [NSColor lightGrayColor], 1, nil];
+
+        }
+        return gradient;
 }
 
 - (void)drawCircularSliderWithFrame:(NSRect)frame inView:(NSView*)controlView
 {
-	NSRect sliderRect = frame;
-	// Square it up
-	if (frame.size.width > frame.size.height) {
-		sliderRect = NSInsetRect(sliderRect, (frame.size.width - frame.size.height)/2.f, 0);
-	} else {
-		sliderRect = NSInsetRect(sliderRect, 0, (frame.size.height - frame.size.width)/2.f);
-	}
-	
-	// Get it away from the edges of the frames - to ensure we're not clipped
-	sliderRect = NSInsetRect(sliderRect, 3, 3);
+        NSRect sliderRect = frame;
+        // Square it up
+        if (frame.size.width > frame.size.height) {
+                sliderRect = NSInsetRect(sliderRect, (frame.size.width - frame.size.height)/2.f, 0);
+        } else {
+                sliderRect = NSInsetRect(sliderRect, 0, (frame.size.height - frame.size.width)/2.f);
+        }
 
-	if (NSIsEmptyRect(sliderRect)) {
-		return;
-	}
-	
-	NSBezierPath* path = [NSBezierPath bezierPathWithOvalInRect: sliderRect];
+        // Get it away from the edges of the frames - to ensure we're not clipped
+        sliderRect = NSInsetRect(sliderRect, 3, 3);
 
-	if ([self isEnabled]) {
-		[[NSColor whiteColor] set];
-	} else {
-		[[NSColor controlColor] set];
-	}
-	[path fill];
-		
-	NSGradient* backgroundGradient = [self circularSliderBackgroundGradient];
-	[backgroundGradient drawInBezierPath: path angle: 90];
+        if (NSIsEmptyRect(sliderRect)) {
+                return;
+        }
 
-	[[NSColor grayColor] set];
-	[path stroke];
-	
-	double percent=0.;
-	if (_maxValue != _minValue) {
-		double value = [self doubleValue];
-		percent = (value-_minValue)/(_maxValue-_minValue);
-	}
+        NSBezierPath* path = [NSBezierPath bezierPathWithOvalInRect: sliderRect];
 
-	double angle = percent * 360;
-	
-	NSPoint knobOffset = NSMakePoint(0, -(NSHeight(sliderRect)/2.f) + 5);
-	
-	NSAffineTransform* rotateTransform = [NSAffineTransform transform];
-	[rotateTransform rotateByDegrees: angle];
-	knobOffset = [rotateTransform transformPoint: knobOffset];
-	
-	NSPoint knobCenter = NSMakePoint(NSMidX(sliderRect), NSMidY(sliderRect));
-	knobCenter.x += knobOffset.x;
-	knobCenter.y -= knobOffset.y;
-	
-	NSRect knobRect = NSMakeRect(knobCenter.x, knobCenter.y, 0, 0);
-	knobRect = NSInsetRect(knobRect, -3, -3); // by visual inspection
-	
-	NSBezierPath* knobPath = [NSBezierPath bezierPathWithOvalInRect: knobRect];
-	
-	[[NSColor controlColor] set];
-	[knobPath fill];
+        if ([self isEnabled]) {
+                [[NSColor whiteColor] set];
+        } else {
+                [[NSColor controlColor] set];
+        }
+        [path fill];
 
-	[[NSColor grayColor] set];
-	[knobPath stroke];
+        NSGradient* backgroundGradient = [self circularSliderBackgroundGradient];
+        [backgroundGradient drawInBezierPath: path angle: 90];
+
+        [[NSColor grayColor] set];
+        [path stroke];
+
+        double percent=0.;
+        if (_maxValue != _minValue) {
+                double value = [self doubleValue];
+                percent = (value-_minValue)/(_maxValue-_minValue);
+        }
+
+        double angle = percent * 360;
+
+        NSPoint knobOffset = NSMakePoint(0, -(NSHeight(sliderRect)/2.f) + 5);
+
+        NSAffineTransform* rotateTransform = [NSAffineTransform transform];
+        [rotateTransform rotateByDegrees: angle];
+        knobOffset = [rotateTransform transformPoint: knobOffset];
+
+        NSPoint knobCenter = NSMakePoint(NSMidX(sliderRect), NSMidY(sliderRect));
+        knobCenter.x += knobOffset.x;
+        knobCenter.y -= knobOffset.y;
+
+        NSRect knobRect = NSMakeRect(knobCenter.x, knobCenter.y, 0, 0);
+        knobRect = NSInsetRect(knobRect, -3, -3); // by visual inspection
+
+        NSBezierPath* knobPath = [NSBezierPath bezierPathWithOvalInRect: knobRect];
+
+        [[NSColor controlColor] set];
+        [knobPath fill];
+
+        [[NSColor grayColor] set];
+        [knobPath stroke];
 }
 
 - (void)drawWithFrame:(NSRect)frame inView:(NSView *)controlView
@@ -397,17 +399,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     _controlView=controlView;
     _lastRect = frame;
 
-	switch ([self sliderType]) {
-		case NSLinearSlider:
-			[self drawLinearSliderWithFrame: frame inView: controlView];
-			break;
-		case NSCircularSlider:
-			[self drawCircularSliderWithFrame: frame inView: controlView];
-			break;
-	}
+        switch ([self sliderType]) {
+                case NSLinearSlider:
+                        [self drawLinearSliderWithFrame: frame inView: controlView];
+                        break;
+                case NSCircularSlider:
+                        [self drawCircularSliderWithFrame: frame inView: controlView];
+                        break;
+        }
 
     BOOL drawDottedRect=NO;
-	
+
     // would be nice to put this code in some superclass
     if([[controlView window] firstResponder]==controlView){
         if([controlView isKindOfClass:[NSMatrix class]]){
@@ -429,7 +431,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -(void)setClosestDoubleValue:(double)value {
    if([self allowsTickMarkValuesOnly])
     value=[self closestTickMarkValueToValue:value];
-    
+
    [self setDoubleValue:value];
 }
 
@@ -441,8 +443,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if (decrement)
         originalValue -= (_maxValue - _minValue) * percentage;
     else
-        originalValue += (_maxValue - _minValue) * percentage;        
-    
+        originalValue += (_maxValue - _minValue) * percentage;
+
     if (originalValue > _maxValue)
         originalValue = _maxValue;
     else if (originalValue < _minValue)
@@ -472,9 +474,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 // linear sliderCell behavior:
-// 	1. test hit in knob.. if so, go on to 3
-//	2. test hit in bar. if hit, move knob to click location
-//	3. track knob.
+//      1. test hit in knob.. if so, go on to 3
+//      2. test hit in bar. if hit, move knob to click location
+//      3. track knob.
 -(void)_setLinearDoubleValueFromPoint:(NSPoint)point
 {
     // ((pointX-cellX)/cellW)*((max-min)+min)!
@@ -505,59 +507,59 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 // circular sliderCell behavior:
-// 	1. set value based on angle of click
-//	2. track mouse to continue calc'ing angles.
+//      1. set value based on angle of click
+//      2. track mouse to continue calc'ing angles.
 -(void)_setCircularDoubleValueFromPoint:(NSPoint)point flipped:(BOOL)flipped
 {
-	NSPoint center = NSMakePoint(NSMidX(_lastRect), NSMidY(_lastRect));
+        NSPoint center = NSMakePoint(NSMidX(_lastRect), NSMidY(_lastRect));
 
-	if (flipped == NO) {
-		point.y = center.y - (point.y - center.y);
-	}
-	// Get the angle and ensure it's in 0..2*PI - 0˙ is top center
-	double angle = fmod(atan2(center.y - point.y, center.x - point.x) - M_PI_2 + M_PI * 2.f, M_PI * 2.f);
+        if (flipped == NO) {
+                point.y = center.y - (point.y - center.y);
+        }
+        // Get the angle and ensure it's in 0..2*PI - 0˙ is top center
+        double angle = fmod(atan2(center.y - point.y, center.x - point.x) - M_PI_2 + M_PI * 2.f, M_PI * 2.f);
 
-	// Convert to degrees
-	angle *= 180.f / M_PI;
-	
-	double percentAngle = angle/360.f;
-	
-	double value = (percentAngle*(_maxValue-_minValue))+_minValue;
-	
+        // Convert to degrees
+        angle *= 180.f / M_PI;
+
+        double percentAngle = angle/360.f;
+
+        double value = (percentAngle*(_maxValue-_minValue))+_minValue;
+
     [self setDoubleValue: value];
 }
 
 - (BOOL)startTrackingLinearSliderAt:(NSPoint)startPoint inView:(NSView*)controlView
 {
     NSPoint localPoint = [controlView convertPoint:startPoint fromView:nil];
-	
+
     if (NSMouseInRect(localPoint,[self knobRectFlipped:[controlView isFlipped]],[controlView isFlipped])) {
         [self highlight:YES withFrame:_lastRect inView:controlView];
     }
 
-	[self _setLinearDoubleValueFromPoint:localPoint];
-	return YES;
+        [self _setLinearDoubleValueFromPoint:localPoint];
+        return YES;
 }
 
 - (BOOL)startTrackingCircularSliderAt:(NSPoint)startPoint inView:(NSView*)controlView
 {
     NSPoint localPoint = [controlView convertPoint:startPoint fromView:nil];
-	
-	[self _setCircularDoubleValueFromPoint: localPoint flipped: [controlView isFlipped]];
-	return YES;
+
+        [self _setCircularDoubleValueFromPoint: localPoint flipped: [controlView isFlipped]];
+        return YES;
 }
 
 -(BOOL)startTrackingAt:(NSPoint)startPoint inView:(NSView *)controlView
 {
-	switch ([self sliderType]) {
-		case NSLinearSlider:
-			return [self startTrackingLinearSliderAt: startPoint inView: controlView];
-			break;
-		case NSCircularSlider:
-			return [self startTrackingCircularSliderAt: startPoint inView: controlView];
-			break;
-	}
-    return YES;		// what happened here?    
+        switch ([self sliderType]) {
+                case NSLinearSlider:
+                        return [self startTrackingLinearSliderAt: startPoint inView: controlView];
+                        break;
+                case NSCircularSlider:
+                        return [self startTrackingCircularSliderAt: startPoint inView: controlView];
+                        break;
+        }
+    return YES;         // what happened here?
 }
 
 - (BOOL)continueTrackingLinearSliderAtPoint:(NSPoint)lastPoint at: (NSPoint)currentPoint inView:(NSView*)controlView
@@ -565,8 +567,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     NSPoint localPoint = [controlView convertPoint:currentPoint fromView:nil];
     [self _setLinearDoubleValueFromPoint:localPoint];
     [controlView setNeedsDisplayInRect:_lastRect];
-	
-	return YES;
+
+        return YES;
 }
 
 - (BOOL)continueTrackingCircularSliderAtPoint:(NSPoint)lastPoint at: (NSPoint)currentPoint inView:(NSView*)controlView
@@ -574,19 +576,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     NSPoint localPoint = [controlView convertPoint:currentPoint fromView:nil];
     [self _setCircularDoubleValueFromPoint:localPoint flipped: [controlView isFlipped]];
     [controlView setNeedsDisplayInRect:_lastRect];
-	return YES;
+        return YES;
 }
 
 -(BOOL)continueTracking:(NSPoint)lastPoint at:(NSPoint)currentPoint inView:(NSView *)controlView
 {
-	switch ([self sliderType]) {
-		case NSLinearSlider:
-			return [self continueTrackingLinearSliderAtPoint: lastPoint at: currentPoint inView: controlView];
-			break;
-		case NSCircularSlider:
-			return [self continueTrackingCircularSliderAtPoint: lastPoint at: currentPoint inView: controlView];
-			break;
-	}			
+        switch ([self sliderType]) {
+                case NSLinearSlider:
+                        return [self continueTrackingLinearSliderAtPoint: lastPoint at: currentPoint inView: controlView];
+                        break;
+                case NSCircularSlider:
+                        return [self continueTrackingCircularSliderAtPoint: lastPoint at: currentPoint inView: controlView];
+                        break;
+        }
     return YES;
 }
 

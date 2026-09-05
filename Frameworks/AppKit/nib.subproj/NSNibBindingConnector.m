@@ -11,34 +11,34 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @implementation NSNibBindingConnector
 -(void)dealloc
 {
-	[_binding release];
-	[_keyPath release];
-	[_options release];
-	[super dealloc];
+    [_binding release];
+    [_keyPath release];
+    [_options release];
+    [super dealloc];
 }
 
 -(id)initWithCoder:(NSCoder *)coder
 {
-	if((self = [super initWithCoder:coder]))
-	{
-		int version=[coder decodeIntForKey:@"NSNibBindingConnectorVersion"];
-		if(version != 2)
-			[NSException raise:NSInvalidArgumentException format:@"-[%@ %s] unknown connector version %i",isa,sel_getName(_cmd), version];
-		
-		_binding=[[coder decodeObjectForKey:@"NSBinding"] retain];
-		_keyPath=[[coder decodeObjectForKey:@"NSKeyPath"] retain];
-		_options=[[coder decodeObjectForKey:@"NSOptions"] retain];
-	}
-	else {
-		[NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
-	}
-	return self;
+    if((self = [super initWithCoder:coder]))
+    {
+        int version=[coder decodeIntForKey:@"NSNibBindingConnectorVersion"];
+        if(version != 2)
+            [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] unknown connector version %i",[self class],sel_getName(_cmd), version];
+
+        _binding=[[coder decodeObjectForKey:@"NSBinding"] retain];
+        _keyPath=[[coder decodeObjectForKey:@"NSKeyPath"] retain];
+        _options=[[coder decodeObjectForKey:@"NSOptions"] retain];
+    }
+    else {
+        [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",[self class],sel_getName(_cmd),coder];
+    }
+    return self;
 }
 
 -(void)establishConnection
 {
-	//NSLog(@"binding between %@.%@ and %@.%@ options=%@", [_source className], _binding, [_destination className], _keyPath,_options);
+    //NSLog(@"binding between %@.%@ and %@.%@ options=%@", [_source className], _binding, [_destination className], _keyPath,_options);
 
-	[_source bind:_binding toObject:_destination withKeyPath:_keyPath options:_options];
+    [_source bind:_binding toObject:_destination withKeyPath:_keyPath options:_options];
 }
 @end

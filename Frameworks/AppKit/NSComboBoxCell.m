@@ -36,7 +36,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     _buttonPressed=NO;
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",[self class], sel_getName(_cmd),coder];
    }
 
    return self;
@@ -176,7 +176,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
      return [self objectValue];
    else
    {
-     NSLog(@"*** -[%@ %s] should not be called when usesDataSource is set to YES",isa,sel_getName(_cmd));
+     NSLog(@"*** -[%@ %s] should not be called when usesDataSource is set to YES",[self class], sel_getName(_cmd));
      return NULL;
    }
 }
@@ -195,7 +195,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       [self selectItemAtIndex:(index != NSNotFound)?index:-1];
    }
    else
-      NSLog(@"*** -[%@ %s] should not be called when usesDataSource is set to YES",isa,sel_getName(_cmd));
+      NSLog(@"*** -[%@ %s] should not be called when usesDataSource is set to YES",[self class], sel_getName(_cmd));
 }
 
 -(void)deselectItemAtIndex:(int)index {

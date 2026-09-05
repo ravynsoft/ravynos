@@ -42,7 +42,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (NSString *)description {
     return [NSString stringWithFormat:@"<%@[0x%lx] string: %@ modifierMask: 0x%lx selectorNames: %@>",
-        isa, self, _string, _modifierMask, _selectorNames];
+        [self class], self, _string, _modifierMask, _selectorNames];
 }
 
 @end

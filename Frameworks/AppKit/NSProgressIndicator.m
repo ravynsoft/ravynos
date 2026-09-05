@@ -5,6 +5,8 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#import <sys/param.h>
 #import <AppKit/NSProgressIndicator.h>
 #import <AppKit/NSColor.h>
 #import <AppKit/NSWindow.h>
@@ -37,13 +39,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     _animationValue=0;
     _style=(flags&0x1000)?NSProgressIndicatorSpinningStyle:NSProgressIndicatorBarStyle;
     _size=(flags&0x100)?NSSmallControlSize:NSRegularControlSize;
-    _displayWhenStopped=(flags&0x2000)?NO:YES; // inverted 
-    _isBezeled=YES;    
+    _displayWhenStopped=(flags&0x2000)?NO:YES; // inverted
+    _isBezeled=YES;
     _isIndeterminate=(flags&0x02)?YES:NO;
     _usesThreadedAnimation=NO;
    }
    else {
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",[self class], sel_getName(_cmd),coder];
    }
    return self;
 }
@@ -64,7 +66,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    _isBezeled=YES;
    _isIndeterminate=YES;
    _usesThreadedAnimation=NO;
-   
+
    return self;
 }
 
@@ -88,17 +90,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                                                        repeats:YES] retain];
 
 // FIXME: does it do this? Or does it add it to the current mode?
-// Apple's does work in a modal panel (right?)_                                                 
+// Apple's does work in a modal panel (right?)_
     [[NSRunLoop currentRunLoop] addTimer:_animationTimer forMode:NSDefaultRunLoopMode];
     [[NSRunLoop currentRunLoop] addTimer:_animationTimer forMode:NSModalPanelRunLoopMode];
-    
+
     [self didChangeValueForKey:@"animate"];
    }
 }
 
 -(void)dealloc {
    [self _invalidateTimer];
-   
+
    [super dealloc];
 }
 
@@ -116,7 +118,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    CGFloat arc=M_PI*2.0/numberOfRays;
    CGFloat minAxis=MIN(bounds.size.width,bounds.size.height);
    CGFloat lineWidth=minAxis/numberOfRays/2;
-   
+
    lineWidth+=lineWidth*0.50;
    CGContextSaveGState(context);
    CGContextSetLineWidth(context,lineWidth);
@@ -128,7 +130,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     CGFloat gray=startGray+((endGray-startGray)/numberOfRays)*place;
     CGAffineTransform rotate=CGAffineTransformMakeRotation(angle+arc*i);
     CGPoint ray;
-    
+
     CGContextSetGrayStrokeColor(context,gray,1.0);
     ray.x=0;
     ray.y=minAxis/2-lineWidth;
@@ -168,7 +170,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
      [[NSColor redColor] set];
      NSRectFill([self bounds]);
     }
-   }   
+   }
 }
 
 -(NSProgressIndicatorStyle)style {
@@ -238,7 +240,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(void)setUsesThreadedAnimation:(BOOL)value {
-	// This currently has no effect on the indicator - but no need to complain about it
+    // This currently has no effect on the indicator - but no need to complain about it
    _usesThreadedAnimation=value;
 }
 
@@ -257,7 +259,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     value=_minValue;
    if(value>_maxValue)
     value=_maxValue;
-     
+
    _value = value;
    [self setNeedsDisplay:YES];
 }
@@ -287,61 +289,61 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (void)_runThreadedAnimation:(id)arg
 {
-	_endThreadedAnimation = NO;
-	
-	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-	
-	[self _buildTimer];
-	[self setNeedsDisplay:YES];
-	
-	BOOL isRunning = YES;
-	do {
-		isRunning = [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
-								 beforeDate:[NSDate distantFuture]];
-	} while (isRunning && _endThreadedAnimation == NO);
-	
-	[self _invalidateTimer];
-	
-	[pool drain];
+    _endThreadedAnimation = NO;
+
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    [self _buildTimer];
+    [self setNeedsDisplay:YES];
+
+    BOOL isRunning = YES;
+    do {
+        isRunning = [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
+                                 beforeDate:[NSDate distantFuture]];
+    } while (isRunning && _endThreadedAnimation == NO);
+
+    [self _invalidateTimer];
+
+    [pool drain];
 }
 
 - (void)_stopThreadedAnimation
 {
-	_endThreadedAnimation = YES;
+    _endThreadedAnimation = YES;
 }
 
 -(void)startAnimation:sender {
-	if (!_isIndeterminate)
-		return;
+    if (!_isIndeterminate)
+        return;
 
-	if (_usesThreadedAnimation) {
-		[NSThread detachNewThreadSelector: @selector(_runThreadedAnimation:) toTarget: self withObject: nil];
-	} else {
-		[self _buildTimer];
-		[self setNeedsDisplay:YES];
-	}
+    if (_usesThreadedAnimation) {
+        [NSThread detachNewThreadSelector: @selector(_runThreadedAnimation:) toTarget: self withObject: nil];
+    } else {
+        [self _buildTimer];
+        [self setNeedsDisplay:YES];
+    }
 }
 
 -(void)stopAnimation:sender {
 
-	if (!_isIndeterminate)
-		return;
+    if (!_isIndeterminate)
+        return;
 
-	if (_usesThreadedAnimation) {
-		[self _stopThreadedAnimation];
-	} else {
+    if (_usesThreadedAnimation) {
+        [self _stopThreadedAnimation];
+    } else {
 
-		[self _invalidateTimer];
-		[self setNeedsDisplay:YES];
-	}
+        [self _invalidateTimer];
+        [self setNeedsDisplay:YES];
+    }
 }
 
 -(void)animate:sender {
    _animationValue+=1.0/[self bounds].size.width;
-    
+
    if(_animationValue>1)
     _animationValue=0;
-    
+
    [self setNeedsDisplay:YES];
 }
 
@@ -364,7 +366,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -_replacementKeyPathForBinding:(id)binding {
-	if([binding isEqual:@"value"])
+    if([binding isEqual:@"value"])
       return @"doubleValue";
    return [super _replacementKeyPathForBinding:binding];
 }
