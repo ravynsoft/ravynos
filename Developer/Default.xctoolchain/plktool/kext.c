@@ -24,6 +24,9 @@
  * to compile on Linux. Most of this code originates from kext.subproj/OSKext.c.
  */
 
+#ifdef __linux__
+#include <unistd.h>
+#endif
 #include "plktool.h"
 
 #define SAFE_FREE(a)    if(a) free(a);

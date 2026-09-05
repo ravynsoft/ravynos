@@ -132,7 +132,7 @@ HDRS = -I${.CURDIR} \
 	-I${RAVYN_SDKROOT}/usr/include/arpa \
 	-I${RAVYN_SDKROOT}/usr/local/include/kernel \
 	-I${ROOT_SOURCE_DIR}/Kernel/xnu/libkern \
-	-I${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders 
+	-I${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
 
 # -DDS_AVAILABLE -- zoe 2/11/26 Put this back once we have DirectoryService
 CFLAGS = --sysroot=${RAVYN_SDKROOT} -mmacos-version-min=${MACOS_VERSION_MIN} \
@@ -140,7 +140,7 @@ CFLAGS = --sysroot=${RAVYN_SDKROOT} -mmacos-version-min=${MACOS_VERSION_MIN} \
 	-DINET6 -D__DARWIN_NON_CANCELABLE -DCONFIG_MAC -DSYNTH_ROOTFS \
 	-DTARGET_OS_BRIDGE=0 -Wno-int-conversion -Wno-implicit-int \
         ${HDRS} \
-	-include${.CURDIR}/../libsystem_trace/log.h 
+	-include${.CURDIR}/../libsystem_trace/log.h
 
 MIG_FLAGS = -mmacos-version-min=${MACOS_VERSION_MIN} ${HDRS} -D__MigTypeCheck
 
@@ -161,7 +161,7 @@ notify_ipc.h notify_ipcUser.c notify_ipcServer.c: ${.CURDIR}/../libsystem_notify
 
 copyheaders:
 	cd ${.CURDIR}; DSTROOT=${RAVYN_SDKROOT} SRCROOT=${.CURDIR} \
-		sh ./xcodescripts/install_files.sh
+		bash ./xcodescripts/install_files.sh
 
 lib${LIB}.a: copyheaders
 

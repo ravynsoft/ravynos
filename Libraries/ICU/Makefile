@@ -43,9 +43,9 @@ libicucore.A.dylib: lib${LIB}.a
 	  ${.OBJDIR}/target/io -name '*.o') ${LDFLAGS}
 .for dir in ${RAVYN_SDKROOT} ${SYSROOT_DIR}
 	mkdir -p ${dir}/usr/lib ${dir}/usr/include
-	cp -fp ${.OBJDIR}/${.TARGET} ${dir}/usr/lib/
+	cp -f ${.OBJDIR}/${.TARGET} ${dir}/usr/lib/
 	ln -sf ${.TARGET} ${dir}/usr/lib/libicucore.dylib
-	cp -fdp ${.OBJDIR}/target/lib/libicudata* ${dir}/usr/lib/
-	cp -Rfp ${.CURDIR}/source/i18n/unicode ${.CURDIR}/source/i18n/*.h \
+	cp -fd ${.OBJDIR}/target/lib/libicudata* ${dir}/usr/lib/
+	cp -Rf ${.CURDIR}/source/i18n/unicode ${.CURDIR}/source/i18n/*.h \
 	  ${dir}/usr/include
 .endfor

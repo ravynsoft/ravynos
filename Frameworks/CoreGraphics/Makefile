@@ -27,7 +27,7 @@ SRCS= \
 	CGPDFPage.m \
 	CGPath.m \
 	CGPattern.m \
-	CGShading.m 
+	CGShading.m
 
 HEADERS= \
 	CGAffineTransform.h \
@@ -61,9 +61,9 @@ HEADERS= \
 	CGWindowLevel.h \
 	CoreGraphics.h \
 	CoreGraphicsExport.h \
-	CoreText.h 
+	CoreText.h
 
-RESOURCES=Info.plist 
+RESOURCES=Info.plist
 CFLAGS+= -I${.CURDIR:H}/OpenGL -I${.CURDIR:H} -I${.OBJDIR:H} -fblocks \
 	-I${.CURDIR}/Foundation/Headers -I${.OBJDIR} \
 	-I${ROOT_SOURCE_DIR}/CoreServices -Wno-implicit-function-declaration
@@ -80,8 +80,7 @@ copy-headers:
 fmwk-install-hook:
 .for dir in ${RAVYN_SDKROOT}/System/Library/Frameworks/ ${SYSROOT_DIR}/System/Library/Frameworks/
 	mkdir -p ${dir}
-	cp -Rfp ${.OBJDIR}/${FRAMEWORK}.framework ${dir}
+	cp -Rf ${.OBJDIR}/${FRAMEWORK}.framework ${dir}
 .endfor
 
 .include <rvn.framework.mk>
-

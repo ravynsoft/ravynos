@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e -x
 
 # don't install man pages for installhdrs or iOS builds

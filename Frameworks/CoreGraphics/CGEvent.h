@@ -1,7 +1,7 @@
 /*
  * Quartz Event Services
- * Copyright (C) 2024 Zoe Knox <zoe@ravynsoft.com>
- * 
+ * Copyright (C) 2024-2026 Zoe Knox <zoe@ravynsoft.com>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -295,4 +295,3 @@ COREGRAPHICS_EXPORT CFTimeInterval CGEventSourceGetLocalEventsSuppressionInterva
 COREGRAPHICS_EXPORT void CGEventSourceSetLocalEventsSuppressionInterval(CGEventSourceRef source, CFTimeInterval seconds);
 COREGRAPHICS_EXPORT double CGEventSourceGetPixelsPerLine(CGEventSourceRef source);
 COREGRAPHICS_EXPORT void CGEventSourceSetPixelsPerLine(CGEventSourceRef source, double pixelsPerLine);
-

@@ -1,6 +1,7 @@
 SUBDIR =
 MK_WERROR = no
 PROG = sh
+.PATH: ${.OBJDIR}
 SRCS =  bltin/echo.c \
 	alias.c \
 	arith_yacc.c \
@@ -37,7 +38,7 @@ CFLAGS = --sysroot=${RAVYN_SDKROOT} -mmacos-version-min=${MACOS_VERSION_MIN} \
 LDFLAGS = --sysroot=${RAVYN_SDKROOT} -mmacos-version-min=${MACOS_VERSION_MIN} \
         -ledit
 
-all: to-sysroot
+all: mksyntax mknodes .WAIT syntax.h nodes.h token.h builtins.h to-sysroot
 
 to-sysroot: ${PROG}
 	mkdir -p ${SYSROOT_DIR}/bin

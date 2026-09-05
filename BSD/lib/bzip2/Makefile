@@ -41,6 +41,7 @@ MLINKS += src/bzmore.1 bzless.1
 all: lib${LIB}.dylib bzip2 bzip2recover bzdiff bzmore
 
 bzip2: ${.CURDIR}/src/bzip2.c
+	mkdir -p ${SYSROOT_DIR}/usr/bin
 	${CC} ${CFLAGS} -o ${.TARGET}.o -c ${.CURDIR}/src/bzip2.c
 	${CC} ${PROG_LDFLAGS} -o ${SYSROOT_DIR}/usr/bin/${.TARGET} bzip2.o
 	ln -f ${SYSROOT_DIR}/usr/bin/bzip2 ${SYSROOT_DIR}/usr/bin/bunzip2
@@ -69,4 +70,3 @@ lib${LIB}.dylib: lib${LIB}.a
 	ln -fs libbz2.dylib ${SYSROOT_DIR}/usr/lib/libbz2.${VERSION}.dylib
 
 .include <bsd.lib.mk>
-

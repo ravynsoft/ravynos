@@ -59,6 +59,7 @@ MAJMIN = ${MAJOR}.${MINOR}
 all: lib${LIB}.dylib zcat
 
 zcat: gzip
+	mkdir -p ${SYSROOT_DIR}/usr/share/man/man1
 	sed -e 's/BINDIR/\/usr\/bin/' <${.CURDIR}/src/zcat.in >${.TARGET}
 	cp -f ${.CURDIR}/src/zcat.1 ${SYSROOT_DIR}/usr/share/man/man1/
 	rm -f ${SYSROOT_DIR}/usr/bin/uncompress
@@ -72,6 +73,7 @@ gzip: ${PROG_SRCS}
 	${CC} -o ${src:%.c=%.o} -c ${.CURDIR}/${src} ${PROG_CFLAGS}
 .endfor
 	${CC} -o ${.TARGET} ${PROG_SRCS:%.c=%.o} ${PROG_LDFLAGS}
+	mkdir -p ${SYSROOT_DIR}/bin
 	cp -f ${.TARGET} ${SYSROOT_DIR}/bin/${.TARGET}
 
 lib${LIB}.dylib: lib${LIB}.a
@@ -81,4 +83,3 @@ lib${LIB}.dylib: lib${LIB}.a
 	cp -f ${.TARGET} ${SYSROOT_DIR}/usr/lib/
 
 .include <bsd.lib.mk>
-

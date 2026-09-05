@@ -27,7 +27,7 @@ all: ${PLATFORM_DIR} ${TOOLS}/unifdef .EXEC
 	# Compatibility symlinks
 	ln -sf ravynOS.platform ${ROOT_BINARY_DIR}/Developer/Platforms/MacOSX.platform
 	ln -sf ravynOS.sdk ${ROOT_BINARY_DIR}/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
-	cp -pRf ${.CURDIR}/usr ${.CURDIR}/System ${RAVYN_SDKROOT}/
+	cp -Rf ${.CURDIR}/usr ${.CURDIR}/System ${RAVYN_SDKROOT}/
 	cp -f ${ROOT_SOURCE_DIR}/Libraries/Libsystem/private/pthread/tsd_private.h \
 		${RAVYN_SDKROOT}/usr/local/include/pthread/
 	${ROOT_SOURCE_DIR}/Kernel/xnu/bsd/sys/make_symbol_aliasing.sh \

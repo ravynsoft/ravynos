@@ -24,6 +24,9 @@
  * to compile on Linux.
  */
 
+#ifdef __linux__
+#include <unistd.h>
+#endif
 #include "plktool.h"
 
 extern CFMutableArrayRef __sOSAllKexts;

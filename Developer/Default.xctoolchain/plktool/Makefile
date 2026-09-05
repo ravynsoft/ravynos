@@ -23,7 +23,7 @@ CFLAGS = -I${ROOT_SOURCE_DIR}/Kernel/kext_tools/FILES/3rd \
 # it installed! (opencflite in AUR)
 LDFLAGS = -L${TOOLCHAIN}/usr/lib \
 	  -lkxld -lmacho -lstuff -lCoreFoundation -luuid -lssl -lcrypto \
-	  -lz -lbsd 
+	  -lz -lbsd -lc++
 
 .if "${.MAKE.OS}" == "Linux"
 all: ${TOOLS}/plktool
@@ -37,4 +37,3 @@ ${TOOLS}/plktool: ${TOOLCHAIN}/usr/lib/libkxld.a ${OBJS} ${.CURDIR}/Makefile
 all: .PHONY
 ${TOOLS}/plktool: .PHONY
 .endif
-

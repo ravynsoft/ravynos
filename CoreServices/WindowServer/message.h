@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2026 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -161,3 +161,4 @@ typedef struct {
 } ReceiveMessage;
 #endif
 
+kern_return_t _windowServerRPC(void *data, size_t len, void *replyBuf, int *replyLen);

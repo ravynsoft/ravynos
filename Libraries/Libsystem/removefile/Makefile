@@ -29,6 +29,6 @@ ${.OBJDIR}/lib${LIB}.dylib: lib${LIB}.a
 	cp -f ${.TARGET} ${SYSROOT_DIR}/usr/lib/system/
 	cp -f ${.CURDIR}/removefile.h ${RAVYN_SDKROOT}/usr/include/
 	cd ${.CURDIR} && env PLATFORM=MacOSX DSTROOT=${RAVYN_SDKROOT} \
-          sh ${.CURDIR}/xcodescripts/install_files.sh
+          bash ${.CURDIR}/xcodescripts/install_files.sh
 
 .include <bsd.lib.mk>

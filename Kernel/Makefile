@@ -43,7 +43,7 @@ installhdrs: .PHONY
 		CC=${CC} CXX=${CXX} HOST_OS_VERSION=${MACOS_VERSION_MIN} \
 		UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} \
 		CTFMERGE=${CTFMERGE} CTFINSERT=${CTFINSERT} \
-		HOST_SDKROOT=${RAVYN_SDKROOT} \
+		HOST_SDKROOT=${RAVYN_SDKROOT} VERBOSE=yes \
 		AVAILABILITY_PL=${AVAILABILITY_PL} SDKROOT=macosx \
 		AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH} XCRUN=${XCRUN} \
 		KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS} \
@@ -68,7 +68,7 @@ xnu_all: installhdrs libfirehose_kernel compiler_rt
 		UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} LD="${CC} --ld-path=${LD}" \
 		CTFMERGE=${CTFMERGE} CTFINSERT=${CTFINSERT} AR=${AR} \
 		NM=${NM} NMEDIT=${NMEDIT} DSYMUTIL=${DSYMUTIL} LIPO=${LIPO} \
-	       	STRIP=${STRIPBIN} AS=${AS} AVAILABILITY_PL=${AVAILABILITY_PL} \
+	    STRIP=${STRIPBIN} AS=${AS} AVAILABILITY_PL=${AVAILABILITY_PL} \
 		MACHINE=${MACHINE} XCRUN=${XCRUN} SDKROOT=macosx \
 		HOST_OS_VERSION=${MACOS_VERSION_MIN} VERBOSE=yes \
 		AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH} \
@@ -87,7 +87,7 @@ xnu_all: installhdrs libfirehose_kernel compiler_rt
 # NOTE! This kxld build is for the host toolchain. The target kxld is built
 # later in IOKitUser
 SUBDIR = xnu/libkern/kmod xnu/libkern/kxld
-SUBDIR += IOKitUser 
+SUBDIR += IOKitUser
 SUBDIR += Extensions
 
 .include <bsd.subdir.mk>

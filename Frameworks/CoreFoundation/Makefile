@@ -127,8 +127,8 @@ CFLAGS = -ObjC -DCF_BUILDING_CF -DU_SHOW_CPLUSPLUS_API -DU_SHOW_DRAFT_API \
 	-I${ROOT_SOURCE_DIR}/Libraries/Libsystem/liblaunch \
 	-I${ROOT_SOURCE_DIR}/Libraries/Libsystem/libdispatch/private \
 	-I${ROOT_SOURCE_DIR}/Libraries/openbsm \
-	-I${ROOT_SOURCE_DIR}/Libraries/ICU/icuSources/i18n \
-	-I${ROOT_SOURCE_DIR}/Libraries/ICU/icuSources/common \
+	-I${ROOT_SOURCE_DIR}/Libraries/ICU/source/i18n \
+	-I${ROOT_SOURCE_DIR}/Libraries/ICU/source/common \
 	-I${ROOT_SOURCE_DIR}/Libraries/Libsystem/removefile \
 	-I${ROOT_SOURCE_DIR}/Libraries/Libsystem/private \
 	-I${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_blocks \

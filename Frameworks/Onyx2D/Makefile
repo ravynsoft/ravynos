@@ -97,7 +97,7 @@ SRCS = \
 	O2argb8u.m \
 	O2zlib.m \
 	VGPath.m \
-	gif_lib.m 
+	gif_lib.m
 
 HEADERS = \
 	O2AffineTransform.h \
@@ -256,8 +256,7 @@ libtiff.a:
 fmwk-install-hook:
 .for dir in ${RAVYN_SDKROOT}/System/Library/Frameworks/ ${SYSROOT_DIR}/System/Library/Frameworks/
 	mkdir -p ${dir}
-	cp -Rfp ${.OBJDIR}/${FRAMEWORK}.framework ${dir}
+	cp -Rf ${.OBJDIR}/${FRAMEWORK}.framework ${dir}
 .endfor
 
 .include <rvn.framework.mk>
-

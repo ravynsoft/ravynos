@@ -123,4 +123,3 @@ version:
 	${MAKE} -C ${.CURDIR}/SystemLibrary SystemVersion.plist
 
 .include "./BSD/share/mk/bsd.subdir.mk"
-

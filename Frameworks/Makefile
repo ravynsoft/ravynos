@@ -8,6 +8,7 @@ SUBDIR += Foundation
 SUBDIR += CoreServices
 SUBDIR += Onyx2D
 SUBDIR += CoreGraphics
+SUBDIR += AppKit
 
 all: ${SUBDIR}
 
