@@ -1,0 +1,20 @@
+<![ %include; [
+    <![%include; [
+        <![ %include;[
+            <![%include;[
+                <!ELEMENT doc (child)>
+                <!ELEMENT child (#PCDATA)>
+            ]]>
+        ]]>
+    ]]>
+]]>
+<![ %ignore; [
+    <![%include; [
+        <![ %include;[
+            <![%ignore;[
+                <!ELEMENT doc (x)>
+                <!ELEMENT child (y)>
+            ]]>
+        ]]>
+    ]]>
+]]>

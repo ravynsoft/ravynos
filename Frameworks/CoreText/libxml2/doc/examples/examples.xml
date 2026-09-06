@@ -1,0 +1,723 @@
+<examples>
+  <example filename='io1.c'>
+    <synopsis>Example of custom Input/Output</synopsis>
+    <purpose>Demonstrate the use of xmlRegisterInputCallbacks to build a custom I/O layer, this is used in an XInclude method context to show how dynamic document can be built in a clean way.</purpose>
+    <usage>io1</usage>
+    <test>io1 &gt; io1.tmp &amp;&amp; diff io1.tmp $(srcdir)/io1.res</test>
+    <author>Daniel Veillard</author>
+    <copy>see Copyright for the status of this software. </copy>
+    <section>InputOutput</section>
+    <includes>
+      <include line='17'>&lt;libxml/parser.h&gt;</include>
+      <include line='18'>&lt;libxml/tree.h&gt;</include>
+      <include line='19'>&lt;libxml/xinclude.h&gt;</include>
+      <include line='20'>&lt;libxml/xmlIO.h&gt;</include>
+    </includes>
+    <uses>
+      <macro line='118' file='xmlversion' name='LIBXML_TEST_VERSION'/>
+      <function line='144' file='tree' name='xmlDocDump'/>
+      <typedef line='106' file='tree' name='xmlDocPtr'/>
+      <function line='150' file='tree' name='xmlFreeDoc'/>
+      <function line='125' file='parser' name='xmlReadMemory'/>
+      <function line='118' file='xmlIO' name='xmlRegisterInputCallbacks'/>
+      <function line='135' file='xinclude' name='xmlXIncludeProcess'/>
+    </uses>
+  </example>
+  <example filename='io2.c'>
+    <synopsis>Output to char buffer</synopsis>
+    <purpose>Demonstrate the use of xmlDocDumpMemory to output document to a character buffer</purpose>
+    <usage>io2</usage>
+    <test>io2 &gt; io2.tmp &amp;&amp; diff io2.tmp $(srcdir)/io2.res</test>
+    <author>John Fleck</author>
+    <copy>see Copyright for the status of this software. </copy>
+    <section>InputOutput</section>
+    <includes>
+      <include line='12'>&lt;libxml/parser.h&gt;</include>
+    </includes>
+    <uses>
+      <function line='36' file='tree' name='xmlDocDumpFormatMemory'/>
+      <typedef line='20' file='tree' name='xmlDocPtr'/>
+      <function line='30' file='tree' name='xmlDocSetRootElement'/>
+      <variable line='42' file='xmlmemory' name='xmlFree'/>
+      <function line='43' file='tree' name='xmlFreeDoc'/>
+      <function line='27' file='tree' name='xmlNewDoc'/>
+      <function line='28' file='tree' name='xmlNewDocNode'/>
+      <typedef line='19' file='tree' name='xmlNodePtr'/>
+      <function line='29' file='tree' name='xmlNodeSetContent'/>
+    </uses>
+  </example>
+  <example filename='parse1.c'>
+    <synopsis>Parse an XML file to a tree and free it</synopsis>
+    <purpose>Demonstrate the use of xmlReadFile() to read an XML file into a tree and xmlFreeDoc() to free the resulting tree</purpose>
+    <usage>parse1 test1.xml</usage>
+    <test>parse1 test1.xml</test>
+    <author>Daniel Veillard</author>
+    <copy>see Copyright for the status of this software. </copy>
+    <section>Parsing</section>
+    <includes>
+      <include line='13'>&lt;libxml/parser.h&gt;</include>
+      <include line='14'>&lt;libxml/tree.h&gt;</include>
+    </includes>
+    <uses>
+      <macro line='45' file='xmlversion' name='LIBXML_TEST_VERSION'/>
+      <typedef line='24' file='tree' name='xmlDocPtr'/>
+      <function line='31' file='tree' name='xmlFreeDoc'/>
+      <function line='26' file='parser' name='xmlReadFile'/>
+    </uses>
+  </example>
+  <example filename='parse2.c'>
+    <synopsis>Parse and validate an XML file to a tree and free the result</synopsis>
+    <purpose>Create a parser context for an XML file, then parse and validate the file, creating a tree, check the validation result and xmlFreeDoc() to free the resulting tree.</purpose>
+    <usage>parse2 test2.xml</usage>
+    <test>parse2 test2.xml</test>
+    <author>Daniel Veillard</author>
+    <copy>see Copyright for the status of this software. </copy>
+    <section>Parsing</section>
+    <includes>
+      <include line='14'>&lt;libxml/parser.h&gt;</include>
+      <include line='15'>&lt;libxml/tree.h&gt;</include>
+    </includes>
+    <uses>
+      <macro line='61' file='xmlversion' name='LIBXML_TEST_VERSION'/>
+      <enum line='35' file='parser' name='XML_PARSE_DTDVALID'/>
+      <function line='35' file='parser' name='xmlCtxtReadFile'/>
+      <typedef line='26' file='tree' name='xmlDocPtr'/>
+      <function line='44' file='tree' name='xmlFreeDoc'/>
+      <function line='47' file='parser' name='xmlFreeParserCtxt'/>
+      <function line='29' file='parser' name='xmlNewParserCtxt'/>
+      <typedef line='25' file='tree' name='xmlParserCtxtPtr'/>
+    </uses>
+  </example>
+  <example filename='parse3.c'>
+    <synopsis>Parse an XML document in memory to a tree and free it</synopsis>
+    <purpose>Demonstrate the use of xmlReadMemory() to read an XML file into a tree and xmlFreeDoc() to free the resulting tree</purpose>
+    <usage>parse3</usage>
+    <test>parse3</test>
+    <author>Daniel Veillard</author>
+    <copy>see Copyright for the status of this software. </copy>
+    <section>Parsing</section>
+    <includes>
+      <include line='13'>&lt;libxml/parser.h&gt;</include>
+      <include line='14'>&lt;libxml/tree.h&gt;</include>
+    </includes>
+    <uses>
+      <macro line='49' file='xmlversion' name='LIBXML_TEST_VERSION'/>
+      <typedef line='27' file='tree' name='xmlDocPtr'/>
+      <function line='38' file='tree' name='xmlFreeDoc'/>
+      <function line='33' file='parser' name='xmlReadMemory'/>
+    </uses>
+  </example>
+  <example filename='parse4.c'>
+    <synopsis>Parse an XML document chunk by chunk to a tree and free it</synopsis>
+    <purpose>Demonstrate the use of xmlCreatePushParserCtxt() and xmlParseChunk() to read an XML file progressively into a tree and xmlFreeDoc() to free the resulting tree</purpose>
+    <usage>parse4 test3.xml</usage>
+    <test>parse4 test3.xml</test>
+    <author>Daniel Veillard</author>
+    <copy>see Copyright for the status of this software. </copy>
+    <section>Parsing</section>
+    <includes>
+      <include line='14'>&lt;libxml/parser.h&gt;</include>
+      <include line='15'>&lt;libxml/tree.h&gt;</include>
+    </includes>
+    <uses>
+      <macro line='120' file='xmlversion' name='LIBXML_TEST_VERSION'/>
+      <function line='67' file='parser' name='xmlCreatePushParserCtxt'/>
+      <typedef line='47' file='tree' name='xmlDocPtr'/>
+      <function line='103' file='tree' name='xmlFreeDoc'/>
+      <function line='94' file='parser' name='xmlFreeParserCtxt'/>
+      <function line='80' file='parser' name='xmlParseChunk'/>
+      <typedef line='45' file='tree' name='xmlParserCtxtPtr'/>
+    </uses>
+  </example>
+  <example filename='reader1.c'>
+    <synopsis>Parse an XML file with an xmlReader</synopsis>
+    <purpose>Demonstrate the use of xmlReaderForFile() to parse an XML file and dump the information about the nodes found in the process. (Note that the XMLReader functions require libxml2 version later than 2.6.)</purpose>
+    <usage>reader1 &lt;filename&gt;</usage>
+    <test>reader1 test2.xml &gt; reader1.tmp &amp;&amp; diff reader1.tmp $(srcdir)/reader1.res</test>
+    <author>Daniel Veillard</author>
+    <copy>see Copyright for the status of this software. </copy>
+    <section>xmlReader</section>
+    <includes>
+      <include line='15'>&lt;libxml/xmlreader.h&gt;</include>
+    </includes>
+    <uses>
+      <macro line='89' file='xmlversion' name='LIBXML_TEST_VERSION'/>
+      <function line='69' file='xmlreader' name='xmlFreeTextReader'/>
+      <function line='62' file='xmlreader' name='xmlReaderForFile'/>
+      <function line='44' file='xmlstring' name='xmlStrlen'/>
+      <function line='29' file='xmlreader' name='xmlTextReaderConstName'/>
+      <function line='33' file='xmlreader' name='xmlTextReaderConstValue'/>
+      <function line='36' file='xmlreader' name='xmlTextReaderDepth'/>
+      <function line='40' file='xmlreader' name='xmlTextReaderHasValue'/>
+      <function line='39' file='xmlreader' name='xmlTextReaderIsEmptyElement'/>
+      <function line='37' file='xmlreader' name='xmlTextReaderNodeType'/>
+      <typedef line='59' file='xmlreader' name='xmlTextReaderPtr'/>
+      <function line='64' file='xmlreader' name='xmlTextReaderRead'/>
+    </uses>
+  </example>
+  <example filename='reader2.c'>
+    <synopsis>Parse and validate an XML file with an xmlReader</synopsis>
+    <purpose>Demonstrate the use of xmlReaderForFile() to parse an XML file validating the content in the process and activating options like entities substitution, and DTD attributes defaulting. (Note that the XMLReader functions require libxml2 version later than 2.6.)</purpose>
+    <usage>reader2 &lt;valid_xml_filename&gt;</usage>
+    <test>reader2 test2.xml &gt; reader1.tmp &amp;&amp; diff reader1.tmp $(srcdir)/reader1.res</test>
+    <author>Daniel Veillard</author>
+    <copy>see Copyright for the status of this software. </copy>
+    <section>xmlReader</section>
+    <includes>
+      <include line='17'>&lt;libxml/parser.h&gt;</include>
+      <include line='16'>&lt;libxml/xmlreader.h&gt;</include>
+    </includes>
+    <uses>
+      <enum line='70' file='parser' name='XML_PARSE_DTDATTR'/>
+      <enum line='72' file='parser' name='XML_PARSE_DTDVALID'/>
+      <enum line='71' file='parser' name='XML_PARSE_NOENT'/>
+      <function line='85' file='xmlreader' name='xmlFreeTextReader'/>
+      <function line='69' file='xmlreader' name='xmlReaderForFile'/>
+      <function line='46' file='xmlstring' name='xmlStrlen'/>
+      <function line='31' file='xmlreader' name='xmlTextReaderConstName'/>
+      <function line='35' file='xmlreader' name='xmlTextReaderConstValue'/>
+      <function line='38' file='xmlreader' name='xmlTextReaderDepth'/>
+      <function line='42' file='xmlreader' name='xmlTextReaderHasValue'/>
+      <function line='41' file='xmlreader' name='xmlTextReaderIsEmptyElement'/>
+      <function line='82' file='xmlreader' name='xmlTextReaderIsValid'/>
+      <function line='39' file='xmlreader' name='xmlTextReaderNodeType'/>
+      <typedef line='61' file='xmlreader' name='xmlTextReaderPtr'/>
+      <function line='74' file='xmlreader' name='xmlTextReaderRead'/>
+    </uses>
+  </example>
+  <example filename='reader3.c'>
+    <synopsis>Show how to extract subdocuments with xmlReader</synopsis>
+    <purpose>Demonstrate the use of xmlTextReaderPreservePattern() to parse an XML file with the xmlReader while collecting only some subparts of the document. (Note that the XMLReader functions require libxml2 version later than 2.6.)</purpose>
+    <usage>reader3</usage>
+    <test>reader3 &gt; reader3.tmp &amp;&amp; diff reader3.tmp $(srcdir)/reader3.res</test>
+    <author>Daniel Veillard</author>
+    <copy>see Copyright for the status of this software. </copy>
+    <section>xmlReader</section>
+    <includes>
+      <include line='16'>&lt;libxml/xmlreader.h&gt;</include>
+    </includes>
+    <uses>
+      <function line='96' file='tree' name='xmlDocDump'/>
+      <function line='56' file='xmlreader' name='xmlFreeTextReader'/>
+      <function line='38' file='xmlreader' name='xmlReaderForFile'/>
+      <function line='62' file='xmlreader' name='xmlTextReaderCurrentDoc'/>
+      <function line='43' file='xmlreader' name='xmlTextReaderPreservePattern'/>
+      <typedef line='32' file='xmlreader' name='xmlTextReaderPtr'/>
+      <function line='50' file='xmlreader' name='xmlTextReaderRead'/>
+    </uses>
+  </example>
+  <example filename='reader4.c'>
+    <synopsis>Parse multiple XML files reusing an xmlReader</synopsis>
+    <purpose>Demonstrate the use of xmlReaderForFile() and xmlReaderNewFile to parse XML files while reusing the reader object and parser context.  (Note that the XMLReader functions require libxml2 version later than 2.6.)</purpose>
+    <usage>reader4 &lt;filename&gt; [ filename ... ]</usage>
+    <test>reader4 test1.xml test2.xml test3.xml &gt; reader4.tmp &amp;&amp; diff reader4.tmp $(srcdir)/reader4.res</test>
+    <author>Graham Bennett</author>
+    <copy>see Copyright for the status of this software. </copy>
+    <section>xmlReader</section>
+    <includes>
+      <include line='15'>&lt;libxml/xmlreader.h&gt;</include>
+    </includes>
+    <uses>
+      <function line='104' file='xmlreader' name='xmlFreeTextReader'/>
+      <function line='72' file='xmlreader' name='xmlReaderForFile'/>
+      <function line='83' file='xmlreader' name='xmlReaderNewFile'/>
+      <function line='34' file='xmlreader' name='xmlTextReaderCurrentDoc'/>
+      <typedef line='54' file='xmlreader' name='xmlTextReaderPtr'/>
+      <function line='24' file='xmlreader' name='xmlTextReaderRead'/>
+    </uses>
+  </example>
+  <example filename='testWriter.c'>
+    <synopsis>use various APIs for the xmlWriter</synopsis>
+    <purpose>tests a number of APIs for the xmlWriter, especially the various methods to write to a filename, to a memory buffer, to a new document, or to a subtree. It shows how to do encoding string conversions too. The resulting documents are then serialized.</purpose>
+    <usage>testWriter</usage>
+    <test>testWriter &amp;&amp; for i in 1 2 3 4 ; do diff $(srcdir)/writer.xml writer$$i.tmp || break ; done</test>
+    <author>Alfred Mickautsch</author>
+    <copy>see Copyright for the status of this software. </copy>
+    <section>xmlWriter</section>
+    <includes>
+      <include line='16'>&lt;libxml/encoding.h&gt;</include>
+      <include line='18'>&lt;libxml/parser.h&gt;</include>
+      <include line='17'>&lt;libxml/xmlwriter.h&gt;</include>
+    </includes>
+    <uses>
+      <macro line='878' file='parser' name='XML_DEFAULT_VERSION'/>
+      <function line='340' file='tree' name='xmlBufferCreate'/>
+      <function line='606' file='tree' name='xmlBufferFree'/>
+      <typedef line='334' file='tree' name='xmlBufferPtr'/>
+      <typedef line='1144' file='encoding' name='xmlCharEncodingHandlerPtr'/>
+      <function line='894' file='tree' name='xmlDocSetRootElement'/>
+      <function line='1149' file='encoding' name='xmlFindCharEncodingHandler'/>
+      <variable line='106' file='xmlmemory' name='xmlFree'/>
+      <function line='320' file='xmlwriter' name='xmlFreeTextWriter'/>
+      <variable line='1159' file='xmlmemory' name='xmlMalloc'/>
+      <function line='878' file='tree' name='xmlNewDoc'/>
+      <function line='887' file='tree' name='xmlNewDocNode'/>
+      <function line='625' file='xmlwriter' name='xmlNewTextWriterDoc'/>
+      <function line='69' file='xmlwriter' name='xmlNewTextWriterFilename'/>
+      <function line='348' file='xmlwriter' name='xmlNewTextWriterMemory'/>
+      <function line='897' file='xmlwriter' name='xmlNewTextWriterTree'/>
+      <typedef line='873' file='tree' name='xmlNodePtr'/>
+      <variable line='1176' file='xmlmemory' name='xmlRealloc'/>
+      <function line='856' file='tree' name='xmlSaveFileEnc'/>
+      <function line='313' file='xmlwriter' name='xmlTextWriterEndDocument'/>
+      <function line='193' file='xmlwriter' name='xmlTextWriterEndElement'/>
+      <typedef line='65' file='xmlwriter' name='xmlTextWriterPtr'/>
+      <function line='78' file='xmlwriter' name='xmlTextWriterStartDocument'/>
+      <function line='87' file='xmlwriter' name='xmlTextWriterStartElement'/>
+      <function line='117' file='xmlwriter' name='xmlTextWriterWriteAttribute'/>
+      <function line='100' file='xmlwriter' name='xmlTextWriterWriteComment'/>
+      <function line='174' file='xmlwriter' name='xmlTextWriterWriteElement'/>
+      <function line='136' file='xmlwriter' name='xmlTextWriterWriteFormatComment'/>
+      <function line='155' file='xmlwriter' name='xmlTextWriterWriteFormatElement'/>
+    </uses>
+  </example>
+  <example filename='tree1.c'>
+    <synopsis>Navigates a tree to print element names</synopsis>
+    <purpose>Parse a file to a tree, use xmlDocGetRootElement() to get the root element, then walk the document and print all the element name in document order.</purpose>
+    <usage>tree1 filename_or_URL</usage>
+    <test>tree1 test2.xml &gt; tree1.tmp &amp;&amp; diff tree1.tmp $(srcdir)/tree1.res</test>
+    <author>Dodji Seketeli</author>
+    <copy>see Copyright for the status of this software. </copy>
+    <section>Tree</section>
+    <includes>
+      <include line='13'>&lt;libxml/parser.h&gt;</include>
+      <include line='14'>&lt;libxml/tree.h&gt;</include>
+    </includes>
+    <uses>
+      <enum line='36' file='tree' name='XML_ELEMENT_NODE'/>
+      <function line='74' file='tree' name='xmlDocGetRootElement'/>
+      <function line='67' file='parser' name='xmlReadFile'/>
+    </uses>
+  </example>
+  <example filename='tree2.c'>
+    <synopsis>Creates a tree</synopsis>
+    <purpose>Shows how to create document, nodes and dump it to stdout or file.</purpose>
+    <usage>tree2 &lt;filename&gt;  -Default output: stdout</usage>
+    <test>tree2 &gt; tree2.tmp &amp;&amp; diff tree2.tmp $(srcdir)/tree2.res</test>
+    <author>Lucas Brasilino &lt;brasilino@recife.pe.gov.br&gt;</author>
+    <copy>see Copyright for the status of this software </copy>
+    <section>Tree</section>
+    <includes>
+      <include line='12'>&lt;libxml/parser.h&gt;</include>
+      <include line='13'>&lt;libxml/tree.h&gt;</include>
+    </includes>
+    <uses>
+      <function line='76' file='tree' name='xmlAddChild'/>
+      <function line='45' file='tree' name='xmlCreateIntSubset'/>
+      <function line='40' file='tree' name='xmlDocSetRootElement'/>
+      <function line='51' file='tree' name='xmlNewChild'/>
+      <function line='38' file='tree' name='xmlNewDoc'/>
+      <function line='39' file='tree' name='xmlNewDocNode'/>
+      <function line='74' file='tree' name='xmlNewDocText'/>
+      <function line='65' file='tree' name='xmlNewProp'/>
+      <function line='95' file='tree' name='xmlSaveFormatFileEnc'/>
+    </uses>
+  </example>
+  <example filename='xpath1.c'>
+    <synopsis>Evaluate XPath expression and prints result node set.</synopsis>
+    <purpose>Shows how to evaluate XPath expression and register known namespaces in XPath context.</purpose>
+    <usage>xpath1 &lt;xml-file&gt; &lt;xpath-expr&gt; [&lt;known-ns-list&gt;]</usage>
+    <test>xpath1 test3.xml &apos;//child2&apos; &gt; xpath1.tmp &amp;&amp; diff xpath1.tmp $(srcdir)/xpath1.res</test>
+    <author>Aleksey Sanin</author>
+    <copy>see Copyright for the status of this software. </copy>
+    <section>XPath</section>
+    <includes>
+      <include line='17'>&lt;libxml/parser.h&gt;</include>
+      <include line='16'>&lt;libxml/tree.h&gt;</include>
+      <include line='18'>&lt;libxml/xpath.h&gt;</include>
+      <include line='19'>&lt;libxml/xpathInternals.h&gt;</include>
+    </includes>
+    <uses>
+      <enum line='222' file='tree' name='XML_ELEMENT_NODE'/>
+      <enum line='210' file='tree' name='XML_NAMESPACE_DECL'/>
+      <variable line='166' file='xmlmemory' name='xmlFree'/>
+      <function line='39' file='parser' name='xmlInitParser'/>
+      <typedef line='199' file='tree' name='xmlNodePtr'/>
+      <typedef line='211' file='tree' name='xmlNsPtr'/>
+      <function line='87' file='parser' name='xmlParseFile'/>
+      <function line='163' file='xmlstring' name='xmlStrchr'/>
+      <function line='149' file='xmlstring' name='xmlStrdup'/>
+      <typedef line='80' file='xpath' name='xmlXPathContextPtr'/>
+      <function line='110' file='xpath' name='xmlXPathEvalExpression'/>
+      <function line='104' file='xpath' name='xmlXPathFreeContext'/>
+      <function line='122' file='xpath' name='xmlXPathFreeObject'/>
+      <function line='94' file='xpath' name='xmlXPathNewContext'/>
+      <typedef line='81' file='xpath' name='xmlXPathObjectPtr'/>
+      <function line='179' file='xpathInternals' name='xmlXPathRegisterNs'/>
+    </uses>
+  </example>
+  <example filename='xpath2.c'>
+    <synopsis>Load a document, locate subelements with XPath, modify said elements and save the resulting document.</synopsis>
+    <purpose>Shows how to make a full round-trip from a load/edit/save</purpose>
+    <usage>xpath2 &lt;xml-file&gt; &lt;xpath-expr&gt; &lt;new-value&gt;</usage>
+    <test>xpath2 test3.xml &apos;//discarded&apos; discarded &gt; xpath2.tmp &amp;&amp; diff xpath2.tmp $(srcdir)/xpath2.res</test>
+    <author>Aleksey Sanin and Daniel Veillard</author>
+    <copy>see Copyright for the status of this software. </copy>
+    <section>XPath</section>
+    <includes>
+      <include line='17'>&lt;libxml/parser.h&gt;</include>
+      <include line='16'>&lt;libxml/tree.h&gt;</include>
+      <include line='18'>&lt;libxml/xpath.h&gt;</include>
+      <include line='19'>&lt;libxml/xpathInternals.h&gt;</include>
+    </includes>
+    <uses>
+      <enum line='173' file='tree' name='XML_NAMESPACE_DECL'/>
+      <function line='120' file='tree' name='xmlDocDump'/>
+      <function line='41' file='parser' name='xmlInitParser'/>
+      <function line='155' file='tree' name='xmlNodeSetContent'/>
+      <function line='88' file='parser' name='xmlParseFile'/>
+      <typedef line='80' file='xpath' name='xmlXPathContextPtr'/>
+      <function line='103' file='xpath' name='xmlXPathEvalExpression'/>
+      <function line='106' file='xpath' name='xmlXPathFreeContext'/>
+      <function line='116' file='xpath' name='xmlXPathFreeObject'/>
+      <function line='95' file='xpath' name='xmlXPathNewContext'/>
+      <typedef line='81' file='xpath' name='xmlXPathObjectPtr'/>
+    </uses>
+  </example>
+  <symbols>
+    <symbol name='LIBXML_TEST_VERSION'>
+      <ref filename='io1.c'/>
+      <ref filename='parse1.c'/>
+      <ref filename='parse2.c'/>
+      <ref filename='parse3.c'/>
+      <ref filename='parse4.c'/>
+      <ref filename='reader1.c'/>
+    </symbol>
+    <symbol name='XML_DEFAULT_VERSION'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='XML_ELEMENT_NODE'>
+      <ref filename='tree1.c'/>
+      <ref filename='xpath1.c'/>
+    </symbol>
+    <symbol name='XML_NAMESPACE_DECL'>
+      <ref filename='xpath1.c'/>
+      <ref filename='xpath2.c'/>
+    </symbol>
+    <symbol name='XML_PARSE_DTDATTR'>
+      <ref filename='reader2.c'/>
+    </symbol>
+    <symbol name='XML_PARSE_DTDVALID'>
+      <ref filename='parse2.c'/>
+      <ref filename='reader2.c'/>
+    </symbol>
+    <symbol name='XML_PARSE_NOENT'>
+      <ref filename='reader2.c'/>
+    </symbol>
+    <symbol name='xmlAddChild'>
+      <ref filename='tree2.c'/>
+    </symbol>
+    <symbol name='xmlBufferCreate'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlBufferFree'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlBufferPtr'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlCharEncodingHandlerPtr'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlCreateIntSubset'>
+      <ref filename='tree2.c'/>
+    </symbol>
+    <symbol name='xmlCreatePushParserCtxt'>
+      <ref filename='parse4.c'/>
+    </symbol>
+    <symbol name='xmlCtxtReadFile'>
+      <ref filename='parse2.c'/>
+    </symbol>
+    <symbol name='xmlDocDump'>
+      <ref filename='io1.c'/>
+      <ref filename='reader3.c'/>
+      <ref filename='xpath2.c'/>
+    </symbol>
+    <symbol name='xmlDocDumpFormatMemory'>
+      <ref filename='io2.c'/>
+    </symbol>
+    <symbol name='xmlDocGetRootElement'>
+      <ref filename='tree1.c'/>
+    </symbol>
+    <symbol name='xmlDocPtr'>
+      <ref filename='io1.c'/>
+      <ref filename='io2.c'/>
+      <ref filename='parse1.c'/>
+      <ref filename='parse2.c'/>
+      <ref filename='parse3.c'/>
+      <ref filename='parse4.c'/>
+    </symbol>
+    <symbol name='xmlDocSetRootElement'>
+      <ref filename='io2.c'/>
+      <ref filename='testWriter.c'/>
+      <ref filename='tree2.c'/>
+    </symbol>
+    <symbol name='xmlFindCharEncodingHandler'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlFree'>
+      <ref filename='io2.c'/>
+      <ref filename='testWriter.c'/>
+      <ref filename='xpath1.c'/>
+    </symbol>
+    <symbol name='xmlFreeDoc'>
+      <ref filename='io1.c'/>
+      <ref filename='io2.c'/>
+      <ref filename='parse1.c'/>
+      <ref filename='parse2.c'/>
+      <ref filename='parse3.c'/>
+      <ref filename='parse4.c'/>
+    </symbol>
+    <symbol name='xmlFreeParserCtxt'>
+      <ref filename='parse2.c'/>
+      <ref filename='parse4.c'/>
+    </symbol>
+    <symbol name='xmlFreeTextReader'>
+      <ref filename='reader1.c'/>
+      <ref filename='reader2.c'/>
+      <ref filename='reader3.c'/>
+      <ref filename='reader4.c'/>
+    </symbol>
+    <symbol name='xmlFreeTextWriter'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlInitParser'>
+      <ref filename='xpath1.c'/>
+      <ref filename='xpath2.c'/>
+    </symbol>
+    <symbol name='xmlMalloc'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlNewChild'>
+      <ref filename='tree2.c'/>
+    </symbol>
+    <symbol name='xmlNewDoc'>
+      <ref filename='io2.c'/>
+      <ref filename='testWriter.c'/>
+      <ref filename='tree2.c'/>
+    </symbol>
+    <symbol name='xmlNewDocNode'>
+      <ref filename='io2.c'/>
+      <ref filename='testWriter.c'/>
+      <ref filename='tree2.c'/>
+    </symbol>
+    <symbol name='xmlNewDocText'>
+      <ref filename='tree2.c'/>
+    </symbol>
+    <symbol name='xmlNewParserCtxt'>
+      <ref filename='parse2.c'/>
+    </symbol>
+    <symbol name='xmlNewProp'>
+      <ref filename='tree2.c'/>
+    </symbol>
+    <symbol name='xmlNewTextWriterDoc'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlNewTextWriterFilename'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlNewTextWriterMemory'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlNewTextWriterTree'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlNodePtr'>
+      <ref filename='io2.c'/>
+      <ref filename='testWriter.c'/>
+      <ref filename='xpath1.c'/>
+    </symbol>
+    <symbol name='xmlNodeSetContent'>
+      <ref filename='io2.c'/>
+      <ref filename='xpath2.c'/>
+    </symbol>
+    <symbol name='xmlNsPtr'>
+      <ref filename='xpath1.c'/>
+    </symbol>
+    <symbol name='xmlParseChunk'>
+      <ref filename='parse4.c'/>
+    </symbol>
+    <symbol name='xmlParseFile'>
+      <ref filename='xpath1.c'/>
+      <ref filename='xpath2.c'/>
+    </symbol>
+    <symbol name='xmlParserCtxtPtr'>
+      <ref filename='parse2.c'/>
+      <ref filename='parse4.c'/>
+    </symbol>
+    <symbol name='xmlReadFile'>
+      <ref filename='parse1.c'/>
+      <ref filename='tree1.c'/>
+    </symbol>
+    <symbol name='xmlReadMemory'>
+      <ref filename='io1.c'/>
+      <ref filename='parse3.c'/>
+    </symbol>
+    <symbol name='xmlReaderForFile'>
+      <ref filename='reader1.c'/>
+      <ref filename='reader2.c'/>
+      <ref filename='reader3.c'/>
+      <ref filename='reader4.c'/>
+    </symbol>
+    <symbol name='xmlReaderNewFile'>
+      <ref filename='reader4.c'/>
+    </symbol>
+    <symbol name='xmlRealloc'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlRegisterInputCallbacks'>
+      <ref filename='io1.c'/>
+    </symbol>
+    <symbol name='xmlSaveFileEnc'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlSaveFormatFileEnc'>
+      <ref filename='tree2.c'/>
+    </symbol>
+    <symbol name='xmlStrchr'>
+      <ref filename='xpath1.c'/>
+    </symbol>
+    <symbol name='xmlStrdup'>
+      <ref filename='xpath1.c'/>
+    </symbol>
+    <symbol name='xmlStrlen'>
+      <ref filename='reader1.c'/>
+      <ref filename='reader2.c'/>
+    </symbol>
+    <symbol name='xmlTextReaderConstName'>
+      <ref filename='reader1.c'/>
+      <ref filename='reader2.c'/>
+    </symbol>
+    <symbol name='xmlTextReaderConstValue'>
+      <ref filename='reader1.c'/>
+      <ref filename='reader2.c'/>
+    </symbol>
+    <symbol name='xmlTextReaderCurrentDoc'>
+      <ref filename='reader3.c'/>
+      <ref filename='reader4.c'/>
+    </symbol>
+    <symbol name='xmlTextReaderDepth'>
+      <ref filename='reader1.c'/>
+      <ref filename='reader2.c'/>
+    </symbol>
+    <symbol name='xmlTextReaderHasValue'>
+      <ref filename='reader1.c'/>
+      <ref filename='reader2.c'/>
+    </symbol>
+    <symbol name='xmlTextReaderIsEmptyElement'>
+      <ref filename='reader1.c'/>
+      <ref filename='reader2.c'/>
+    </symbol>
+    <symbol name='xmlTextReaderIsValid'>
+      <ref filename='reader2.c'/>
+    </symbol>
+    <symbol name='xmlTextReaderNodeType'>
+      <ref filename='reader1.c'/>
+      <ref filename='reader2.c'/>
+    </symbol>
+    <symbol name='xmlTextReaderPreservePattern'>
+      <ref filename='reader3.c'/>
+    </symbol>
+    <symbol name='xmlTextReaderPtr'>
+      <ref filename='reader1.c'/>
+      <ref filename='reader2.c'/>
+      <ref filename='reader3.c'/>
+      <ref filename='reader4.c'/>
+    </symbol>
+    <symbol name='xmlTextReaderRead'>
+      <ref filename='reader1.c'/>
+      <ref filename='reader2.c'/>
+      <ref filename='reader3.c'/>
+      <ref filename='reader4.c'/>
+    </symbol>
+    <symbol name='xmlTextWriterEndDocument'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlTextWriterEndElement'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlTextWriterPtr'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlTextWriterStartDocument'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlTextWriterStartElement'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlTextWriterWriteAttribute'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlTextWriterWriteComment'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlTextWriterWriteElement'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlTextWriterWriteFormatComment'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlTextWriterWriteFormatElement'>
+      <ref filename='testWriter.c'/>
+    </symbol>
+    <symbol name='xmlXIncludeProcess'>
+      <ref filename='io1.c'/>
+    </symbol>
+    <symbol name='xmlXPathContextPtr'>
+      <ref filename='xpath1.c'/>
+      <ref filename='xpath2.c'/>
+    </symbol>
+    <symbol name='xmlXPathEvalExpression'>
+      <ref filename='xpath1.c'/>
+      <ref filename='xpath2.c'/>
+    </symbol>
+    <symbol name='xmlXPathFreeContext'>
+      <ref filename='xpath1.c'/>
+      <ref filename='xpath2.c'/>
+    </symbol>
+    <symbol name='xmlXPathFreeObject'>
+      <ref filename='xpath1.c'/>
+      <ref filename='xpath2.c'/>
+    </symbol>
+    <symbol name='xmlXPathNewContext'>
+      <ref filename='xpath1.c'/>
+      <ref filename='xpath2.c'/>
+    </symbol>
+    <symbol name='xmlXPathObjectPtr'>
+      <ref filename='xpath1.c'/>
+      <ref filename='xpath2.c'/>
+    </symbol>
+    <symbol name='xmlXPathRegisterNs'>
+      <ref filename='xpath1.c'/>
+    </symbol>
+  </symbols>
+  <sections>
+    <section name='InputOutput'>
+      <example filename='io1.c'/>
+      <example filename='io2.c'/>
+    </section>
+    <section name='Parsing'>
+      <example filename='parse1.c'/>
+      <example filename='parse2.c'/>
+      <example filename='parse3.c'/>
+      <example filename='parse4.c'/>
+    </section>
+    <section name='Tree'>
+      <example filename='tree1.c'/>
+      <example filename='tree2.c'/>
+    </section>
+    <section name='XPath'>
+      <example filename='xpath1.c'/>
+      <example filename='xpath2.c'/>
+    </section>
+    <section name='xmlReader'>
+      <example filename='reader1.c'/>
+      <example filename='reader2.c'/>
+      <example filename='reader3.c'/>
+      <example filename='reader4.c'/>
+    </section>
+    <section name='xmlWriter'>
+      <example filename='testWriter.c'/>
+    </section>
+  </sections>
+</examples>

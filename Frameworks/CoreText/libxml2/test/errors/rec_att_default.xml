@@ -1,0 +1,6 @@
+<!DOCTYPE doc SYSTEM "N" [
+  <!ENTITY a "&b;">
+  <!ATTLIST x y CDATA "&a;">
+  <!ENTITY b "&a;">
+]>
+<doc attr="&a;"/>

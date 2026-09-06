@@ -1,32 +1,25 @@
-FRAMEWORK=CoreText
-.include "../framework.common.mk"
+WARNS = 1
+MK_WERROR = no
 
-SRCS= CTFont.m KTFont.m
-INCS= CoreText.h CoreTextExport.h CTFont.h KTFont.h
-RESOURCES=Info.plist 
-LDFLAGS+= -Wl,--no-undefined -L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework \
-	-lOnyx2D -Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
-	-L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework -lCoreGraphics \
-	-Wl,-R/System/Library/Frameworks/CoreGraphics.framework/Versions/A \
-	-L${OBJTOP}/Frameworks/Foundation/Foundation.framework -lFoundation \
-	-Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
-	-L${OBJTOP}/tmp/usr/lib -lxml2 -lintl -lobjc -lmach
-WARNS= 1
-MK_WERROR= no
+FRAMEWORK = CoreText
 
-SUBDIR+=	gperf .WAIT
-SUBDIR+=	fontconfig
-LINK_SUBDIR=	fontconfig/src
-LINK_EXCLUDE.fontconfig/src= fcarch.o
+SRCS = CTFont.m KTFont.m
+HEADERS = CoreText.h CoreTextExport.h CTFont.h KTFont.h
+RESOURCES = Info.plist
+LDFLAGS = -framework Onyx2D -framework CoreGraphics -framework Foundation \
+	-L${.OBJDIR}/xml2 -lxml2 -lintl -lobjc
+
+SUBDIR = xz libxml2 gperf .WAIT	fontconfig
+LINK_SUBDIR = fontconfig/src
+LINK_EXCLUDE.fontconfig/src = fcarch.o
+
+${FRAMEWORK}: xz libxml2
+libxml2: xz
 
 clean:
-	rm -f ${MAKEOBJDIR}/*.o ${MAKEOBJDIR}/*.pico
+	rm -f ${.OBJDIR}/*.o ${.OBJDIR}/*.pico
 
-.include <rvn.framework.mk>
-
-CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers \
-	 -I${.CURDIR}/.. -I${.CURDIR}/fontconfig/fontconfig \
-	 -F${OBJTOP}/Frameworks/OpenGL
+CFLAGS = -I${.CURDIR:H}  -I${.CURDIR}/fontconfig/fontconfig
 
 fontresources:
 	cp -fv ${.CURDIR}/fontconfig/conf.d/*.conf ${FRAMEWORK_DIR}/Versions/A/Resources/
@@ -55,8 +48,11 @@ fontresources:
 	69-unifont.conf \
 	70-yes-bitmaps.conf \
 	80-delicious.conf \
-	90-synthetic.conf 
-	ln -sf /System/Library/Frameworks/CoreText.framework/Resources/${f} ${BUILDROOT}/etc/fonts/conf.d/
+	90-synthetic.conf
+	ln -sf /System/Library/Frameworks/CoreText.framework/Resources/${f} \
+		${SYSROOT_DIR}/etc/fonts/conf.d/
 .endfor
 
 installresources: std_install_hook fontresources
+
+.include <rvn.framework.mk>
