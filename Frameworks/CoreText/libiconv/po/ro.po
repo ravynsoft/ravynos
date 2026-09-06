@@ -1,0 +1,354 @@
+# Mesajele în limba română pentru pachetul libiconv.
+# Copyright (C) 2003 Free Software Foundation, Inc.
+# This file is distributed under the same license as the libiconv package.
+#
+# Eugen Hoanca <eugenh@urban-grafx.ro>, 2003.
+# Traducere făcută de EH, pentru versiunea libiconv 1.9.1.
+# Acest fișier este distribuit sub aceeași licență ca și pachetul libiconv
+# Actualizare a mesajelor, de la fișierul „libiconv-1.15-pre1.pot”.
+# Actualizare a codării caracteror, la codarea de caractere UTF-8.
+# Actualizare a diacriticelor de la „cu sedilă” la „cu virgulă”.
+# Actualizare a algoritmului formelor de plural (de la „două” la „trei”).
+# NU și a mesajelor traduse (acestea au rămas neschimbate).
+# Eliminare a mesajelor ce-au dispărut în ultima versiune.
+# Actualizări realizate de Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>, 15.01.2022.
+# Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libiconv-1.17-pre1\n"
+"Report-Msgid-Bugs-To: bug-gnu-libiconv@gnu.org\n"
+"POT-Creation-Date: 2022-02-12 13:29+0100\n"
+"PO-Revision-Date: 2022-02-19 16:51+0100\n"
+"Last-Translator: Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>\n"
+"Language-Team: Romanian <translation-team-ro@lists.sourceforge.net>\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2);\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#. TRANSLATORS: The first line of the short usage message.
+#: src/iconv.c:104
+msgid "Usage: iconv [-c] [-s] [-f fromcode] [-t tocode] [file ...]"
+msgstr "Utilizare: iconv [-c] [-s] [-f codificarea_originală] [-t codificarea_dorită] [fișier ...]"
+
+#. TRANSLATORS: The second line of the short usage message.
+#. Align it correctly against the first line.
+#: src/iconv.c:108
+msgid "or:    iconv -l"
+msgstr "sau:   iconv -l"
+
+#: src/iconv.c:110
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "Încercați „%s --help” pentru mai multe informații.\n"
+
+#. TRANSLATORS: The first line of the long usage message.
+#. The %s placeholder expands to the program name.
+#: src/iconv.c:115
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION...] [-f ENCODING] [-t ENCODING] [INPUTFILE...]\n"
+msgstr "Utilizare: %s [OPȚIUNI...] [-f CODIFICAREA] [-t CODIFICAREA] [FIȘIER...]\n"
+
+#. TRANSLATORS: The second line of the long usage message.
+#. Align it correctly against the first line.
+#. The %s placeholder expands to the program name.
+#: src/iconv.c:122
+#, c-format, no-wrap
+msgid "or:    %s -l\n"
+msgstr "sau:   %s -l\n"
+
+#. TRANSLATORS: Description of the iconv program.
+#: src/iconv.c:128
+#, c-format, no-wrap
+msgid "Converts text from one encoding to another encoding.\n"
+msgstr "Convertește textul dintr-o codificare într-o altă codificare.\n"
+
+#: src/iconv.c:132
+#, c-format, no-wrap
+msgid "Options controlling the input and output format:\n"
+msgstr "Opțiuni care controlează formatul de intrare și de ieșire:\n"
+
+#: src/iconv.c:135
+#, c-format, no-wrap
+msgid ""
+"  -f ENCODING, --from-code=ENCODING\n"
+"                              the encoding of the input\n"
+msgstr ""
+"  -f CODIFICAREA, --from-code=CODIFICAREA\n"
+"                              \n"
+
+#: src/iconv.c:139
+#, c-format, no-wrap
+msgid ""
+"  -t ENCODING, --to-code=ENCODING\n"
+"                              the encoding of the output\n"
+msgstr ""
+"  -t CODIFICAREA, --to-code=CODIFICAREA\n"
+"                              codificarea de la ieșire(finală)\n"
+
+#: src/iconv.c:144
+#, c-format, no-wrap
+msgid "Options controlling conversion problems:\n"
+msgstr "Opțiuni care controlează problemele de conversie:\n"
+
+#: src/iconv.c:147
+#, c-format, no-wrap
+msgid "  -c                          discard unconvertible characters\n"
+msgstr "  -c                          ignoră caracterele neconvertibile\n"
+
+#: src/iconv.c:150
+#, c-format, no-wrap
+msgid ""
+"  --unicode-subst=FORMATSTRING\n"
+"                              substitution for unconvertible Unicode characters\n"
+msgstr ""
+"  --unicode-subst=ȘIR_SUBSTITUTIV\n"
+"                              realizează substituirea caracterelor Unicode neconvertibile\n"
+
+#: src/iconv.c:154
+#, c-format, no-wrap
+msgid "  --byte-subst=FORMATSTRING   substitution for unconvertible bytes\n"
+msgstr "  --byte-subst=ȘIR_SUBSTITUTIV  realizează substituirea octeților neconvertibili\n"
+
+#: src/iconv.c:157
+#, c-format, no-wrap
+msgid ""
+"  --widechar-subst=FORMATSTRING\n"
+"                              substitution for unconvertible wide characters\n"
+msgstr ""
+"  --widechar-subst=ȘIR_SUBSTITUTIV\n"
+"                              realizează substituirea caracterelor largi neconvertibile\n"
+
+#: src/iconv.c:162
+#, c-format, no-wrap
+msgid "Options controlling error output:\n"
+msgstr "Opțiuni care controlează afișarea mesajelor de eroare:\n"
+
+#: src/iconv.c:165
+#, c-format, no-wrap
+msgid "  -s, --silent                suppress error messages about conversion problems\n"
+msgstr "  -s, --silent                suprimă mesajele de eroare referitoare la problemele de conversie\n"
+
+#: src/iconv.c:169
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "Afișare informații:\n"
+
+#: src/iconv.c:172
+#, c-format, no-wrap
+msgid "  -l, --list                  list the supported encodings\n"
+msgstr "  -l, --list                  afișează într-o listă, codificările suportate\n"
+
+#: src/iconv.c:175
+#, c-format, no-wrap
+msgid "  --help                      display this help and exit\n"
+msgstr "  --help                      afișează acest ajutor și iese\n"
+
+#: src/iconv.c:178
+#, c-format, no-wrap
+msgid "  --version                   output version information and exit\n"
+msgstr "  --version                   afișează informații despre versiune și iese\n"
+
+#. TRANSLATORS: The first placeholder is the web address of the Savannah
+#. project of this package.  The second placeholder is the bug-reporting
+#. email address for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/iconv.c:186
+#, c-format
+msgid ""
+"Report bugs in the bug tracker at <%s>\n"
+"or by email to <%s>.\n"
+msgstr ""
+"Raportați erorile în sistemul de urmărire a defecțiunilor la <%s>\n"
+"sau prin e-mail la <%s>.\n"
+"Raportați erorile de traducere la <translation-team-ro@lists.sourceforge.net>\n"
+
+#. TRANSLATORS: The %s placeholder is the web address of the GPL license.
+#: src/iconv.c:202
+#, c-format, no-wrap
+msgid ""
+"License GPLv3+: GNU GPL version 3 or later <%s>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"Licența GPLv3+: GNU GPL versiunea 3 sau mai mare <%s>.\n"
+"Acesta este software liber: sunteți liber să îl modificați și să îl redistribuiți.\n"
+"NU există NICIO GARANȚIE, în măsura permisă de lege.\n"
+
+#. TRANSLATORS: The %s placeholder expands to an author's name.
+#: src/iconv.c:208
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Scris de %s.\n"
+
+#. TRANSLATORS: An error message.
+#. The %s placeholder expands to a command-line option.
+#: src/iconv.c:302
+#, c-format
+msgid "%s argument: A format directive with a variable width is not allowed here."
+msgstr "Argumentul %s: o directivă de format cu o lățime variabilă nu este permisă aici."
+
+#. TRANSLATORS: An error message.
+#. The %s placeholder expands to a command-line option.
+#: src/iconv.c:317
+#, c-format
+msgid "%s argument: A format directive with a variable precision is not allowed here."
+msgstr "Argumentul %s: o directivă de format cu o precizie variabilă nu este permisă aici."
+
+#. TRANSLATORS: An error message.
+#. The %s placeholder expands to a command-line option.
+#: src/iconv.c:333
+#, c-format
+msgid "%s argument: A format directive with a size is not allowed here."
+msgstr "Argumentul %s: o directivă de format cu o dimensiune nu este permisă aici."
+
+#. TRANSLATORS: An error message.
+#. The %s placeholder expands to a command-line option.
+#: src/iconv.c:375
+#, c-format
+msgid "%s argument: The string ends in the middle of a directive."
+msgstr "Argumentul %s: șirul se termină în mijlocul unei directive."
+
+#. TRANSLATORS: An error message.
+#. The %s placeholder expands to a command-line option.
+#. The %c placeholder expands to an unknown format directive.
+#: src/iconv.c:382
+#, c-format
+msgid "%s argument: The character '%c' is not a valid conversion specifier."
+msgstr "Argumentul %s: caracterul „%c” nu este un specificator de conversie valid."
+
+#. TRANSLATORS: An error message.
+#. The %s placeholder expands to a command-line option.
+#: src/iconv.c:388
+#, c-format
+msgid "%s argument: The character that terminates the format directive is not a valid conversion specifier."
+msgstr "Argumentul %s: caracterul care termină directiva de format nu este un specificator de conversie valid."
+
+#. TRANSLATORS: An error message.
+#. The %s placeholder expands to a command-line option.
+#. The %u placeholder expands to the number of arguments consumed by the format string.
+#: src/iconv.c:404
+#, c-format
+msgid "%s argument: The format string consumes more than one argument: %u argument."
+msgid_plural "%s argument: The format string consumes more than one argument: %u arguments."
+msgstr[0] "Argumentul %s: șirul substitutiv consumă mai mult de un argument: %u argument."
+msgstr[1] "Argumentul %s: șirul substitutiv consumă mai mult de un argument: %u argumente."
+msgstr[2] "Argumentul %s: șirul substitutiv consumă mai mult de un argument: %u de argumente."
+
+#. TRANSLATORS: An error message.
+#. The %s placeholder expands to a piece of text, specified through --byte-subst.
+#: src/iconv.c:462
+#, c-format
+msgid "cannot convert byte substitution to Unicode: %s"
+msgstr "nu se poate converti șirul substitutiv de octeți în Unicode: %s"
+
+#. TRANSLATORS: An error message.
+#. The %s placeholder expands to a piece of text, specified through --unicode-subst.
+#: src/iconv.c:502
+#, c-format
+msgid "cannot convert unicode substitution to target encoding: %s"
+msgstr "nu se poate converti șirul substitutiv Unicode în codificarea dorită: %s"
+
+#. TRANSLATORS: An error message.
+#. The %s placeholder expands to a piece of text, specified through --byte-subst.
+#: src/iconv.c:543
+#, c-format
+msgid "cannot convert byte substitution to wide string: %s"
+msgstr "nu se poate converti șirul substitutiv de octeți într-un șir larg: %s"
+
+#. TRANSLATORS: An error message.
+#. The %s placeholder expands to a piece of text, specified through --widechar-subst.
+#: src/iconv.c:584
+#, c-format
+msgid "cannot convert widechar substitution to target encoding: %s"
+msgstr "nu se poate converti șirul substitutiv de caracter larg(widechar) la codificarea dorită: %s"
+
+#. TRANSLATORS: An error message.
+#. The %s placeholder expands to a piece of text, specified through --byte-subst.
+#: src/iconv.c:625
+#, c-format
+msgid "cannot convert byte substitution to target encoding: %s"
+msgstr "nu se poate converti șirul substitutiv de octeți la codificarea dorită: %s"
+
+#. TRANSLATORS: An error message.
+#. The placeholders expand to the input file name, a line number, and a column number.
+#: src/iconv.c:644
+#, c-format
+msgid "%s:%u:%u: cannot convert"
+msgstr "%s:%u:%u: nu se poate converti"
+
+#. TRANSLATORS: An error message.
+#. The placeholders expand to the input file name, a line number, and a column number.
+#. A "shift sequence" is a sequence of bytes that changes the state of the converter;
+#. this concept exists only for "stateful" encodings like ISO-2022-JP.
+#: src/iconv.c:658
+#, c-format
+msgid "%s:%u:%u: incomplete character or shift sequence"
+msgstr "%s:%u:%u: caracter incomplet sau secvență de schimbare incompletă"
+
+#. TRANSLATORS: The first part of an error message.
+#. It is followed by a colon and a detail message.
+#. The placeholders expand to the input file name, a line number, and a column number.
+#: src/iconv.c:671
+#, c-format
+msgid "%s:%u:%u"
+msgstr "%s:%u:%u"
+
+#. TRANSLATORS: An error message.
+#. The placeholder expands to the input file name.
+#: src/iconv.c:832
+#, c-format
+msgid "%s: I/O error"
+msgstr "%s: eroare de In/Ieș(I/O)"
+
+#. TRANSLATORS: An error message.
+#. The placeholder expands to the encoding name, specified through --from-code.
+#: src/iconv.c:1030
+#, c-format
+msgid "conversion from %s unsupported"
+msgstr "conversia de la %s nu este suportată"
+
+#. TRANSLATORS: An error message.
+#. The placeholder expands to the encoding name, specified through --to-code.
+#: src/iconv.c:1036
+#, c-format
+msgid "conversion to %s unsupported"
+msgstr "conversia la %s nu este suportată"
+
+#. TRANSLATORS: An error message.
+#. The placeholders expand to the encoding names, specified through --from-code and --to-code, respectively.
+#: src/iconv.c:1042
+#, c-format
+msgid "conversion from %s to %s unsupported"
+msgstr "conversia de la %s la %s nu este suportată"
+
+#. TRANSLATORS: Additional advice after an error message.
+#. The %s placeholder expands to the program name.
+#: src/iconv.c:1047
+#, c-format
+msgid "try '%s -l' to get the list of supported encodings"
+msgstr "încercați „%s -l” pentru a obține lista de codificări suportate"
+
+#. TRANSLATORS: A filename substitute denoting standard input.
+#: src/iconv.c:1104
+msgid "(stdin)"
+msgstr "(stdin)»intrarea standard«"
+
+#. TRANSLATORS: The first part of an error message.
+#. It is followed by a colon and a detail message.
+#. The %s placeholder expands to the input file name.
+#: src/iconv.c:1116
+#, c-format
+msgid "%s"
+msgstr "%s"
+
+#. TRANSLATORS: An error message.
+#: src/iconv.c:1130
+#, c-format
+msgid "I/O error"
+msgstr "Eroare de In/Ieș(I/O)"

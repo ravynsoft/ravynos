@@ -6,6 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#import <sys/param.h>
 #import <AppKit/AppKit.h>
 #import <AppKit/NSColorPickerColorList.h>
 #import <AppKit/NSColorPickerSliders.h>
@@ -38,7 +39,7 @@ static NSUInteger    _pickerMask=0;
    if(_colorPanel==nil){
     if(![NSBundle loadNibNamed:@"NSColorPanel" owner:self])
      NSLog(@"Cannot load NSColorPanel.nib");
-    
+
     if(![_colorPanel setFrameUsingName:@"NSColorPanel"])
      [_colorPanel center];
 
@@ -49,7 +50,7 @@ static NSUInteger    _pickerMask=0;
 }
 
 +(void)setPickerMask:(NSUInteger)mask {
-    if (_colorPanel == nil)	// only works if color panel is not yet created
+    if (_colorPanel == nil) // only works if color panel is not yet created
         _pickerMask=mask;
 }
 
@@ -100,17 +101,17 @@ static NSUInteger    _pickerMask=0;
 -(void)awakeFromNib {
     // time to load the color pickers. theoretically we should be searching all the /Library/ColorPickers out there, but...
     NSArray *colorPickersClassArray=[NSArray arrayWithObjects:
-									[NSColorPickerWheel class],
-									[NSColorPickerSliders class],
+                                    [NSColorPickerWheel class],
+                                    [NSColorPickerSliders class],
 #if 0
                                      // Disabled to see if it fixes a nib instantiation issue
                                      [NSColorPickerColorList class],
 #endif
-									nil];
+                                    nil];
     unsigned i,count=[colorPickersClassArray count];
 
     [colorWell setBordered:NO];
-    
+
    _colorPickers=[[NSMutableArray alloc] init];
    [colorPickersMatrix renewRows:1 columns:count];
 
@@ -129,7 +130,7 @@ static NSUInteger    _pickerMask=0;
 
    [colorPickersMatrix selectCellAtRow:0 column:0];
    [self swapInNewView:colorPickersMatrix];
-   
+
    [opacityTitle setHidden:YES];
    [opacitySlider setHidden:YES];
    [opacityTextField setHidden:YES];
@@ -171,24 +172,24 @@ static NSUInteger    _pickerMask=0;
 
 - (NSColorPicker*)_selectedColorPicker
 {
-	int index = [colorPickersMatrix selectedTag];
-	NSColorPicker *picker = [_colorPickers objectAtIndex: index];
-	return picker;
+    int index = [colorPickersMatrix selectedTag];
+    NSColorPicker *picker = [_colorPickers objectAtIndex: index];
+    return picker;
 }
 
 -(void)setColor:(NSColor *)color {
    [colorWell setColor:color];
    [self setColorButtonClicked:nil];
-	
-	NSColorPicker *picker = [self _selectedColorPicker];
-	if ([picker respondsToSelector: @selector(setColor:)]) {
-		[picker setColor: color];
-	}
+
+    NSColorPicker *picker = [self _selectedColorPicker];
+    if ([picker respondsToSelector: @selector(setColor:)]) {
+        [picker setColor: color];
+    }
     float alpha = [color alphaComponent];
     [opacitySlider setFloatValue: alpha * 100.f];
     [opacityTextField setFloatValue: alpha * 100.f];
-    
-   [[NSNotificationQueue defaultQueue] enqueueNotification:[NSNotification notificationWithName:NSColorPanelColorDidChangeNotification object:self] postingStyle:NSPostNow coalesceMask:NSNotificationCoalescingOnName forModes:nil];  
+
+   [[NSNotificationQueue defaultQueue] enqueueNotification:[NSNotification notificationWithName:NSColorPanelColorDidChangeNotification object:self] postingStyle:NSPostNow coalesceMask:NSNotificationCoalescingOnName forModes:nil];
 }
 
 -(void)setMode:(NSColorPanelMode)mode {
@@ -201,14 +202,14 @@ static NSUInteger    _pickerMask=0;
    [opacitySlider setHidden:_showsAlpha?NO:YES];
    [opacityTextField setHidden:_showsAlpha?NO:YES];
    [opacityPercentLabel setHidden:_showsAlpha?NO:YES];
-	
-	if (_showsAlpha) {
-		// Update the controls!
-		NSColor* color = [self color];
-		float alpha = [color alphaComponent];
-		[opacitySlider setFloatValue: alpha * 100.f];
-		[opacityTextField setFloatValue: alpha * 100.f];
-	}
+
+    if (_showsAlpha) {
+        // Update the controls!
+        NSColor* color = [self color];
+        float alpha = [color alphaComponent];
+        [opacitySlider setFloatValue: alpha * 100.f];
+        [opacityTextField setFloatValue: alpha * 100.f];
+    }
 }
 
 -(void)setContinuous:(BOOL)flag {
@@ -239,13 +240,12 @@ static NSUInteger    _pickerMask=0;
    CGFloat  alpha=MIN(MAX(0.0,[sender floatValue]/100.0),1.0);
    NSColor *color=[[self color] colorWithAlphaComponent:alpha];
 
-	if (sender == opacitySlider) {
-		[opacityTextField setFloatValue: [sender floatValue]];
-	} else {
-		[opacitySlider setFloatValue: [sender floatValue]];
-	}
+    if (sender == opacitySlider) {
+        [opacityTextField setFloatValue: [sender floatValue]];
+    } else {
+        [opacitySlider setFloatValue: [sender floatValue]];
+    }
    [self setColor:color];
 }
 
 @end
-

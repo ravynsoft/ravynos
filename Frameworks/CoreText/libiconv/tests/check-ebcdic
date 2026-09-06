@@ -1,0 +1,81 @@
+#!/bin/sh
+# Check of ICONV_EBCDIC_ZOS_UNIX environment variable.
+set -e
+host_os="$1"
+iconv=../src/iconv_no_i18n
+
+# This test is only meaningful when the EBCDIC encodings are included.
+if $iconv -l | grep IBM-1047 > /dev/null; then
+
+  if test "${host_os}" = 'openedition' ; then
+    # On z/OS, make all the files 'untagged'
+    rm -f tmp-ok-lf tmp-ok-nel tmp-ok-x15 tmp-ok-x25
+    touch tmp-ok-lf
+    touch tmp-ok-nel
+    touch tmp-ok-x15
+    touch tmp-ok-x25
+    chtag -r tmp-ok-lf
+    chtag -r tmp-ok-nel
+    chtag -r tmp-ok-x15
+    chtag -r tmp-ok-x25
+  fi
+
+  printf '\150\145\154\154\157\012' > tmp-ok-lf
+  printf '\150\145\154\154\157\302\205' > tmp-ok-nel
+
+  printf '\210\205\223\223\226\025' > tmp-ok-x15
+  printf '\210\205\223\223\226\045' > tmp-ok-x25
+
+  # Check that by default, EBCDIC 0x15 maps to U+0085.
+  unset ICONV_EBCDIC_ZOS_UNIX
+
+  $iconv -f UTF-8 -t IBM-1047 < tmp-ok-nel > tmp-out1
+  $iconv -f ASCII -t IBM-1047 < tmp-ok-lf > tmp-out2
+  cmp tmp-out1 tmp-ok-x15
+  cmp tmp-out2 tmp-ok-x25
+
+  $iconv -f IBM-1047 -t UTF-8 < tmp-ok-x15 > tmp-out1
+  $iconv -f IBM-1047 -t ASCII < tmp-ok-x25 > tmp-out2
+  cmp tmp-out1 tmp-ok-nel
+  cmp tmp-out2 tmp-ok-lf
+
+  # Check that with the ZOS_UNIX surface, EBCDIC 0x15 maps to U+000A.
+
+  $iconv -f ASCII -t IBM-1047/ZOS_UNIX < tmp-ok-lf > tmp-out1
+  $iconv -f UTF-8 -t IBM-1047/ZOS_UNIX < tmp-ok-nel > tmp-out2
+  cmp tmp-out1 tmp-ok-x15
+  cmp tmp-out2 tmp-ok-x25
+
+  $iconv -f IBM-1047/ZOS_UNIX -t ASCII < tmp-ok-x15 > tmp-out1
+  $iconv -f IBM-1047/ZOS_UNIX -t UTF-8 < tmp-ok-x25 > tmp-out2
+  cmp tmp-out1 tmp-ok-lf
+  cmp tmp-out2 tmp-ok-nel
+
+  # Check that the ZOS_UNIX surface can be used with //TRANSLIT and //IGNORE.
+
+  printf '\357\275\210\342\204\257\360\235\232\225\360\235\232\225\342\200\242\n' \
+    | $iconv -f UTF-8 -t IBM-1047/ZOS_UNIX/TRANSLIT > tmp-out1
+  cmp tmp-out1 tmp-ok-x15
+
+  printf 'hello\342\202\254\n' \
+    | $iconv -f UTF-8 -t IBM-1047/ZOS_UNIX/IGNORE > tmp-out1
+  cmp tmp-out1 tmp-ok-x15
+
+  # Check that with a specific environment variable, EBCDIC 0x15 maps to U+000A.
+  ICONV_EBCDIC_ZOS_UNIX=1
+  export ICONV_EBCDIC_ZOS_UNIX
+
+  $iconv -f ASCII -t IBM-1047 < tmp-ok-lf > tmp-out1
+  $iconv -f UTF-8 -t IBM-1047 < tmp-ok-nel > tmp-out2
+  cmp tmp-out1 tmp-ok-x15
+  cmp tmp-out2 tmp-ok-x25
+
+  $iconv -f IBM-1047 -t ASCII < tmp-ok-x15 > tmp-out1
+  $iconv -f IBM-1047 -t UTF-8 < tmp-ok-x25 > tmp-out2
+  cmp tmp-out1 tmp-ok-lf
+  cmp tmp-out2 tmp-ok-nel
+
+  rm -f tmp-in* tmp-out* tmp-ok*
+fi
+
+exit 0

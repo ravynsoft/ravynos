@@ -75,7 +75,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     NSValue *obj = [notification object];
     NSLog(@"Got command event with data: %d:%d",[obj pointValue].x,[obj pointValue].y);
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-}   
+}
 
 - (void)_w32loadMenuItem:(NSMenuItem *)item withIdentifier:(int)i intoMenu:(HMENU)menu{
     if([item hasSubmenu]){
@@ -115,40 +115,40 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (void)_setHICONFromImage:(NSImage *)image{
     //Taken from NSCursor.m
-    
+
     /// move to the platform files
     size_t width=[self length];
     size_t height=width;
-    
+
     CGColorSpaceRef    colorSpace=CGColorSpaceCreateDeviceRGB();
     CGContextRef       context=CGBitmapContextCreate(NULL,width,height,8,0,colorSpace,kCGImageAlphaPremultipliedFirst|kCGBitmapByteOrder32Little);
     CGColorSpaceRelease(colorSpace);
-    
+
     NSAutoreleasePool *pool=[NSAutoreleasePool new];
     NSGraphicsContext *graphicsContext=[NSGraphicsContext graphicsContextWithGraphicsPort:context flipped:NO];
-    
+
     [NSGraphicsContext saveGraphicsState];
     [NSGraphicsContext setCurrentContext:graphicsContext];
-    
+
     [image drawInRect:NSMakeRect(0,0,width,height) fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
-    
+
     [NSGraphicsContext restoreGraphicsState];
-    
+
     [pool release];
-    
+
     uint8_t *rowBytes=CGBitmapContextGetData(context);
     size_t   bytesPerRow=CGBitmapContextGetBytesPerRow(context);
-    
+
     HDC displayDC=GetDC(NULL);
     HBITMAP colorBitmap;
     HBITMAP maskBitmap;
-    
+
     if(NSPlatformGreaterThanOrEqualToWindows2000()){
-        // Cursor with alpha channel, no mask. Win2k and above 
+        // Cursor with alpha channel, no mask. Win2k and above
         BITMAPV5HEADER bi;
         void          *lpBits;
         uint8_t       *dibRowBytes;
-        
+
         ZeroMemory(&bi,sizeof(BITMAPV5HEADER));
         bi.bV5Size=sizeof(BITMAPV5HEADER);
         bi.bV5Width=width;
@@ -160,14 +160,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         bi.bV5GreenMask=0x0000FF00;
         bi.bV5BlueMask=0x000000FF;
         bi.bV5AlphaMask=0xFF000000;
-        
+
         colorBitmap=CreateDIBSection(displayDC,(BITMAPINFO *)&bi,DIB_RGB_COLORS,&lpBits,NULL,0);
         dibRowBytes=lpBits;
-        
+
         maskBitmap=CreateBitmap(width,height,1,1,NULL);
         int row,column;
-        
-        for(row=0;row<height;row++,rowBytes+=bytesPerRow,dibRowBytes+=width*4){    
+
+        for(row=0;row<height;row++,rowBytes+=bytesPerRow,dibRowBytes+=width*4){
             for(column=0;column<width;column++){
                 dibRowBytes[column*4]=rowBytes[column*4];
                 dibRowBytes[column*4+1]=rowBytes[column*4+1];
@@ -175,29 +175,29 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 dibRowBytes[column*4+3]=rowBytes[column*4+3];
             }
         }
-        
+
     }
     else {
         // This works for versions lower than 2k, not really needed, but here.
         HDC colorDC=CreateCompatibleDC(displayDC);
         HDC maskDC=CreateCompatibleDC(displayDC);
-        
+
         colorBitmap=CreateCompatibleBitmap(displayDC,width,height);
         maskBitmap=CreateCompatibleBitmap(displayDC,width,height);
-        
-        
+
+
         HBITMAP oldColorBitmap=SelectObject(colorDC,colorBitmap);
         HBITMAP oldMaskBitmap=SelectObject(maskDC,maskBitmap);
-        
+
         int      row,column;
-        
-        for(row=0;row<height;row++,rowBytes+=bytesPerRow){    
+
+        for(row=0;row<height;row++,rowBytes+=bytesPerRow){
             for(column=0;column<width;column++){
                 uint8_t b=rowBytes[column*4];
                 uint8_t g=rowBytes[column*4+1];
                 uint8_t r=rowBytes[column*4+2];
                 uint8_t a=rowBytes[column*4+3];
-                
+
                 if(a<255){
                     SetPixel(colorDC,column,row,RGB(r,g,b));
                     SetPixel(maskDC,column,row,RGB(255,255,255));
@@ -212,21 +212,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         SelectObject(maskDC,oldMaskBitmap);
         DeleteDC(colorDC);
         DeleteDC(maskDC);
-        
+
     }
-    
+
     ReleaseDC(NULL,displayDC);
-    
+
     CGContextRelease(context);
-    
+
     ICONINFO iconInfo;
-    
+
     iconInfo.fIcon=FALSE;
     iconInfo.hbmMask=maskBitmap;
     iconInfo.hbmColor=colorBitmap;
-    
+
     _trayIcon=CreateIconIndirect(&iconInfo);
-    
+
     DeleteObject(colorBitmap);
     DeleteObject(maskBitmap);
 }
@@ -245,7 +245,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         _trayIconID = -1;
         _win32Menu = NULL;
 #endif
-	_handle = 0xf00fbabe; // ZMK FIXME: mach msg
+    _handle = 0xf00fbabe; // ZMK FIXME: mach msg
     }
     return self;
 }
@@ -402,7 +402,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         NSLog(@"win32Menu is null!");
     }
 #endif
-}                                                        
+}
 
 - (NSInteger)sendActionOn:(NSInteger)mask{
     int previousMask = _actionMask;
@@ -438,32 +438,32 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(id)initWithCoder:(NSCoder *)coder {
     if([coder allowsKeyedCoding]){
-	NSKeyedUnarchiver *keyed = (NSKeyedUnarchiver *)coder;
-	NSString *actionString = [keyed decodeObjectForKey:@"NSAction"];
-	if (actionString)
-	    _action = NSSelectorFromString(actionString);
-	actionString = [keyed decodeObjectForKey:@"NSDoubleAction"];
-	if (actionString)
-	    _doubleAction = NSSelectorFromString(actionString);
-	_target = [keyed decodeObjectForKey:@"NSTarget"];
-	_image = [keyed decodeObjectForKey:@"NSImage"];
-	_alternateImage = [keyed decodeObjectForKey:@"NSAlternateImage"];
-	_atrTitle = [keyed decodeObjectForKey:@"NSAttributedTitle"];
-	_title = [keyed decodeObjectForKey:@"NSTitle"];
-	_view = [keyed decodeObjectForKey:@"NSView"];
-	_highlightMode = [keyed decodeBoolForKey:@"NSHighlightMode"];
-	_enabled = [keyed decodeBoolForKey:@"NSEnabled"];
-	_length = [keyed decodeFloatForKey:@"NSLength"];
-	_menu = [keyed decodeObjectForKey:@"NSMenu"];
-	_actionMask = [keyed decodeIntegerForKey:@"NSActionMask"];
-	_handle = [keyed decodeIntForKey:@"NSHandle"];
+    NSKeyedUnarchiver *keyed = (NSKeyedUnarchiver *)coder;
+    NSString *actionString = [keyed decodeObjectForKey:@"NSAction"];
+    if (actionString)
+        _action = NSSelectorFromString(actionString);
+    actionString = [keyed decodeObjectForKey:@"NSDoubleAction"];
+    if (actionString)
+        _doubleAction = NSSelectorFromString(actionString);
+    _target = [keyed decodeObjectForKey:@"NSTarget"];
+    _image = [keyed decodeObjectForKey:@"NSImage"];
+    _alternateImage = [keyed decodeObjectForKey:@"NSAlternateImage"];
+    _atrTitle = [keyed decodeObjectForKey:@"NSAttributedTitle"];
+    _title = [keyed decodeObjectForKey:@"NSTitle"];
+    _view = [keyed decodeObjectForKey:@"NSView"];
+    _highlightMode = [keyed decodeBoolForKey:@"NSHighlightMode"];
+    _enabled = [keyed decodeBoolForKey:@"NSEnabled"];
+    _length = [keyed decodeFloatForKey:@"NSLength"];
+    _menu = [keyed decodeObjectForKey:@"NSMenu"];
+    _actionMask = [keyed decodeIntegerForKey:@"NSActionMask"];
+    _handle = [keyed decodeIntForKey:@"NSHandle"];
         _toolTip = [keyed decodeObjectForKey:@"NSToolTip"];
         _visible = [keyed decodeBoolForKey:@"NSVisible"];
         _behavior = [keyed decodeIntForKey:@"NSBehavior"];
         _autosaveName = [keyed decodeObjectForKey:@"NSAutosaveName"];
     } else {
-	[NSException raise:NSInvalidArgumentException
-	    format:@"%@ can not initWithCoder:%@", isa, [coder class]];
+    [NSException raise:NSInvalidArgumentException
+        format:@"%@ can not initWithCoder:%@", [self class], [coder class]];
     }
     return self;
 }

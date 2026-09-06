@@ -1,0 +1,54 @@
+#!/bin/sh
+test "$1" = "--version" && {
+	echo "autopoint (GNU gettext-tools-compatible) 99.99"
+	exit 0
+}
+
+m4src=@datadir@/m4
+
+get_m4_serial() {
+	sed -n -e '/^#.* serial /s;^#.* serial \([^ ]*\).*;\1;p' "$@"
+}
+
+if ! test -e configure.ac ; then
+	echo "$0: error: configure.ac not found" >&2
+	exit 1
+fi
+
+mkdir -p m4 intl po
+for i in $m4src/*.m4 ; do
+	dest="m4/$(basename "$i")"
+	if test -f "$dest"; then
+		serial_dest="$(get_m4_serial "$dest")"
+		serial_gettext="$(get_m4_serial "$i")"
+
+		test "$serial_dest" -ge "$serial_gettext" && continue
+	fi
+
+	cp -f $i m4/
+done
+
+dirprefix=""
+while read line
+do
+  if [ "${line##*AC_CONFIG_AUX_DIR}" != "$line" ]; then
+    dirprefix="${line##*'(['}"
+    dirprefix="${dirprefix%%'])'*}"
+    mkdir -p "${dirprefix}"
+  fi
+  
+  if [ "${line##*po/Makefile.in}" != "$line" ]; then
+    poprefix="${line##*'['}"
+    poprefix="${poprefix%%po/Makefile.in*}"
+    install -D -m 644 @datadir@/data/autopoint_Makefile.in "./${poprefix}/po/Makefile.in.in"
+  fi
+done < "configure.ac"
+
+touch "./${dirprefix}/config.rpath" ABOUT-NLS
+
+for i in intl/Makefile.in po/Makefile.in.in ; do
+	install -D -m 644 @datadir@/data/autopoint_Makefile.in "$i"
+done
+
+install -D -m 644 @datadir@/data/Makevars.template po/Makevars.template
+true

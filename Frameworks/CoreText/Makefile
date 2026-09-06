@@ -7,14 +7,14 @@ SRCS = CTFont.m KTFont.m
 HEADERS = CoreText.h CoreTextExport.h CTFont.h KTFont.h
 RESOURCES = Info.plist
 LDFLAGS = -framework Onyx2D -framework CoreGraphics -framework Foundation \
-	-L${.OBJDIR}/xml2 -lxml2 -lintl -lobjc
+	-framework CoreFoundation -L${.OBJDIR}/libxml2 -lxml2 -lintl -lobjc
 
-SUBDIR = xz libxml2 gperf .WAIT	fontconfig
-LINK_SUBDIR = fontconfig/src
-LINK_EXCLUDE.fontconfig/src = fcarch.o
+SUBDIR = xz libiconv libxml2 #gperf .WAIT fontconfig
+#LINK_SUBDIR = fontconfig/src
+#LINK_EXCLUDE.fontconfig/src = fcarch.o
 
-${FRAMEWORK}: xz libxml2
-libxml2: xz
+${FRAMEWORK}: xz libiconv libxml2
+libxml2: xz libiconv
 
 clean:
 	rm -f ${.OBJDIR}/*.o ${.OBJDIR}/*.pico
@@ -54,5 +54,11 @@ fontresources:
 .endfor
 
 installresources: std_install_hook fontresources
+
+fmwk-install-hook:
+.for dir in ${RAVYN_SDKROOT}/System/Library/Frameworks/ ${SYSROOT_DIR}/System/Library/Frameworks/
+	mkdir -p ${dir}
+	cp -Rf ${.OBJDIR}/${FRAMEWORK}.framework ${dir}
+.endfor
 
 .include <rvn.framework.mk>

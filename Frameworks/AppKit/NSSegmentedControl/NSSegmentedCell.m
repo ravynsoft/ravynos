@@ -6,6 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#import <sys/param.h>
 #import <AppKit/NSSegmentedCell.h>
 #import <AppKit/NSRaise.h>
 #import "NSSegmentItem.h"
@@ -20,12 +21,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 // For manually created segment cells
 - (id)initImageCell:(NSImage *)image {
-	if ((self = [super initImageCell:image])) {
-		_segments = [[NSMutableArray arrayWithCapacity:5] retain];
-		_selectedSegment = NSNotFound; // initially empty
-		_trackingMode = NSSegmentSwitchTrackingSelectOne; // default
-	}
-	return self;
+   if ((self = [super initImageCell:image])) {
+      _segments = [[NSMutableArray arrayWithCapacity:5] retain];
+      _selectedSegment = NSNotFound; // initially empty
+      _trackingMode = NSSegmentSwitchTrackingSelectOne; // default
+   }
+   return self;
 }
 
 - (id)initTextCell:(NSString *)str {
@@ -35,7 +36,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 // For nib created segment cells
 - (id)initWithCoder:(NSCoder *)coder {
    [super initWithCoder:coder];
-   
+
    _segments = [[coder decodeObjectForKey:@"NSSegmentImages"] retain];
    if ( !_segments)
     _segments = [[NSMutableArray arrayWithCapacity:5] retain];
@@ -44,14 +45,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     _selectedSegment = [coder decodeIntForKey:@"NSSelectedSegment"];
    else
     _selectedSegment = NSNotFound;
-    
+
    _trackingMode = [coder decodeIntForKey:@"NSTrackingMode"];
 
    [self _recomputeSegmentWidths];
 
    return self;
 }
-   
+
 -(void)dealloc {
    [_segments release];
    [_segmentComputedWidths release];
@@ -101,17 +102,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -(NSImageScaling)imageScalingForSegment:(NSInteger)segment {
    return [[_segments objectAtIndex:segment] imageScaling];
 }
-   
+
 -(NSInteger)selectedSegment {
-   
+
    if(_selectedSegment==NSNotFound) {
       int i,count=[_segments count];
-   
+
       for(i=0;i<count;i++)
          if([[_segments objectAtIndex:i] isSelected])
             return i;
    }
-   
+
    return _selectedSegment;
 }
 
@@ -120,18 +121,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(void)setSegmentCount:(NSInteger)count {
-	int currentCount = [_segments count];
-	if (count == currentCount) return;
-	if (count > currentCount) {
-		while ([_segments count] < count) {
-			NSSegmentItem* item = [[[NSSegmentItem alloc] init] autorelease];
-			[_segments addObject: item];
-		}
-	} else {
-		while ([_segments count] > count) {
-			[_segments removeLastObject];
-		}
-	}
+   int currentCount = [_segments count];
+   if (count == currentCount) return;
+   if (count > currentCount) {
+      while ([_segments count] < count) {
+         NSSegmentItem* item = [[[NSSegmentItem alloc] init] autorelease];
+         [_segments addObject: item];
+      }
+   } else {
+      while ([_segments count] > count) {
+         [_segments removeLastObject];
+      }
+   }
     [self _recomputeSegmentWidths];
 }
 
@@ -179,7 +180,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(BOOL)selectSegmentWithTag:(NSInteger)tag {
-   int i,count=[_segments count];   
+   int i,count=[_segments count];
    for(i=0;i<count;i++)
     if([[_segments objectAtIndex:i] tag]==tag){
        [self setSelectedSegment:i];
@@ -223,12 +224,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     [cell setTitle:label];
     [cell setFont:[self font]];
     [cell setControlSize:[self controlSize]];
-    
+
     [cell setHighlighted:[segment isSelected]];
-	
-	// The control is enabled/disabled as a whole
+
+   // The control is enabled/disabled as a whole
     [cell setEnabled:[self isEnabled]];
-    
+
     NSImage *image=[segment image];
     if(image)
     {
@@ -236,7 +237,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         // a button cell is created as a text cell - so we need to say that we want
         // image dimming
         [cell setImageDimsWhenDisabled: YES];
-        
+
         if([label length])
         {
             [cell setImagePosition:NSImageLeft];
@@ -250,9 +251,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     } else {
         [cell setImagePosition:NSNoImage];
     }
-    
+
     [cell setLineBreakMode:NSLineBreakByTruncatingTail];
-    
+
     return cell;
 }
 
@@ -266,7 +267,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    CGFloat x = 0;
    NSDictionary *textAttrs = nil;
 
-   int i,count=[_segments count];   
+   int i,count=[_segments count];
    for(i=0;i<count;i++) {
     NSSegmentItem *segment = [_segments objectAtIndex:i];
     double w = [segment width];
@@ -280,7 +281,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)drawSegment:(NSInteger)idx inFrame:(NSRect)frame withView:(NSView *)view {
    NSButtonCell *cell=[self _cellForSegment:idx];
-    
+
    [cell setControlView:view];
    [cell drawWithFrame:frame inView:view];
 }
@@ -289,21 +290,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
    int i=0, count=[self segmentCount];
    NSRect segmentFrame=cellFrame;
-   
+
    if ([_segmentComputedWidths count]!=count)
     [self _recomputeSegmentWidths];
-   
+
    for(i=0; i<count; i++) {
       segmentFrame.size.width=[[_segmentComputedWidths objectAtIndex:i] doubleValue];
-	   [NSGraphicsContext saveGraphicsState];
-	   // Make sure that segment drawing is not allowed to spill out into other segments
-	   NSBezierPath* clipPath = [NSBezierPath bezierPathWithRect: segmentFrame];
-	   [clipPath addClip];
-	   [self drawSegment:i inFrame:segmentFrame withView:controlView];
-	   [NSGraphicsContext restoreGraphicsState];
-	   segmentFrame.origin.x+=segmentFrame.size.width;
+      [NSGraphicsContext saveGraphicsState];
+      // Make sure that segment drawing is not allowed to spill out into other segments
+      NSBezierPath* clipPath = [NSBezierPath bezierPathWithRect: segmentFrame];
+      [clipPath addClip];
+      [self drawSegment:i inFrame:segmentFrame withView:controlView];
+      [NSGraphicsContext restoreGraphicsState];
+      segmentFrame.origin.x+=segmentFrame.size.width;
    }
-   
+
    _lastDrawRect=cellFrame;
 }
 
@@ -334,10 +335,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
    if ([_segmentComputedWidths count]!=count)
     [self _recomputeSegmentWidths];
-   
+
    for(i=0; i<count; i++) {
       NSSegmentItem *item=[_segments objectAtIndex:i];
-      
+
       segmentFrame.size.width=[[_segmentComputedWidths objectAtIndex:i] doubleValue];
       if(NSPointInRect(point, segmentFrame)) {
          return i;
@@ -364,13 +365,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (BOOL)continueTracking:(NSPoint)lastPoint at:(NSPoint)currentPoint inView:(NSView *)controlView {
    currentPoint=[controlView convertPoint:currentPoint fromView:nil];
    lastPoint=[controlView convertPoint:lastPoint fromView:nil];
-   
+
    NSSegmentItem *trackingItem=[_segments objectAtIndex:_firstTrackingSegmentIndex];
    if(![trackingItem isEnabled])
       return YES;
 
    int currentSegmentIdx=[self _segmentForPoint:currentPoint];
-   
+
    // change segments state depending on if inside or outside
    if(currentSegmentIdx==_firstTrackingSegmentIndex)  // we're inside, so switch state relative to initial state
    {
@@ -380,7 +381,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    {
       [trackingItem setSelected:_firstTrackingSegmentInitialState];
    }
-   
+
    [controlView setNeedsDisplayInRect:_lastDrawRect];
 
    return YES;
@@ -388,11 +389,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (void)stopTracking:(NSPoint)lastPoint at:(NSPoint)stopPoint inView:(NSView *)controlView mouseIsUp:(BOOL)flag {
    [self continueTracking:lastPoint at:stopPoint inView:controlView];
-   
+
    NSSegmentItem *trackingItem=[_segments objectAtIndex:_firstTrackingSegmentIndex];
    if(![trackingItem isEnabled])
       return;
-   
+
    [self willChangeValueForKey:@"selectedSegment"];
    _selectedSegment=NSNotFound;
    // if segment is still switched, it'll be the new "selected segment"
@@ -433,30 +434,30 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       }
    }
    [self didChangeValueForKey:@"selectedSegment"];
-   
+
 }
 
 -(BOOL)trackMouse:(NSEvent *)event inRect:(NSRect)cellFrame ofView:(NSView *)controlView untilMouseUp:(BOOL)flag {
    NSPoint        startPoint=[event locationInWindow];
    NSInteger      segmentUnderMouse=[self _segmentForPoint:[controlView convertPoint:startPoint fromView:nil]];
-   
+
    if(segmentUnderMouse==NSNotFound)
     return YES;
-    
+
    NSSegmentItem *trackingItem=[_segments objectAtIndex:segmentUnderMouse];
 
    if(![trackingItem isEnabled])
       return YES;
 
    NSMenu *menu=[trackingItem menu];
-   
+
    if(menu==nil)
     return [super trackMouse:event inRect:cellFrame ofView:controlView untilMouseUp:flag];
-   
+
    [self setSelectedSegment:segmentUnderMouse];
-   
+
    [NSMenu popUpContextMenu:menu withEvent:event forView:controlView];
-   
+
    return YES;
 }
 
@@ -466,7 +467,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(id)_replacementKeyPathForBinding:(id)binding {
     if([binding isEqual:@"selectedIndex"])
-		return @"selectedSegment";
+      return @"selectedSegment";
     return [super _replacementKeyPathForBinding:binding];
 }
 

@@ -1,0 +1,44 @@
+# This is the developer's makefile, not the user's makefile.
+# Don't use it unless you know exactly what you do!
+
+SHELL = /bin/sh
+MAKE = make
+AUTOCONF = autoconf
+AUTOHEADER = autoheader
+ACLOCAL = aclocal-1.18
+CP = cp
+RM = rm -f
+
+all : configures include/libcharset.h.build.in include/localcharset.h.build.in
+
+autoconf/aclocal.m4 : $(wildcard m4/*.m4)
+	test -d autoconf || mkdir autoconf
+	$(ACLOCAL) -I m4 --output=$@ && rm -rf autom4te.cache
+
+configures : configure config.h.in
+
+configure : configure.ac autoconf/aclocal.m4
+	$(AUTOCONF) --include autoconf && rm -rf autom4te.cache
+
+config.h.in : configure.ac autoconf/aclocal.m4
+	$(AUTOHEADER) --include autoconf && rm -rf autom4te.cache
+	touch config.h.in
+
+include/libcharset.h.build.in : include/libcharset.h.in include/export.h
+	cat $< \
+	| sed -e 's/extern \([^"]\)/extern LIBCHARSET_SHLIB_EXPORTED \1/' \
+	      -e '/#define _LIBCHARSET_H/r include/export.h' \
+	| sed -e '/#define _LIBCHARSET_H/,/[*][/]$$/{/#define _LIBCHARSET_H/!d;}' \
+	  > $@
+
+include/localcharset.h.build.in : include/localcharset.h.in include/export.h
+	cat $< \
+	| sed -e 's/extern \([^"]\)/extern LIBCHARSET_SHLIB_EXPORTED \1/' \
+	      -e '/#define _LOCALCHARSET_H/r include/export.h' \
+	| sed -e '/#define _LOCALCHARSET_H/,/[*][/]$$/{/#define _LOCALCHARSET_H/!d;}' \
+	  > $@
+
+totally-clean : force
+	rm -f autoconf/aclocal.m4 configure config.h.in include/libcharset.h.build.in include/localcharset.h.build.in
+
+force :

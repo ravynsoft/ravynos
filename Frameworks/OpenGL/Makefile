@@ -1,12 +1,10 @@
-FRAMEWORK=OpenGL
-SUBDIR+=        libpciaccess
-SUBDIR+=        libdrm 
+FRAMEWORK = OpenGL
 
-.include "../framework.common.mk"
-
-MK_INSTALLLIB= no
-SRCS=	OpenGL.c 
-INCS= \
+SUBDIR =
+MK_INSTALLLIB = no
+MK_WERROR = no
+SRCS =	OpenGL.c
+HEADERS = \
 	include/CGLCurrent.h \
 	include/CGLTypes.h \
 	include/gl.h \
@@ -21,27 +19,15 @@ INCS= \
         include/eglmesaext.h \
         include/eglplatform.h \
         include/khrplatform.h
-RESOURCES=      Info.plist
+RESOURCES = Info.plist
 
-CFLAGS+= ${FMWK_CFLAGS} -I${SRCTOP}/Frameworks -I${.CURDIR}/include 
-CFLAGS+= -I${SRCTOP}/Frameworks/Foundation/Headers
-CFLAGS+= -I${.CURDIR}/libpciaccess/include
-LDFLAGS+= -Llibdrm -Llibpciaccess -ldrm -lpciaccess -lstdc++ -lstdthreads \
-	  -Wl,--no-as-needed -Wl,-R\$$ORIGIN
-LD_LIBRARY_PATH+= ${OBJTOP}/tmp/lib
-LD_LIBRARY_PATH+= ${OBJTOP}/tmp/usr/lib
-.export LD_LIBRARY_PATH
+CFLAGS = -I${ROOT_SOURCE_DIR}/Frameworks -I${.CURDIR}/include \
+	-I${ROOT_SOURCE_DIR}/Frameworks/Foundation/Headers
 
-_libinstall_hook:
-	echo ${FRAMEWORK} ${.TARGET}
-	cp -fv libpciaccess/libpciaccess.so.0 ${FRAMEWORK}.framework/Versions/${FMWK_VERSION}/
-	cp -fv libdrm/libdrm.so.2 ${FRAMEWORK}.framework/Versions/${FMWK_VERSION}/
-.for inc in ${INCS}
-	cp -fv ${.CURDIR}/${inc} ${FRAMEWORK}.framework/Headers/
+fmwk-install-hook:
+.for dir in ${RAVYN_SDKROOT}/System/Library/Frameworks/ ${SYSROOT_DIR}/System/Library/Frameworks/
+	mkdir -p ${dir}
+	cp -Rf ${.OBJDIR}/${FRAMEWORK}.framework ${dir}
 .endfor
 
-
 .include <rvn.framework.mk>
-
-installresources: std_install_hook
-_libinstall: _libinstall_hook

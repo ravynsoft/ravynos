@@ -263,7 +263,7 @@ SRCS = \
     O2Context_builtin_FT.m
 
 
-INCS = \
+HEADERS = \
     AppKit.h \
     AppKitExport.h \
     CoreData_/NSPersistentDocument.h \
@@ -533,9 +533,7 @@ INCS = \
     nib.subproj/NSWindowTemplate.h \
     KTFont_FT.h \
     O2Context_builtin_FT.h \
-    O2Font_FT.h \
-    ${.CURDIR:H}/CoreGraphics/CGEvent.h
-
+    O2Font_FT.h
 
 RESOURCES = Info.plist en.lproj de.lproj fr.lproj \
 	NSToolbar.subproj/NSToolbarPrintItem.tiff \
@@ -623,7 +621,11 @@ make-obj-dirs: .PHONY
 fmwkclean:
 	rm -rf ${.CURDIR}/Headers
 
-_install-hook:
+clean-deps:
+	rm -f .depend.*
+
+
+fmwk-install-hook:
 	cp -fv lib${FRAMEWORK} ${FRAMEWORK}.framework/Versions/Current/
 	mv ${FRAMEWORK}.framework/Resources/NSKeyboardBinding/StandardKeyBindings.keyBindings \
 		${FRAMEWORK}.framework/Resources/
@@ -636,9 +638,10 @@ _install-hook:
 	cp -av ${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
 	mkdir -pv ${BUILDROOT}/System/Library/KeyboardLayout
 	${MAKE} -C ${.CURDIR}/xkeyboard-config install DESTDIR=${DIR}
-
-clean-deps:
-	rm -f .depend.*
+.for dir in ${RAVYN_SDKROOT}/System/Library/Frameworks/ ${SYSROOT_DIR}/System/Library/Frameworks/
+	mkdir -p ${dir}
+	cp -Rf ${.OBJDIR}/${FRAMEWORK}.framework ${dir}
+.endfor
 
 .include <rvn.framework.mk>
 

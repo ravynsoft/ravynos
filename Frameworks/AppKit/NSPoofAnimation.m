@@ -5,6 +5,7 @@
 //  Copyright (c) 2013 plasq. All rights reserved.
 //
 
+#import <sys/param.h>
 #import "NSPoofAnimation.h"
 
 static const float kAnimationDuration = .3;
@@ -108,25 +109,25 @@ static const float kAnimationDuration = .3;
         .origin = location,
         .size = size
     };
-    
+
     // Create a transparent window with a poof view - it will be closed when the animation is done
     NSWindow *window = [[NSWindow alloc] initWithContentRect:r styleMask:NSBorderlessWindowMask backing:NSBackingStoreBuffered defer:NO];
     [window setHasShadow:NO];
-    
+
     NSPoofView *poofView = [[[NSPoofView alloc] initWithFrame:window.frame] autorelease];
     [poofView setAnimationDelegate:animationDelegate];
     [poofView setDidEndSelector:didEndSelector];
     [poofView setContextInfo:contextInfo];
-    
+
     [window setContentView: poofView];
     [window setLevel: kCGScreenSaverWindowLevelKey];
-    
+
     [window setReleasedWhenClosed:YES];
-    
+
     [window setOpaque: NO];
     [window setBackgroundColor:[NSColor clearColor]];
     [window orderFront:nil];
-    
+
     NSTimer *timer = [NSTimer timerWithTimeInterval:kAnimationDuration/([NSPoofView numberOfPoofImages] - 1) target:poofView selector:@selector(poof:) userInfo:nil repeats:YES] ;
     [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
     [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];

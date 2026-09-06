@@ -1,0 +1,44 @@
+#!/bin/sh
+# Check that files on z/OS are properly tagged with their CCSIDs
+set -e
+host_os="$1"
+iconv=../src/iconv_no_i18n
+
+# This test is only meaningful on z/OS (previously called OS/390)
+rc=0
+if test "${host_os}" = 'openedition' ; then
+
+  printf 'hello' | $iconv -f ISO8859-1 -t IBM-1047 > tmp-tag-1
+  if ls -T tmp-tag-1 | grep -v 'IBM-1047' ; then
+    echo "tmp-tag-1 is not correctly tagged as IBM-1047." >&2
+    rc=1
+  fi
+  printf 'hello' | $iconv -f ISO8859-1 -t IBM-1047 >tmp-tag-ebcdic
+
+  $iconv -f IBM-1047 -t ISO-8859-2 <tmp-tag-ebcdic > tmp-tag-2
+  if ls -T tmp-tag-2 | grep -v 'ISO8859-2' ; then
+    echo "tmp-tag-2 is not correctly tagged as ISO8859-2." >&2
+    rc=1
+  fi
+  $iconv -f IBM-1047 -t CP037 <tmp-tag-ebcdic > tmp-tag-7
+  if ls -T tmp-tag-7 | grep -v 'IBM-037' ; then
+    echo "tmp-tag-7 is not correctly tagged as IBM-037." >&2
+    rc=1
+  fi
+  $iconv -f IBM-1047 -t UTF-8 <tmp-tag-ebcdic > tmp-tag-8
+  if ls -T tmp-tag-8 | grep -v 'UTF-8' ; then
+    echo "tmp-tag-8 is not correctly tagged as UTF-8." >&2
+    rc=1
+  fi
+  $iconv -f IBM-1047 -t ISO_8859-9 <tmp-tag-ebcdic > tmp-tag-9
+  if ls -T tmp-tag-9 | grep -v 'ISO8859-9' ; then
+    echo "tmp-tag-9 is not correctly tagged as ISO8859-9." >&2
+    rc=1
+  fi
+
+  if [ $rc -eq 0 ] ; then
+    rm -f tmp-tag-*
+  fi
+fi
+
+exit $rc

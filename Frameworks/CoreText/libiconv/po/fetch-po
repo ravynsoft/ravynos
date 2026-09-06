@@ -1,0 +1,17 @@
+#! /bin/sh
+# Script for fetching the PO files, produced by translators, from a
+# translations project's site on the internet, to the current directory.
+#
+# Copyright (C) 2025-2026 Free Software Foundation, Inc.
+# This file is free software; the Free Software Foundation gives
+# unlimited permission to use, copy, distribute, and modify it.
+
+# Usage: ./fetch-po
+#
+# This script is invoked from two locations:
+# 1. From the script that fetches auxiliary files that are omitted from
+#    the version control repository of this package, typically called
+#    'autopull.sh' or 'bootstrap --pull' or similar.
+# 2. From the Makefile in the po/ directory, target 'fetch-po'.
+
+po-fetch --git TP libiconv

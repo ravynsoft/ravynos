@@ -7,6 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#import <sys/param.h>
 #import <AppKit/AppKit.h>
 #import <AppKit/NSTableCornerView.h>
 #import <Foundation/NSKeyedArchiver.h>
@@ -82,7 +83,7 @@ const float NSTableViewDefaultRowHeight=16.0f;
    if([coder allowsKeyedCoding]){
     NSKeyedUnarchiver *keyed=(NSKeyedUnarchiver *)coder;
     unsigned              flags=[keyed decodeIntForKey:@"NSTvFlags"];
-    
+
     _headerView=[[keyed decodeObjectForKey:@"NSHeaderView"] retain];
     [_headerView setTableView:self];
     _cornerView=[[keyed decodeObjectForKey:@"NSCornerView"] retain];
@@ -289,7 +290,7 @@ const float NSTableViewDefaultRowHeight=16.0f;
    }
     }
    }
-   
+
    return _numberOfRows;
 }
 
@@ -304,15 +305,15 @@ const float NSTableViewDefaultRowHeight=16.0f;
 -(NSInteger)columnWithIdentifier:(id)identifier {
     NSEnumerator *tableColumnEnumerator = [_tableColumns objectEnumerator];
     NSTableColumn *column;
-	
-	int idx = 0;
+
+    int idx = 0;
     while ((column = [tableColumnEnumerator nextObject])!=nil) {
         if ([[column identifier] isEqual:identifier])
             return idx;
-		
-		idx++;
-	}
-	
+
+        idx++;
+    }
+
     return -1;
 }
 
@@ -320,7 +321,7 @@ const float NSTableViewDefaultRowHeight=16.0f;
     NSEnumerator *tableColumnEnumerator = [_tableColumns objectEnumerator];
     NSTableColumn *column;
 
-    while ((column = [tableColumnEnumerator nextObject])!=nil) 
+    while ((column = [tableColumnEnumerator nextObject])!=nil)
         if ([[column identifier] isEqual:identifier])
             return column;
 
@@ -370,7 +371,7 @@ static float rowHeightAtIndex(NSTableView *self,int index){
     for (i = 0; i < column; i++)
         rect.origin.x += [[_tableColumns objectAtIndex:i] width] + _intercellSpacing.width;
     rect.origin.y = 0.;
-    
+
     rect.size.width = [[_tableColumns objectAtIndex:column] width] + _intercellSpacing.width;
     rect.size.height = 0.;
     for (i = 0; i < numberOfRows; i++)
@@ -652,7 +653,7 @@ static float rowHeightAtIndex(NSTableView *self,int index){
 }
 
 -(void)moveColumn:(NSInteger)columnIndex toColumn:(NSInteger)newIndex {
-	NSUnimplementedMethod();
+    NSUnimplementedMethod();
 }
 
 -(int)editedRow {
@@ -664,21 +665,21 @@ static float rowHeightAtIndex(NSTableView *self,int index){
 }
 
 -(id)dataSourceObjectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row {
-	
-	if (_dataSource!=nil &&
-		[_dataSource 
+
+    if (_dataSource!=nil &&
+        [_dataSource
 respondsToSelector:@selector(tableView:objectValueForTableColumn:row:)]==YES)
-		return [_dataSource tableView:self objectValueForTableColumn:tableColumn row:row];
-	
-	id binder = [tableColumn _binderForBinding:@"value"];
-	id vals = [[binder destination] valueForKeyPath:[binder valueForKey:@"keyPath"]];
-	if (vals != nil){
-		return [vals objectAtIndex:row];
-	}
-	// Apple AppKit only logs here, so we do the same.
-	NSLog(@"data source %@ does not respond to tableView:objectValueForTableColumn:row:", 
+        return [_dataSource tableView:self objectValueForTableColumn:tableColumn row:row];
+
+    id binder = [tableColumn _binderForBinding:@"value"];
+    id vals = [[binder destination] valueForKeyPath:[binder valueForKey:@"keyPath"]];
+    if (vals != nil){
+        return [vals objectAtIndex:row];
+    }
+    // Apple AppKit only logs here, so we do the same.
+    NSLog(@"data source %@ does not respond to tableView:objectValueForTableColumn:row:",
 _dataSource);
-	return nil;
+    return nil;
 }
 
 
@@ -708,24 +709,24 @@ _dataSource);
    NSCell        *editingCell;
    NSTableColumn *editingColumn = [_tableColumns objectAtIndex:column];
    NSInteger      numberOfRows  = [self numberOfRows];
-   
+
    // light sanity check; invalid columns caught above in objectAtIndex:
    if (row < 0 || row >= numberOfRows)
       [NSException raise:NSInvalidArgumentException
                   format:@"invalid row in %@", NSStringFromSelector(_cmd)];
-   
+
    if (![editingColumn isEditable])
       return;
-   
+
    if ([self delegateShouldEditTableColumn:editingColumn row:row] == NO)
       return;
-   
+
    if ([self dataSourceCanSetObjectValue] == NO && [[editingColumn _binderForBinding:@"value" create:NO] allowsEditingForRow:row] == NO)
       [NSException raise:NSInternalInconsistencyException
                   format:@"data source does not respond to tableView:setObjectValue:forTableColumn:row: and binding is read-only"];
-   
+
    editingCell=[[self preparedCellAtColumn:column row:row] copy];
-   
+
    [_editingCell release];
    _editingCell = nil;
    _editedColumn = column;
@@ -733,28 +734,28 @@ _dataSource);
    _editingFrame = _editingBorder = [self frameOfCellAtColumn:column row:row];
    _editingFrame = [self _adjustedFrame:_editingFrame forCell:editingCell];
    _editingBorder.origin.x--;
-   _editingBorder.origin.y--; 
+   _editingBorder.origin.y--;
    _editingBorder.size.width++;
-   _editingBorder.size.height++; 
+   _editingBorder.size.height++;
    if ([editingCell isKindOfClass:[NSTextFieldCell class]])
    {
       _editingCell = editingCell;
-      
+
       [_editingCell setDrawsBackground:YES];
       [_editingCell setBackgroundColor:_backgroundColor];
-      
+
       NSText *oldEditor = _currentEditor;
       [_currentEditor setDelegate:nil];
       NSText *editor = [[self window] fieldEditor:YES forObject:self];
       _currentEditor = [[_editingCell setUpFieldEditorAttributes: editor] retain];
       [_currentEditor setDelegate:self];
       [oldEditor release];
-      
+
       if (select == YES)
          [_editingCell selectWithFrame:_editingFrame inView:self editor:_currentEditor delegate:self start:0 length:[[_editingCell stringValue] length]];
       else
          [_editingCell editWithFrame:_editingFrame inView:self editor:_currentEditor delegate:self event:event];
-      
+
       [self setNeedsDisplay:YES];
    }
    else
@@ -796,7 +797,7 @@ _dataSource);
     [_selectedRowIndexes release];
     _selectedRowIndexes=[[NSIndexSet alloc] initWithIndex:0];
    }
-   
+
    if ([_selectedRowIndexes count] > 0 && [_selectedColumns count] > 0) {
     // selecting a row deselects the previously selected column
     [_selectedColumns removeAllObjects];
@@ -832,7 +833,7 @@ _dataSource);
     NSMutableIndexSet * mutableIndexes = [[NSMutableIndexSet alloc] initWithIndexSet:_selectedRowIndexes];
     [mutableIndexes addIndexes:indexes];
     newIndexes = [[[NSIndexSet alloc] initWithIndexSet:mutableIndexes] autorelease];
-    [mutableIndexes release];     
+    [mutableIndexes release];
    } else
     newIndexes = indexes;
 
@@ -907,12 +908,12 @@ _dataSource);
 -(NSIndexSet *)selectedColumnIndexes {
    NSMutableIndexSet *result=[NSMutableIndexSet indexSet];
    int i,count=[_selectedColumns count];
-   
+
    for(i=0;i<count;i++){
     unsigned index=[_tableColumns indexOfObjectIdenticalTo:[_selectedColumns objectAtIndex:i]];
     [result addIndex:index];
    }
-   
+
    return result;
 }
 
@@ -921,11 +922,11 @@ _dataSource);
    NSMutableArray *rows=[NSMutableArray array];
    NSUInteger i,count=[_selectedRowIndexes count];
    NSUInteger buffer[count];
-   
+
    [_selectedRowIndexes getIndexes:buffer maxCount:count inIndexRange:NULL];
    for(i=0;i<count;i++)
     [rows addObject:[NSNumber numberWithInteger:buffer[i]]];
-   
+
    return [rows objectEnumerator];
 }
 
@@ -945,10 +946,10 @@ _dataSource);
 
 -(void)selectColumn:(int)column byExtendingSelection:(BOOL)extend {
     NSTableColumn *tableColumn = [_tableColumns objectAtIndex:column];
-    
+
     // selecting a column deselects all rows
     [self selectRowIndexes:[NSIndexSet indexSet] byExtendingSelection:NO];
-    
+
     if (extend == NO)
         [_selectedColumns removeAllObjects];
 
@@ -967,7 +968,7 @@ _dataSource);
 
     if ([selectedRowIndexes containsIndex:row]) {
      NSMutableIndexSet *newSelection=[[selectedRowIndexes mutableCopy] autorelease];
-     
+
      [newSelection removeIndex:row];
      [self selectRowIndexes:newSelection byExtendingSelection:NO];
     }
@@ -1057,7 +1058,7 @@ _dataSource);
     NSInteger count=[selection count];
     NSUInteger indexes[count];
     [selection getIndexes:indexes maxCount:count inIndexRange:NULL];
-    
+
     while(--count>=0){
      if(indexes[count]>=numberOfRows)
       [selection removeIndex:indexes[count]];
@@ -1067,9 +1068,9 @@ _dataSource);
    unnecessarily can cause performance and behavior problems. For example, if there is no selection in a newly
    created tableview and you post the notification indirectly with setDataSource:, an application which expects
    a non-empty selection will have problems.
-   
+
    FIXME: investigate whether _setSelectedRowIndexes: should do this check or not.
-  */    
+  */
     if(![selection isEqualToIndexSet:_selectedRowIndexes])
      [self _setSelectedRowIndexes:selection];
 }
@@ -1097,7 +1098,7 @@ _dataSource);
 
 -(void)sizeLastColumnToFit {
     NSClipView *clipView = (NSClipView *)[self superview];
-        
+
     if ([clipView isKindOfClass:[NSClipView class]]) {
         NSSize size = [clipView bounds].size;
         int i, count = [_tableColumns count];
@@ -1125,7 +1126,7 @@ _dataSource);
 -(void)highlightSelectionInClipRect:(NSRect)rect {
     NSInteger row, column;
     NSInteger numberOfRows=[self numberOfRows];
-    
+
     for (column = 0; column < [_tableColumns count]; ++column)
         for (row = 0; row < numberOfRows; ++row)
             if ([self isColumnSelected:column] || [self isRowSelected:row])
@@ -1144,18 +1145,18 @@ _dataSource);
     } else {
         [dataCell setObjectValue: value];
     }
-    
+
    if ([dataCell respondsToSelector:@selector(setTextColor:)]) {
       if ([self isRowSelected:row] || [self isColumnSelected:columnNumber]){
        [(NSTextFieldCell *)dataCell setDrawsBackground:NO]; // so the selection shows properly, dont just set the color so custom background works
          [(NSTextFieldCell *)dataCell setTextColor:[NSColor selectedTextColor]];
       }
-      else 
+      else
          [(NSTextFieldCell *)dataCell setTextColor:[NSColor textColor]];
    }
-   
+
    [column prepareCell:dataCell inRow:row];
-   
+
    if([_delegate respondsToSelector:@selector(tableView:willDisplayCell:forTableColumn:row:)])
     [_delegate tableView:self willDisplayCell:dataCell forTableColumn:column row:row];
 
@@ -1186,7 +1187,7 @@ _dataSource);
     else {
           NSCell *dataCell=[self preparedCellAtColumn:drawThisColumn row:row];
           NSRect cellRect = [self _adjustedFrame:[self frameOfCellAtColumn:drawThisColumn row:row] forCell:dataCell];
-          
+
           [dataCell drawWithFrame:cellRect inView:self];
        }
     }
@@ -1360,7 +1361,7 @@ _dataSource);
     NSTableColumn *editedColumn = [_tableColumns objectAtIndex:_editedColumn];
     int textMovement = [[[note userInfo] objectForKey:@"NSTextMovement"] intValue];
     NSInteger numberOfRows=[self numberOfRows];
-    
+
     [_editingCell endEditing:_currentEditor];
 
     if (_editedRow >= 0 && _editedRow < numberOfRows)
@@ -1451,12 +1452,12 @@ _dataSource);
 -(void)drawRect:(NSRect)clipRect {
    NSRange visibleRows;
    NSInteger drawThisRow, numberOfRows=[self numberOfRows];
-   
+
    [self drawBackgroundInClipRect:clipRect];
-   
+
    if (numberOfRows > 0) {
       [self highlightSelectionInClipRect:clipRect];
-      
+
       visibleRows = [self rowsInRect:clipRect];
       if(visibleRows.length > 0){
          drawThisRow = visibleRows.location;
@@ -1465,12 +1466,12 @@ _dataSource);
 //      Should draw visible cells, only.
          while (drawThisRow < NSMaxRange(visibleRows) && drawThisRow<numberOfRows)
             [self drawRow:drawThisRow++ clipRect:clipRect];
-      }     
+      }
    }
-   
+
    if ([self drawsGrid])
       [self drawGridInClipRect:clipRect];
-   
+
    if(_draggingRow >= 0)
    {
       NSRect rowRect;
@@ -1497,7 +1498,7 @@ _dataSource);
 {
     if ([_delegate respondsToSelector:@selector(selectionShouldChangeInTableView:)])
         return [_delegate selectionShouldChangeInTableView:self];
-    
+
     return YES;
 }
 
@@ -1527,10 +1528,10 @@ _dataSource);
 -(void)mouseDown:(NSEvent *)event {
     NSPoint location = [self convertPoint:[event locationInWindow] fromView:nil];
     NSInteger numberOfRows=[self numberOfRows];
-    
+
     _clickedColumn = [self columnAtPoint:location];
     _clickedRow = [self rowAtPoint:location];
-    
+
     if (_clickedRow < 0) { // click beyond the end of the table
         if (_editingCell != nil)
             [self textDidEndEditing:nil];
@@ -1540,19 +1541,19 @@ _dataSource);
     }
 
     NSTableColumn *clickedColumnObject = [_tableColumns objectAtIndex:_clickedColumn];
-    
+
     if(![self delegateShouldSelectTableColumn:clickedColumnObject])
      return;
     if(![self delegateShouldSelectRow:_clickedRow])
      return;
-     
+
     NSCell *clickedCell = [clickedColumnObject dataCellForRow:_clickedRow];
 
     [clickedCell setControlView:self];
     if ([clickedCell isKindOfClass:[NSButtonCell class]])
     {
      [clickedCell setObjectValue:[self dataSourceObjectValueForTableColumn:clickedColumnObject row:_clickedRow]];
-     
+
      if([clickedCell trackMouse:event inRect:[self frameOfCellAtColumn:_clickedColumn row:_clickedRow] ofView:self untilMouseUp:YES]){
        [clickedCell setNextState];
          NSNumber *value = nil;
@@ -1575,7 +1576,7 @@ _dataSource);
     if ([event clickCount] < 2) {
         if ([self delegateSelectionShouldChange] == NO) // provide delegate opportunity
             return;
-        
+
         if ([event modifierFlags] & NSAlternateKeyMask) {       // extend/change selection
             if ([self isRowSelected:_clickedRow]) {         // deselect previously selected?
                 if ([self allowsEmptySelection] || [self numberOfSelectedColumns] > 1)
@@ -1601,94 +1602,94 @@ _dataSource);
                 [self selectRowIndexes:[NSIndexSet indexSetWithIndex:_clickedRow] byExtendingSelection:NO];
         }
         else {                              // normal selection, allow for dragging
-                        BOOL dragging = NO; 
-                        if([_dataSource respondsToSelector:@selector(tableView:writeRowsWithIndexes:toPasteboard:)]) 
-                        { 
-                                NSPoint currentPoint; 
-                                do { 
-                                        event = [_window nextEventMatchingMask:NSLeftMouseUpMask|NSLeftMouseDraggedMask untilDate:[NSDate distantFuture] inMode:NSEventTrackingRunLoopMode dequeue:NO]; 
-                                        if([event type] == NSLeftMouseDragged) 
-                                                event = [_window nextEventMatchingMask:NSLeftMouseUpMask| NSLeftMouseDraggedMask]; 
-                                        else 
-                                                break; 
-                                        currentPoint = [self convertPoint:[event locationInWindow] fromView:nil]; 
-                                        if(abs(location.x - currentPoint.x) > 5 || abs(location.y - currentPoint.y) > 5) 
-                                        { 
-                                                dragging = YES; 
-                                                break; 
-                                        } 
-                                } while([event type] != NSLeftMouseUp); 
-                        } 
-                        if(dragging) 
-                        { 
-                                NSIndexSet *rowIndexes = [self selectedRowIndexes]; 
-                                if([rowIndexes containsIndex: _clickedRow] == NO) 
-                                        rowIndexes = [NSIndexSet indexSetWithIndex: _clickedRow]; 
+                        BOOL dragging = NO;
+                        if([_dataSource respondsToSelector:@selector(tableView:writeRowsWithIndexes:toPasteboard:)])
+                        {
+                                NSPoint currentPoint;
+                                do {
+                                        event = [_window nextEventMatchingMask:NSLeftMouseUpMask|NSLeftMouseDraggedMask untilDate:[NSDate distantFuture] inMode:NSEventTrackingRunLoopMode dequeue:NO];
+                                        if([event type] == NSLeftMouseDragged)
+                                                event = [_window nextEventMatchingMask:NSLeftMouseUpMask| NSLeftMouseDraggedMask];
+                                        else
+                                                break;
+                                        currentPoint = [self convertPoint:[event locationInWindow] fromView:nil];
+                                        if(abs(location.x - currentPoint.x) > 5 || abs(location.y - currentPoint.y) > 5)
+                                        {
+                                                dragging = YES;
+                                                break;
+                                        }
+                                } while([event type] != NSLeftMouseUp);
+                        }
+                        if(dragging)
+                        {
+                                NSIndexSet *rowIndexes = [self selectedRowIndexes];
+                                if([rowIndexes containsIndex: _clickedRow] == NO)
+                                        rowIndexes = [NSIndexSet indexSetWithIndex: _clickedRow];
 
-                                NSPasteboard *pasteboard = [NSPasteboard pasteboardWithName:NSDragPboard]; 
-                                if([_dataSource tableView:self writeRowsWithIndexes:rowIndexes toPasteboard:pasteboard] == NO) 
-                                        dragging = NO; 
-                                else 
-                                { 
-                                        NSImage *image = [[[NSImage alloc] initWithSize:NSMakeSize(0,0)] autorelease]; 
-                                        [self dragImage:image 
-                                                                 at:NSMakePoint(0,0) 
-                                                         offset:NSMakeSize(0,0) 
-                                                          event:event 
-                                                 pasteboard:pasteboard 
-                                                         source:self 
-                                                  slideBack:YES]; 
-                                } 
-                        } 
+                                NSPasteboard *pasteboard = [NSPasteboard pasteboardWithName:NSDragPboard];
+                                if([_dataSource tableView:self writeRowsWithIndexes:rowIndexes toPasteboard:pasteboard] == NO)
+                                        dragging = NO;
+                                else
+                                {
+                                        NSImage *image = [[[NSImage alloc] initWithSize:NSMakeSize(0,0)] autorelease];
+                                        [self dragImage:image
+                                                                 at:NSMakePoint(0,0)
+                                                         offset:NSMakeSize(0,0)
+                                                          event:event
+                                                 pasteboard:pasteboard
+                                                         source:self
+                                                  slideBack:YES];
+                                }
+                        }
 
-                        if(dragging == NO) 
-                        { 
-                                // normal selection, allow for dragging 
-                                int firstClickedRow = _clickedRow; 
+                        if(dragging == NO)
+                        {
+                                // normal selection, allow for dragging
+                                int firstClickedRow = _clickedRow;
 
                                 [self selectRowIndexes:[NSIndexSet indexSetWithIndex:_clickedRow] byExtendingSelection:NO];
-                                if ([self allowsMultipleSelection] == YES) { 
-                                        do { 
-                                                NSPoint point; 
-                                                int row; 
+                                if ([self allowsMultipleSelection] == YES) {
+                                        do {
+                                                NSPoint point;
+                                                int row;
 
-                                                event = [_window nextEventMatchingMask:NSLeftMouseUpMask| NSLeftMouseDraggedMask]; 
-                                                point=[self convertPoint:[event locationInWindow] fromView:nil]; 
+                                                event = [_window nextEventMatchingMask:NSLeftMouseUpMask| NSLeftMouseDraggedMask];
+                                                point=[self convertPoint:[event locationInWindow] fromView:nil];
 
-                                                row = [self rowAtPoint:point]; 
-                                                if (row != -1) { 
-                                                        // we need to smooth out the selection granularity. on my slow system, the mouse moves 
-                                                        // too quickly for the NSEvents to show up for each row.. 
-                                                        int startRow, endRow, i; 
+                                                row = [self rowAtPoint:point];
+                                                if (row != -1) {
+                                                        // we need to smooth out the selection granularity. on my slow system, the mouse moves
+                                                        // too quickly for the NSEvents to show up for each row..
+                                                        int startRow, endRow, i;
 
-                                                        if (firstClickedRow > row) { 
-                                                                endRow = firstClickedRow; 
-                                                                startRow = row; 
-                                                        } 
-                                                        else { 
-                                                                startRow = firstClickedRow; 
-                                                                endRow = row; 
-                                                        } 
+                                                        if (firstClickedRow > row) {
+                                                                endRow = firstClickedRow;
+                                                                startRow = row;
+                                                        }
+                                                        else {
+                                                                startRow = firstClickedRow;
+                                                                endRow = row;
+                                                        }
 
-                                                        for (i = 0; i < numberOfRows; i++) { 
-                                                                if (i >= startRow && i <= endRow) 
+                                                        for (i = 0; i < numberOfRows; i++) {
+                                                                if (i >= startRow && i <= endRow)
                                                                         [self selectRowIndexes:[NSIndexSet indexSetWithIndex:i] byExtendingSelection:YES];
-                                                                else 
-                                                                        [self deselectRow:i]; 
-                                                        } 
-                                                } 
+                                                                else
+                                                                        [self deselectRow:i];
+                                                        }
+                                                }
 
-                                                [self noteSelectionIsChanging]; 
-                                        } while([event type] != NSLeftMouseUp); 
-                                } 
-                        } 
-        }                 
+                                                [self noteSelectionIsChanging];
+                                        } while([event type] != NSLeftMouseUp);
+                                }
+                        }
+        }
 
         [self sendAction:[self action] to:[self target]];
     }
-    else if ([event clickCount] == 2) { 
-       // nb this logic was backwards previously 
-       
+    else if ([event clickCount] == 2) {
+       // nb this logic was backwards previously
+
        id binder=[[_tableColumns objectAtIndex:_clickedColumn] _binderForBinding:@"value" create:NO];
        BOOL interpretedAsEdit=NO;
        if ([[_tableColumns objectAtIndex:_clickedColumn] isEditable])
@@ -1715,7 +1716,7 @@ _dataSource);
 
     for (i = 0; i < numberOfRows; ++i) {
         NSCell *dataCell = [column dataCellForRow:i];
-        
+
         [dataCell setControlView:self];
         [dataCell setObjectValue:[self dataSourceObjectValueForTableColumn:column row:i]];
 
@@ -1735,7 +1736,7 @@ _dataSource);
 
     for (i = 0; i < count; ++i) {
         NSTableColumn *column = [_tableColumns objectAtIndex:i];
-        
+
         [self _tightenUpColumn:column];
         [column setWidth:[column minWidth]];
     }
@@ -1743,76 +1744,76 @@ _dataSource);
     [self tile];
 }
 
-- (unsigned)draggingSourceOperationMaskForLocal:(BOOL)isLocal { 
-        return NSDragOperationCopy; 
+- (unsigned)draggingSourceOperationMaskForLocal:(BOOL)isLocal {
+        return NSDragOperationCopy;
 
-} 
+}
 
-- (int)_getDraggedRow:(id <NSDraggingInfo>)info { 
-	NSPoint dragPoint = [self convertPoint:[info draggingLocation] fromView:nil];
-	NSInteger draggedRow = [self rowAtPoint:dragPoint];
-	if (-1 == draggedRow) {
-		if (dragPoint.y >= [self rectOfRow:[self numberOfRows]-1].origin.y) {
-			draggedRow = [self numberOfRows];
-		}
-	}
-    return draggedRow;
-} 
-
-- (unsigned)_validateDraggedRow:(id <NSDraggingInfo>)info { 
-        BOOL result; 
-        int proposedRow = [self _getDraggedRow:info]; 
-        
-        if([_dataSource respondsToSelector:@selector( tableView:validateDrop:proposedRow:proposedDropOperation:)]){
-        if((result = [_dataSource tableView:self validateDrop:info proposedRow:proposedRow proposedDropOperation:NSTableViewDropAbove])) 
-                _draggingRow = proposedRow; 
-        else 
-                _draggingRow = -1; 
+- (int)_getDraggedRow:(id <NSDraggingInfo>)info {
+    NSPoint dragPoint = [self convertPoint:[info draggingLocation] fromView:nil];
+    NSInteger draggedRow = [self rowAtPoint:dragPoint];
+    if (-1 == draggedRow) {
+        if (dragPoint.y >= [self rectOfRow:[self numberOfRows]-1].origin.y) {
+            draggedRow = [self numberOfRows];
         }
-        
-        [self display]; 
+    }
+    return draggedRow;
+}
 
-        return result; 
+- (unsigned)_validateDraggedRow:(id <NSDraggingInfo>)info {
+        BOOL result;
+        int proposedRow = [self _getDraggedRow:info];
 
-} 
+        if([_dataSource respondsToSelector:@selector( tableView:validateDrop:proposedRow:proposedDropOperation:)]){
+        if((result = [_dataSource tableView:self validateDrop:info proposedRow:proposedRow proposedDropOperation:NSTableViewDropAbove]))
+                _draggingRow = proposedRow;
+        else
+                _draggingRow = -1;
+        }
 
-- (unsigned)draggingEntered:(id <NSDraggingInfo>)sender { 
-        int i; 
-        for(i = 0; i < [[self _draggedTypes] count]; i++) 
-        { 
-                if ([[[sender draggingPasteboard] types] containsObject:[[self _draggedTypes] objectAtIndex: i]]) 
-                        return [self _validateDraggedRow:sender]; 
-        } 
-        return NSDragOperationNone; 
+        [self display];
 
-} 
+        return result;
 
-- (unsigned)draggingUpdated:(id <NSDraggingInfo>)sender { 
-        int i; 
-        for(i = 0; i < [[self _draggedTypes] count]; i++) 
-        { 
-                if ([[[sender draggingPasteboard] types] containsObject:[[self _draggedTypes] objectAtIndex: i]]) 
-                        return [self _validateDraggedRow:sender]; 
-        } 
-        return NSDragOperationNone; 
+}
 
-} 
+- (unsigned)draggingEntered:(id <NSDraggingInfo>)sender {
+        int i;
+        for(i = 0; i < [[self _draggedTypes] count]; i++)
+        {
+                if ([[[sender draggingPasteboard] types] containsObject:[[self _draggedTypes] objectAtIndex: i]])
+                        return [self _validateDraggedRow:sender];
+        }
+        return NSDragOperationNone;
 
-- (void)draggingExited:(id <NSDraggingInfo>)sender 
-{ 
-        _draggingRow = -1; 
-        [self display]; 
-} 
+}
 
-- (BOOL)prepareForDragOperation:(id <NSDraggingInfo>)sender { 
-        _draggingRow = -1; 
-        [self display]; 
-    return YES; 
-} 
+- (unsigned)draggingUpdated:(id <NSDraggingInfo>)sender {
+        int i;
+        for(i = 0; i < [[self _draggedTypes] count]; i++)
+        {
+                if ([[[sender draggingPasteboard] types] containsObject:[[self _draggedTypes] objectAtIndex: i]])
+                        return [self _validateDraggedRow:sender];
+        }
+        return NSDragOperationNone;
 
-- (BOOL)performDragOperation:(id <NSDraggingInfo>)sender { 
-        return [_dataSource tableView:self acceptDrop:sender row:[self _getDraggedRow:sender] dropOperation:NSTableViewDropAbove]; 
-} 
+}
+
+- (void)draggingExited:(id <NSDraggingInfo>)sender
+{
+        _draggingRow = -1;
+        [self display];
+}
+
+- (BOOL)prepareForDragOperation:(id <NSDraggingInfo>)sender {
+        _draggingRow = -1;
+        [self display];
+    return YES;
+}
+
+- (BOOL)performDragOperation:(id <NSDraggingInfo>)sender {
+        return [_dataSource tableView:self acceptDrop:sender row:[self _getDraggedRow:sender] dropOperation:NSTableViewDropAbove];
+}
 
 -(NSString *)description {
     return [NSString stringWithFormat:@"<%@ %0x08lx tableColumns: %@>",
@@ -1820,9 +1821,9 @@ _dataSource);
 }
 
 -(void)_moveUp:(BOOL)up extend:(BOOL)extend {
-    
+
     NSInteger rowToSelect = -1;
-    
+
     if ([_selectedRowIndexes count] == 0)
         rowToSelect = 0;
     else if (up)
@@ -1841,10 +1842,10 @@ _dataSource);
         else if (!extend)
             rowToSelect = last;
     }
-    
+
     if (rowToSelect != -1)
     {
-        [self selectRow:rowToSelect byExtendingSelection:extend];   
+        [self selectRow:rowToSelect byExtendingSelection:extend];
         [self scrollRowToVisible:rowToSelect];
     }
 }

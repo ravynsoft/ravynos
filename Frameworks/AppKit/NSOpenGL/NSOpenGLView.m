@@ -15,60 +15,60 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @implementation NSOpenGLView
 
 + (NSOpenGLPixelFormat *)defaultPixelFormat {
-	NSOpenGLPixelFormatAttribute attributes[] = {
-		0
-	};
+        NSOpenGLPixelFormatAttribute attributes[] = {
+                0
+        };
 
-	return [[[NSOpenGLPixelFormat alloc] initWithAttributes:attributes] autorelease];
+        return [[[NSOpenGLPixelFormat alloc] initWithAttributes:attributes] autorelease];
 }
 
 - (id)initWithFrame:(NSRect)frame pixelFormat:(NSOpenGLPixelFormat *)pixelFormat {
-	[super initWithFrame:frame];
+        [super initWithFrame:frame];
 
-	_pixelFormat = [pixelFormat retain];
-	_context = nil;
+        _pixelFormat = [pixelFormat retain];
+        _context = nil;
 
-	return self;
+        return self;
 }
 
 - (id)initWithFrame:(NSRect)frame {
-	[super initWithFrame:frame];
+        [super initWithFrame:frame];
 
-	_pixelFormat = [[isa defaultPixelFormat] retain];
-	_context = nil;
+        _pixelFormat = [[[self class] defaultPixelFormat] retain];
+        _context = nil;
 
-	return self;
+        return self;
 }
 
 - (id)initWithCoder:(NSCoder *)coder {
-	[super initWithCoder:coder];
+        [super initWithCoder:coder];
 
-	if ([coder allowsKeyedCoding])
-		_pixelFormat = [[coder decodeObjectForKey:@"NSPixelFormat"] retain];
-	else
-		NSUnimplementedMethod();
+        if ([coder allowsKeyedCoding])
+                _pixelFormat = [[coder decodeObjectForKey:@"NSPixelFormat"] retain];
+        else
+                NSUnimplementedMethod();
 
-	return self;
+        return self;
 }
 
 - (void)dealloc {
-	[_pixelFormat release];
-	[_context release];
-	[super dealloc];
+        [_pixelFormat release];
+        [_context release];
+        [super dealloc];
 }
 
 - (NSOpenGLPixelFormat *)pixelFormat {
-	return _pixelFormat;
+        return _pixelFormat;
 }
 
 - (NSOpenGLContext *)openGLContext {
-	if (_context == nil) {
-		_context = [[NSOpenGLContext alloc] initWithFormat:_pixelFormat shareContext:nil];
-		[_context setView:self];
+        if (_context == nil) {
+                _context = [[NSOpenGLContext alloc] initWithFormat:_pixelFormat shareContext:nil];
+                [_context setView:self];
         _needsReshape=YES;
-	}
+        }
 
-	return _context;
+        return _context;
 }
 
 - (void) _setWindow:(NSWindow *)window {
@@ -77,31 +77,31 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 - (void)setPixelFormat:(NSOpenGLPixelFormat *)pixelFormat {
-	pixelFormat = [pixelFormat retain];
-	[_pixelFormat release];
-	_pixelFormat = pixelFormat;
+        pixelFormat = [pixelFormat retain];
+        [_pixelFormat release];
+        _pixelFormat = pixelFormat;
 }
 
 - (void)setOpenGLContext:(NSOpenGLContext *)context {
-	[_context clearDrawable];
-	context = [context retain];
-	[_context release];
-	_context = context;
-	[_context setView:self];
+        [_context clearDrawable];
+        context = [context retain];
+        [_context release];
+        _context = context;
+        [_context setView:self];
    _needsReshape=YES;
 }
 
 - (void)update {
-	// we don't want to create the context if it doesn't exist
-	[_context update];
+        // we don't want to create the context if it doesn't exist
+        [_context update];
 }
 
 - (void)reshape {
-	// do nothing
+        // do nothing
 }
 
 - (void)prepareOpenGL {
-	// do nothing
+        // do nothing
 }
 
 - (BOOL)isOpaque {
@@ -119,18 +119,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 - (void)lockFocus {
-	[super lockFocus];
+        [super lockFocus];
     // create if needed
     NSOpenGLContext *context = [self openGLContext];
-    
+
     CGLLockContext([context CGLContextObj]);
     [_context setView:self];
-	[context makeCurrentContext];
-    
-	if (_needsReshape){
-		[self reshape];
-		_needsReshape = NO;
-	}
+        [context makeCurrentContext];
+
+        if (_needsReshape){
+                [self reshape];
+                _needsReshape = NO;
+        }
 }
 
 - (void)unlockFocus {
@@ -138,18 +138,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 // Single buffered contexts need to be updated somehow else
     CGLUnlockContext([_context CGLContextObj]);
 
-	[super unlockFocus];
+        [super unlockFocus];
 }
 
 - (void)clearGLContext {
-	[_context clearDrawable];
-	[_context release];
-	_context=nil;
+        [_context clearDrawable];
+        [_context release];
+        _context=nil;
 }
 
 - (void)setFrame:(NSRect)frame {
-	[super setFrame:frame];
-	_needsReshape = YES;
-	[self update];
+        [super setFrame:frame];
+        _needsReshape = YES;
+        [self update];
 }
 @end
