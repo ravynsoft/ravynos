@@ -1,0 +1,67 @@
+XZGREP(1)                           XZ Utils                           XZGREP(1)
+
+NAME
+     xzgrep - search possibly-compressed files for patterns
+
+SYNOPSIS
+     xzgrep [option...]  [pattern_list] [file...]
+     xzegrep ...
+     xzfgrep ...
+     lzgrep ...  (DEPRECATED)
+     lzegrep ...  (DEPRECATED)
+     lzfgrep ...  (DEPRECATED)
+
+DESCRIPTION
+     xzgrep  invokes  grep(1) on uncompressed contents of files.  The formats of
+     the files are determined from the filename suffixes.  Any file with a  suf-
+     fix supported by xz(1), gzip(1), bzip2(1), lzop(1), zstd(1), or lz4(1) will
+     be decompressed; all other files are assumed to be uncompressed.
+
+     If  no  files are specified or file is - then standard input is read.  When
+     reading from standard input, only  files  supported  by  xz(1)  are  decom-
+     pressed.  Other files are assumed to be in uncompressed form already.
+
+     Most  options of grep(1) are supported.  However, the following options are
+     not supported:
+
+         -r, --recursive
+
+         -R, --dereference-recursive
+
+         -d, --directories=action
+
+         -Z, --null
+
+         -z, --null-data
+
+         --include=glob
+
+         --exclude=glob
+
+         --exclude-from=file
+
+         --exclude-dir=glob
+
+     xzegrep is an alias for xzgrep -E.  xzfgrep is an alias for xzgrep -F.
+
+     The commands lzgrep, lzegrep, and lzfgrep are provided for backward compat-
+     ibility with LZMA Utils.  They are deprecated and will be removed in a  fu-
+     ture version.
+
+EXIT STATUS
+     0      At  least  one match was found from at least one of the input files.
+            No errors occurred.
+
+     1      No matches were found from any of the input files.   No  errors  oc-
+            curred.
+
+     >1     One or more errors occurred.  It is unknown if matches were found.
+
+ENVIRONMENT
+     GREP   If  GREP  is  set  to a non-empty value, it is used instead of grep,
+            grep -E, or grep -F.
+
+SEE ALSO
+     grep(1), xz(1), gzip(1), bzip2(1), lzop(1), zstd(1), lz4(1), zgrep(1)
+
+Tukaani                            2025-03-06                          XZGREP(1)

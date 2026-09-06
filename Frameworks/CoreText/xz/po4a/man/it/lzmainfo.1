@@ -1,0 +1,45 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Author: Lasse Collin
+.\"
+.\" Italian translations for xz-man package
+.\" Luca Vercelli <luca.vercelli.to@gmail.com>, 2024-2025
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LZMAINFO 1 30/06/2013 Tukaani "XZ Utils"
+.SH NOME
+lzmainfo \- mostra le informazioni nell'intestazione di file .lzma
+.SH SINOSSI
+\fBlzmainfo\fP [\fB\-\-help\fP] [\fB\-\-version\fP] [\fIFILE...\fP]
+.SH DESCRIZIONE
+\fBlzmainfo\fP mostra le informazioni contenute nell'intestazione del file
+\&\fB.lzma\fP. Legge i primi 13 byte del \fIFILE\fP specificato, decodifica
+l'intestazione, e la stampa su standard output in formato leggibile
+dall'uomo. Se nessun \fIFILE\fP è specificato o se \fIFILE\fP è \fB\-\fP, viene letto
+lo standard input.
+.PP
+Di solito le informazioni più interessanti sono la dimensione non compressa
+e la dimensione del dizionario. Le dimensioni non compresse possono essere
+visualizzate solo se il file è nella variante di formato \fB.lzma\fP "senza
+flussi". La quantità di memoria necessaria per decomprimere il file è di
+alcune dozzine di kilobyte più la dimensione del dizionario.
+.PP
+\fBlzmainfo\fP è incluso nelle XZ Utils principalmente per retrocompatibilità
+con le LZMA Utils.
+.SH "CODICE DI USCITA"
+.TP 
+\fB0\fP
+Tutto bene.
+.TP 
+\fB1\fP
+È avvenuto un errore.
+.SH BUG
+\fBlzmainfo\fP usa \fBMB\fP mentre il suffisso corretto dovrebbe essere \fBMiB\fP
+(2^20 byte).  Questo serve per rendere l'output compatibile con quello delle
+LZMA Utils.
+.SH "VEDERE ANCHE"
+\fBxz\fP(1)

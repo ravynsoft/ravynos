@@ -1,0 +1,42 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Author: Lasse Collin
+.\"
+.\" Swedish translation of xz-man
+.\" Göran Uddeborg <goeran@uddeborg.se>, 2025.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LZMAINFO 1 2013\-06\-30 Tukaani "XZ Utils"
+.SH NAMN
+lzmainfo — visa information lagrad i filhuvudet i .lzma
+.SH SYNOPSIS
+\fBlzmainfo\fP [\fB\-\-help\fP] [\fB\-\-version\fP] [\fIfil…\fP]
+.SH BESKRIVNING
+\fBlzmainfo\fP visar information som finns lagrad i filhuvudet i \fB.lzma\fP. Den
+läser de första 13 byten från den angivna \fIfilen\fP, avkodar huvudet, och
+skriver ut det till standard ut i mänskligt läsbart format. Om inga \fIfiler\fP
+anges eller \fIfil\fP är \fB\-\fP, läses standard in.
+.PP
+Vanligen är den intressantaste informationen den okomprimerade storleken och
+lexikonstorleken. Okomprimerad storlek kan endast visas om filen är i den
+icke\-strömmande \fB.lzma\fP\-formatvarianten. Mängden minne som krävs för att
+dekomprimera filen är några dussin kilobyte plus lexikonstorleken.
+.PP
+\fBlzmainfo\fP inkluderas i XZ Utils primärt för bakåtkompatibilitet med LZMA
+Utils.
+.SH SLUTSTATUS
+.TP 
+\fB0\fP
+Allt är bra.
+.TP 
+\fB1\fP
+Ett fel uppstod.
+.SH FEL
+\fBlzmainfo\fP använder \fBMB\fP medan det korrekta suffixet vore \fBMiB\fP (2²⁰
+byte). Detta är för att behålla utdata kompatibel med LZMA Utils.
+.SH "SE ÄVEN"
+\fBxz\fP(1)

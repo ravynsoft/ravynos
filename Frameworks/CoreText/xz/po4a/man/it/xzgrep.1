@@ -1,0 +1,94 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Authors: Lasse Collin
+.\"          Jia Tan
+.\"
+.\" Italian translations for xz-man package
+.\" Luca Vercelli <luca.vercelli.to@gmail.com>, 2024-2025
+.\"
+.\" (Note that this file is not based on gzip's zgrep.1.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZGREP 1 06/03/2025 Tukaani "XZ Utils"
+.SH NOME
+xzgrep \- Cerca pattern in file potenzialmente compressi
+.
+.SH SINOSSI
+\fBxzgrep\fP [\fIOPZIONE...\fP] [\fILISTA_PATTERN\fP] [\fIFILE...\fP]
+.br
+\fBxzegrep\fP \&...
+.br
+\fBxzfgrep\fP \&...
+.br
+\fBlzgrep\fP \&... (DEPRECATO)
+.br
+\fBlzegrep\fP \&... (DEPRECATO)
+.br
+\fBlzfgrep\fP \&... (DEPRECATO)
+.
+.SH DESCRIZIONE
+\fBxzgrep\fP invoca \fBgrep\fP(1) sui contenuti non compressi dei file. I formati
+dei \fIFILE\fP sono dedotti dai suffissi dei nomi dei file. Sarà decompresso
+qualsiasi file con un suffisso supportato da \fBxz\fP(1), \fBgzip\fP(1),
+\fBbzip2\fP(1), \fBlzop\fP(1), \fBzstd\fP(1), o \fBlz4\fP(1); tutti gli altri file
+saranno considerati non compressi.
+.PP
+Se non sono specificati \fIFILE\fP, o se \fIFILE\fP è \fB\-\fP, viene letto lo
+standard input. Quando si legge da standard input vengono decompressi
+solamente i file supportati da \fBxz\fP(1). Gli altri file sono considerati già
+non compressi.
+.PP
+Sono supportate la maggior parte delle \fIOPZIONI\fP di \fBgrep\fP(1). Tuttavia,
+le opzioni seguenti non sono supportate:
+.IP "" 4
+\fB\-r\fP, \fB\-\-recursive\fP
+.IP "" 4
+\fB\-R\fP, \fB\-\-dereference\-recursive\fP
+.IP "" 4
+\fB\-d\fP, \fB\-\-directories=\fP\fIAZIONE\fP
+.IP "" 4
+\fB\-Z\fP, \fB\-\-null\fP
+.IP "" 4
+\fB\-z\fP, \fB\-\-null\-data\fP
+.IP "" 4
+\fB\-\-include=\fP\fIGLOB\fP
+.IP "" 4
+\fB\-\-exclude=\fP\fIGLOB\fP
+.IP "" 4
+\fB\-\-exclude\-from=\fP\fIFILE\fP
+.IP "" 4
+\fB\-\-exclude\-dir=\fP\fIGLOB\fP
+.PP
+\fBxzegrep\fP è un alias per \fBxzgrep \-E\fP.  \fBxzfgrep\fP è un alias per \fBxzgrep \-F\fP.
+.PP
+I comandi \fBlzgrep\fP, \fBlzegrep\fP, e \fBlzfgrep\fP sono forniti per
+retrocompatibilità con le LZMA Utils. Sono deprecati e saranno rimosso in
+una versione futura.
+.
+.SH "CODICE DI USCITA"
+.TP 
+0
+Almeno una corrispondenza è stata trovata in almeno uno dei file
+input. Nessun errore è avvenuto.
+.TP 
+1
+Non sono state trovate corrispondenze in nessuno dei file di input. Non si
+sono verificati errori.
+.TP 
+>1
+Sono avvenuti uno o più errori. Non è noto se sono state trovate delle
+corrispondenze.
+.
+.SH AMBIENTE
+.TP 
+\fBGREP\fP
+Se \fBGREP\fP è impostato a un valore non vuoto, verrà usato al posto di
+\fBgrep\fP, \fBgrep \-E\fP, o \fBgrep \-F\fP.
+.
+.SH "VEDERE ANCHE"
+\fBgrep\fP(1), \fBxz\fP(1), \fBgzip\fP(1), \fBbzip2\fP(1), \fBlzop\fP(1), \fBzstd\fP(1),
+\fBlz4\fP(1), \fBzgrep\fP(1)

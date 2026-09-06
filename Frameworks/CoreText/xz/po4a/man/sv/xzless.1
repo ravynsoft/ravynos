@@ -1,0 +1,47 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Authors: Andrew Dudman
+.\"          Lasse Collin
+.\"
+.\" Swedish translation of xz-man
+.\" Göran Uddeborg <goeran@uddeborg.se>, 2025.
+.\"
+.\" (Note that this file is not based on gzip's zless.1.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZLESS 1 2025\-03\-06 Tukaani "XZ Utils"
+.SH NAMN
+xzless, lzless — visa xz\- eller lzma\-komprimerade (text)filer
+.SH SYNOPSIS
+\fBxzless\fP [\fIfil\fP…]
+.br
+\fBlzless\fP [\fIfil\fP…] (FÖRÅLDRAT)
+.SH BESKRIVNING
+\fBxzless\fP är ett filter som visar text från komprimerade filer i en
+terminal. Filer som stödjs av \fBxz\fP(1) dekomprimeras; andra filer antas
+redan vara i okomprimerad form.  Om inga \fIfiler\fP ges läser \fBxzless\fP från
+standard in.
+.PP
+\fBxzless\fP använder \fBless\fP(1) för att visa sin utdata. Till skillnad mot
+\fBxzmore\fP kan inte dess val av bläddrare ändras genom att sätta en
+miljövariabel. Kommandon är baserade på både \fBmore\fP(1) och \fBvi\fP(1) och
+tillåter förflytting fram och tillbaka samt sökning. Se manualen \fBless\fP(1)
+för mer information.
+.PP
+Kommandot som heter \fBlzless\fP finns för bakåtkompatibilitet med LZMA
+Utils. Det rekommenderas inte och kommer tas bort i en framtida version.
+.SH MILJÖ
+.TP 
+\fBLESSMETACHARS\fP
+En lista på tecken som är speciella för skalet. Sätts av \fBxzless\fP om den
+inte redan är satt i miljön.
+.TP 
+\fBLESSOPEN\fP
+Satt till en kommandorad för att köra dekomprimeraren \fBxz\fP(1) för
+förbehandling av infiler till \fBless\fP(1).
+.SH "SE ÄVEN"
+\fBless\fP(1), \fBxz\fP(1), \fBxzmore\fP(1), \fBzless\fP(1)

@@ -1,0 +1,54 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Authors: Lasse Collin
+.\"          Jia Tan
+.\"
+.\" Swedish translation of xz-man
+.\" Göran Uddeborg <goeran@uddeborg.se>, 2025.
+.\"
+.\" (Note that this file is not based on gzip's zdiff.1.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZDIFF 1 2025\-03\-06 Tukaani "XZ Utils"
+.SH NAMN
+xzcmp, xzdiff, lzcmp, lzdiff — jämför komprimerade filer
+.
+.SH SYNOPSIS
+\fBxzcmp\fP [\fIflagga…\fP] \fIfil1\fP [\fIfil2\fP]
+.br
+\fBxzdiff\fP \&…
+.br
+\fBlzcmp\fP \&…  (FÖRÅLDRAT)
+.br
+\fBlzdiff\fP \&…  (FÖRÅLDRAT)
+.
+.SH BESKRIVNING
+\fBxzcmp\fP och \fBxzdiff\fP jämför det okomprimerade innehållet i två
+filer. Okomprimerad data skickas till \fBcmp\fP(1) eller \fBdiff\fP(1) såvida inte
+\fB\-\-help\fP eller \fB\-\-version\fP anges.
+.PP
+Om både \fIfil1\fP och \fIfil2\fP anges kan de vara okomprimerade filer eller
+filer i format som \fBxz\fP(1), \fBgzip\fP(1), \fBbzip2\fP(1), \fBlzop\fP(1), \fBzstd\fP(1)
+eller \fBlz4\fP(1) kan dekomprimera. De nödvändiga dekomprimeringskommandona
+avgörs från filnamnsändelsen på \fIfil1\fP och \fIfil2\fP. En fil med en okänd
+ändelse antas antingen vara okomprimerad eller i ett format som \fBxz\fP(1) kan
+dekomprimera.
+.PP
+Om endast ett filnamn anges måste \fIfil1\fP ha en ändelse med ett av de stödda
+komprimeringsformaten och namnet på \fIfil2\fP antas vara \fIfil1\fP med
+komprimeringsformatsändelsen borttagen.
+.PP
+Kommandona \fBlzcmp\fP och \fBlzdiff\fP finns för bakåtkompatibilitet med LZMA
+Utils. De rekommenderas inte och kommer tas bort i en framtida version.
+.
+.SH SLUTSTATUS
+Om ett dekomprimeringsfel uppstår är slutstatus \fB2\fP. Annars används
+slutstatusen från \fBcmp\fP(1) respektive \fBdiff\fP(1).
+.
+.SH "SE ÄVEN"
+\fBcmp\fP(1), \fBdiff\fP(1), \fBxz\fP(1), \fBgzip\fP(1), \fBbzip2\fP(1), \fBlzop\fP(1),
+\fBzstd\fP(1), \fBlz4\fP(1)

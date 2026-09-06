@@ -1,0 +1,50 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Authors: Andrew Dudman
+.\"          Lasse Collin
+.\"
+.\" Italian translations for xz-man package
+.\" Luca Vercelli <luca.vercelli.to@gmail.com>, 2024-2025
+.\"
+.\" (Note that this file is based on xzless.1 instead of gzip's zmore.1.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZMORE 1 06/03/2025 Tukaani "XZ Utils"
+.SH NOME
+xzmore, lzmore \- mostra file (testuali) compressi xz o lzma
+.
+.SH SINOSSI
+\fBxzmore\fP [\fIFILE\fP...]
+.br
+\fBlzmore\fP [\fIFILE\fP...] (DEPRECATO)
+.
+.SH DESCRIZIONE
+\fBxzmore\fP visualizza il testo da file non compressi a un terminale usando
+\fBmore\fP(1).  I file supportati da \fBxz\fP(1) vengono decompressi; gli altri
+file sono considerati non compressi.  Se non viene dato alcun \fIFILE\fP,
+\fBxzmore\fP legge dallo standard input. Si veda il manuale di \fBmore\fP(1) per i
+comandi da tastiera.
+.PP
+Si noti che lo scorrimento all'indietro potrebbe non essere possibile a
+seconda dell'implementazione di \fBmore\fP(1). Ciò è dovuto al fatto che
+\fBxzmore\fP utilizza una pipe per passare i dati decompressi a
+\fBmore\fP(1). \fBxzless\fP(1) utilizza \fBless\fP(1) che fornisce funzionalità più
+avanzate.
+.PP
+Il comando \fBlzmore\fP è fornito per retrocompatibilità con le LZMA Utils. È
+deprecato e sarà rimosso in una versione futura.
+.
+.SH AMBIENTE
+.TP 
+.\" TRANSLATORS: Don't translate the uppercase PAGER.
+.\" It is a name of an environment variable.
+\fBPAGER\fP
+Se \fBPAGER\fP è impostato, il suo valore è usato come paginatore al posto di
+\fBmore\fP(1).
+.
+.SH "VEDERE ANCHE"
+\fBmore\fP(1), \fBxz\fP(1), \fBxzless\fP(1), \fBzmore\fP(1)

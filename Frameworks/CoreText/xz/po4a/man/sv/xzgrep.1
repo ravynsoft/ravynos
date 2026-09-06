@@ -1,0 +1,92 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Authors: Lasse Collin
+.\"          Jia Tan
+.\"
+.\" Swedish translation of xz-man
+.\" Göran Uddeborg <goeran@uddeborg.se>, 2025.
+.\"
+.\" (Note that this file is not based on gzip's zgrep.1.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZGREP 1 2025\-03\-06 Tukaani "XZ Utils"
+.SH NAMN
+xzgrep — sök i eventuellt komprimerade filer efter mönster
+.
+.SH SYNOPSIS
+\fBxzgrep\fP [\fIflagga…\fP] [\fImönsterlista\fP] [\fIfil…\fP]
+.br
+\fBxzegrep\fP \&…
+.br
+\fBxzfgrep\fP \&…
+.br
+\fBlzgrep\fP \&…  (FÖRÅLDRAT)
+.br
+\fBlzegrep\fP \&…  (FÖRÅLDRAT)
+.br
+\fBlzfgrep\fP \&…  (FÖRÅLDRAT)
+.
+.SH BESKRIVNING
+\fBxzgrep\fP anropar \fBgrep\fP(1) på det okomprimerade innehållet i
+filerna. Formaten på \fIfilerna\fP bestäms utgående från filnamnsändelsen.  En
+\fIfil\fP med en ändelse som stödjs av \fBxz\fP(1), \fBgzip\fP(1), \fBbzip2\fP(1),
+\fBlzop\fP(1), \fBzstd\fP(1) eller \fBlz4\fP(1) kommer att dekomprimeras; alla andra
+filer antas vara okomprimerade.
+.PP
+Om inga \fIfiler\fP anges eller om \fIfil\fP är \fB\-\fP lästes standard in. När
+standard in läses är de enda filerna som dekomprimeras de som stödjs av
+\fBxz\fP(1).  Andra filer antas redan vara i okomprimerad form.
+.PP
+De flesta \fIflaggor\fP till \fBgrep\fP(1) stödjs. Dock stödjs inte följande
+flaggor:
+.IP "" 4
+\fB\-r\fP, \fB\-\-recursive\fP
+.IP "" 4
+\fB\-R\fP, \fB\-\-dereference\-recursive\fP
+.IP "" 4
+\fB\-d\fP, \fB\-\-directories=\fP\fIåtgärd\fP
+.IP "" 4
+\fB\-Z\fP, \fB\-\-null\fP
+.IP "" 4
+\fB\-z\fP, \fB\-\-null\-data\fP
+.IP "" 4
+\fB\-\-include=\fP\fIglob\fP
+.IP "" 4
+\fB\-\-exclude=\fP\fIglob\fP
+.IP "" 4
+\fB\-\-exclude\-from=\fP\fIfil\fP
+.IP "" 4
+\fB\-\-exclude\-dir=\fP\fIglob\fP
+.PP
+\fBxzegrep\fP är ett alias för \fBxzgrep \-E\fP. \fBxzfgrep\fP är ett alias för
+\fBxzgrep \-F\fP.
+.PP
+Kommandona \fBlzgrep\fP, \fBlzegrep\fP och \fBlzfgrep\fP finns för
+bakåtkompatibilitet med LZMA Utils. De rekommenderas inte och kommer tas
+bort i en framtida version.
+.
+.SH SLUTSTATUS
+.TP 
+0
+Åtminstone en matchning hittades från åtminstone en av infilerna. Inga fel
+uppstod.
+.TP 
+1
+Inga matchningar hittades i någon av infilerna. Inga fel uppstod.
+.TP 
+>1
+Ett eller flera fel uppstod. Det är okänt om några matchningar hittades.
+.
+.SH MILJÖ
+.TP 
+\fBGREP\fP
+Om \fBGREP\fP är satt till något icketomt värde används det istället för
+\fBgrep\fP, \fBgrep \-E\fP respektive \fBgrep \-F\fP.
+.
+.SH "SE ÄVEN"
+\fBgrep\fP(1), \fBxz\fP(1), \fBgzip\fP(1), \fBbzip2\fP(1), \fBlzop\fP(1), \fBzstd\fP(1),
+\fBlz4\fP(1), \fBzgrep\fP(1)

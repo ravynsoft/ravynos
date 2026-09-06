@@ -1,0 +1,37 @@
+XZDIFF(1)                           XZ Utils                           XZDIFF(1)
+
+NAME
+     xzcmp, xzdiff, lzcmp, lzdiff - compare compressed files
+
+SYNOPSIS
+     xzcmp [option...]  file1 [file2]
+     xzdiff ...
+     lzcmp ...  (DEPRECATED)
+     lzdiff ...  (DEPRECATED)
+
+DESCRIPTION
+     xzcmp  and xzdiff compare uncompressed contents of two files.  Uncompressed
+     data and options are passed to cmp(1) or diff(1) unless --help or --version
+     is specified.
+
+     If both file1 and file2 are specified, they can be  uncompressed  files  or
+     files in formats that xz(1), gzip(1), bzip2(1), lzop(1), zstd(1), or lz4(1)
+     can  decompress.   The  required decompression commands are determined from
+     the filename suffixes of file1 and file2.  A file with an unknown suffix is
+     assumed to be either uncompressed or in a format that xz(1) can decompress.
+
+     If only one filename is provided, file1 must have a suffix of  a  supported
+     compression  format  and the name for file2 is assumed to be file1 with the
+     compression format suffix removed.
+
+     The commands lzcmp and lzdiff are provided for backward compatibility  with
+     LZMA Utils.  They are deprecated and will be removed in a future version.
+
+EXIT STATUS
+     If  a decompression error occurs, the exit status is 2.  Otherwise the exit
+     status of cmp(1) or diff(1) is used.
+
+SEE ALSO
+     cmp(1), diff(1), xz(1), gzip(1), bzip2(1), lzop(1), zstd(1), lz4(1)
+
+Tukaani                            2025-03-06                          XZDIFF(1)

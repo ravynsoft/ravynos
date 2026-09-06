@@ -1,0 +1,47 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Authors: Andrew Dudman
+.\"          Lasse Collin
+.\"
+.\" Italian translations for xz-man package
+.\" Luca Vercelli <luca.vercelli.to@gmail.com>, 2024-2025
+.\"
+.\" (Note that this file is not based on gzip's zless.1.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZLESS 1 06/03/2025 Tukaani "XZ Utils"
+.SH NOME
+xzless, lzless \- mostra file (testuali) compressi xz o lzma
+.SH SINOSSI
+\fBxzless\fP [\fIFILE\fP...]
+.br
+\fBlzless\fP [\fIFILE\fP...] (DEPRECATO)
+.SH DESCRIZIONE
+\fBxzless\fP è un filtro che visualizza testo da file compressi a un
+terminale.  I file supportati da \fBxz\fP(1) vengono decompressi; gli altri
+file sono considerati già non compressi.  Se non viene dato alcun \fIFILE\fP,
+\fBxzless\fP legge dallo standard input.
+.PP
+\fBxzless\fP usa \fBless\fP(1)  per mostrare il suo output. A differenza di
+\fBxzmore\fP, la scelta del paginatore non può essere modificata impostando una
+variabile d'ambiente. I comandi si basano sia su \fBmore\fP (1) che su \fBvi\fP
+(1) e consentono il movimento in avanti e all'indietro e la ricerca. Per
+ulteriori informazioni vedere il manuale di \fBless\fP(1).
+.PP
+Il comando chiamato \fBlzless\fP è fornito per retrocompatibilità con le LZMA
+Utils. È deprecato e sarà rimosso in una versione futura.
+.SH AMBIENTE
+.TP 
+\fBLESSMETACHARS\fP
+Un elenco di caratteri speciali per la shell. Impostato da \fBxzless\fP a meno
+che sia già impostato nell'ambiente.
+.TP 
+\fBLESSOPEN\fP
+Valorizzare con una riga di comando per lanciare il decompressore \fBxz\fP(1)
+per preprocessare i file input per \fBless\fP(1).
+.SH "VEDERE ANCHE"
+\fBless\fP(1), \fBxz\fP(1), \fBxzmore\fP(1), \fBzless\fP(1)

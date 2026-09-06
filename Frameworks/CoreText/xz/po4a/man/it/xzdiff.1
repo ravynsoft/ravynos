@@ -1,0 +1,55 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Authors: Lasse Collin
+.\"          Jia Tan
+.\"
+.\" Italian translations for xz-man package
+.\" Luca Vercelli <luca.vercelli.to@gmail.com>, 2024-2025
+.\"
+.\" (Note that this file is not based on gzip's zdiff.1.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZDIFF 1 06/03/2025 Tukaani "XZ Utils"
+.SH NOME
+xzcmp, xzdiff, lzcmp, lzdiff \- confronto tra file compressi
+.
+.SH SINOSSI
+\fBxzcmp\fP [\fIOPZIONE...\fP] \fIFILE1\fP [\fIFILE2\fP]
+.br
+\fBxzdiff\fP \&...
+.br
+\fBlzcmp\fP \&... (DEPRECATO)
+.br
+\fBlzdiff\fP \&... (DEPRECATO)
+.
+.SH DESCRIZIONE
+\fBxzcmp\fP e \fBxzdiff\fP confrontano i contenuti non compressi di due file.  I
+dati non compressi e le opzioni sono passate a \fBcmp\fP(1)  o \fBdiff\fP(1)  a
+meno che sia specificato \fB\-\-help\fP o \fB\-\-version\fP.
+.PP
+Se sono indicati sia \fIFILE1\fP che \fIFILE2\fP, essi possono essere file non
+compressi oppure file nei formati che \fBxz\fP(1), \fBgzip\fP(1), \fBbzip2\fP(1),
+\fBlzop\fP(1), \fBzstd\fP(1), o \fBlz4\fP(1) possono decomprimere. I comandi di
+decompressione necessari sono dedotti dai suffissi dei nomi dei file
+\fIFILE1\fP e \fIFILE2\fP. Un file con un suffisso non riconosciuto viene
+considerato o non compresso oppure in un formato che \fBxz\fP(1) può
+decomprimere.
+.PP
+Se viene fornito un solo nome di file, \fIFILE1\fP deve avere un suffisso di un
+formato di compressione supportato e il nome di \fIFILE2\fP si assume che sia
+\fIFILE1\fP senza il suffisso del formato di compressione.
+.PP
+I comandi \fBlzcmp\fP, e \fBlzdiff\fP sono forniti per retrocompatibilità con le
+LZMA Utils. Sono deprecati e saranno rimosso in una versione futura.
+.
+.SH "CODICE DI USCITA"
+Se avviene un errore nella decompressione, lo stato di uscita è
+\fB2\fP. Altrimenti viene usato lo stato di uscita di \fBcmp\fP(1)  o \fBdiff\fP(1)
+.
+.SH "VEDERE ANCHE"
+\fBcmp\fP(1), \fBdiff\fP(1), \fBxz\fP(1), \fBgzip\fP(1), \fBbzip2\fP(1), \fBlzop\fP(1),
+\fBzstd\fP(1), \fBlz4\fP(1)

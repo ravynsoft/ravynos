@@ -1,0 +1,30 @@
+XZMORE(1)                           XZ Utils                           XZMORE(1)
+
+NAME
+     xzmore, lzmore - view xz or lzma compressed (text) files
+
+SYNOPSIS
+     xzmore [file...]
+     lzmore [file...]  (DEPRECATED)
+
+DESCRIPTION
+     xzmore  displays  text  from  compressed files to a terminal using more(1).
+     Files supported by xz(1) are decompressed; other files are assumed to be in
+     uncompressed form already.  If no files are given, xzmore reads from  stan-
+     dard input.  See the more(1) manual for the keyboard commands.
+
+     Note that scrolling backwards might not be possible depending on the imple-
+     mentation  of  more(1).  This is because xzmore uses a pipe to pass the de-
+     compressed data to more(1).  xzless(1) uses less(1) which provides more ad-
+     vanced features.
+
+     The command lzmore is provided for backward compatibility with LZMA  Utils.
+     It is deprecated and will be removed in a future version.
+
+ENVIRONMENT
+     PAGER  If PAGER is set, its value is used as the pager instead of more(1).
+
+SEE ALSO
+     more(1), xz(1), xzless(1), zmore(1)
+
+Tukaani                            2025-03-06                          XZMORE(1)

@@ -1,0 +1,87 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Author: Lasse Collin
+.\"
+.\" Swedish translation of xz-man
+.\" Göran Uddeborg <goeran@uddeborg.se>, 2025.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZDEC 1 2024\-04\-08 Tukaani "XZ Utils"
+.SH NAMN
+xzdec, lzmadec \- Små .xz\- och .lzma\-dekomprimerare
+.SH SYNOPSIS
+\fBxzdec\fP [\fIflagga…\fP] [\fIfil…\fP]
+.br
+\fBlzmadec\fP [\fIflagga…\fP] [\fIfil…\fP]
+.SH BESKRIVNING
+\fBxzdec\fP är ett liblzma\-baserat verktyg endast för dekomprimering för \fB.xz\fP
+(och endast \fB.xz\fP) filer. \fBxzdec\fP är avsett att fungera som en drop
+in\-ersättning för \fBxz\fP(1) i de vanligaste situationerna där ett skript har
+skrivits för att använda \fBxz \-\-decompress \-\-stdout\fP (och möjligen några
+andra vanliga flaggor) för att dekomprimera \fB.xz\fP\-filer. \fBlzmadec\fP är
+identisk med \fBxzdec\fP förutom att \fBlzmadec\fP stödjer \fB.lzma\fP\-filer istället
+för \fB.xz\fP\-filer.
+.PP
+För att reducera storleken på det körbara programmet stödjer inte \fBxzdec\fP
+multitrådning eller lokalisering, och läser inte flaggor från
+miljövariablerna \fBXZ_DEFAULTS\fP eller \fBXZ_OPT\fP. \fBxzdec\fP stödjer inte att
+visa mellanliggande förloppsinformation: att skicka \fBSIGINFO\fP till \fBxzdec\fP
+gör ingenting, med att skicka \fBSIGUSR1\fP avslutar processen istället för att
+visa förloppsinformation.
+.SH FLAGGOR
+.TP 
+\fB\-d\fP, \fB\-\-decompress\fP, \fB\-\-uncompress\fP
+Ignoreras för kompatibilitet med \fBxz\fP(1). \fBxzdec\fP stödjer endast
+dekomprimering.
+.TP 
+\fB\-k\fP, \fB\-\-keep\fP
+Ignoreras för kompatibilitet med \fBxz\fP(1). \fBxzdec\fP skapar aldrig eller tar
+aldrig bort några filer.
+.TP 
+\fB\-c\fP, \fB\-\-stdout\fP, \fB\-\-to\-stdout\fP
+Ignoreras för kompatibilitet med \fBxz\fP(1). \fBxzdec\fP skriver alltid
+dekomprimerad data till standard ut.
+.TP 
+\fB\-q\fP, \fB\-\-quiet\fP
+Att ange detta en gång gör inget eftersom \fBxzdec\fP aldrig visar några
+varningar eller noteringar. Att ange detta två gånger utelämnar
+felmeddelanden.
+.TP 
+\fB\-Q\fP, \fB\-\-no\-warn\fP
+Ignoreras för kompatibilitet med \fBxz\fP(1). \fBxzdec\fP använder aldrig
+slutstatus 2.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Visa ett hjälpmeddelande och avsluta.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Visa versionsnumret på \fBxzdec\fP och liblzma.
+.SH SLUTSTATUS
+.TP 
+\fB0\fP
+Allt gick bra.
+.TP 
+\fB1\fP
+Ett fel uppstod.
+.PP
+\fBxzdec\fP har inte några varningsmeddelanden så som \fBxz\fP(1) har, och därför
+används aldrig slutstatusen 2 av \fBxzdec\fP.
+.SH NOTERINGAR
+Använd \fBxz\fP(1) istället för \fBxzdec\fP eller \fBlzmadec\fP för dagligt
+bruk. \fBxzdec\fP och \fBlzmadec\fP är bara avsedda för situationer där det är
+viktigt att ha en mindre dekomprimerare än den fullständiga \fBxz\fP(1).
+.PP
+\fBxzdec\fP och \fBlzmadec\fP är egentligen inte riktigt så små. Storleken kan
+reduceras ytterligare genom att ta bort funktioner från liblzma vid
+kompileringstidpunkten, men det skall normalt inte göras för körbara program
+som distribueras i en typisk, inte inbäddad, distribution av
+operativsystem. Om man behöver en verkligt liten \fB.xz\fP\-dekomprimerare skall
+man överväga XZ Embedded.
+.SH "SE ÄVEN"
+\fBxz\fP(1)
+.PP
+XZ Embedded: <https://tukaani.org/xz/embedded.html>

@@ -1,0 +1,77 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Author: Lasse Collin
+.\"
+.\" Arabic translation for xz-man.
+.\" Zayed Al-Saidi <zayed.alsaidi@gmail.com>, 2026.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZDEC 1 2024\-04\-08 توكاني "أدوات XZ"
+.SH الاسم
+xzdec, lzmadec \- مفكات ضغط صغيرة لـ xz. و lzma.
+.SH موجز
+\fBxzdec\fP [\fIخيار...\fP] [\fIملف...\fP]
+.br
+\fBlzmadec\fP [\fIخيار...\fP] [\fIملف...\fP]
+.SH الوصف
+\fBxzdec\fP هي أداة لفك الضغط فقط تعتمد على liblzma لملفات \fB.xz\fP (وفقط
+\&\fB.xz\fP). يُقصد من \fBxzdec\fP أن تعمل كبديل جاهز لـ \fBxz\fP(1) في أكثر الحالات
+شيوعاً حيث يُكتب البرنامج النصي لاستخدام \fBxz \-\-decompress \-\-stdout\fP (وربما
+خيارات شائعة أخرى) لفك ضغط ملفات \fB.xz\fP. أداة \fBlzmadec\fP مطابقة لـ \fBxzdec\fP
+باستثناء أنها تدعم ملفات \fB.lzma\fP بدلاً من ملفات \fB.xz\fP.
+.PP
+لتقليل حجم الملف القابل للتنفيذ، لا تدعم \fBxzdec\fP تعدد الخيوط أو التوطين،
+ولا تقرأ الخيارات من متغيرات البيئة \fBXZ_DEFAULTS\fP و\fBXZ_OPT\fP. كما لا تدعم
+\fBxzdec\fP عرض معلومات التقدم الوسيطة: إرسال \fBSIGINFO\fP لـ \fBxzdec\fP لا يفعل
+شيئاً، وإرسال \fBSIGUSR1\fP ينهي العملية بدلاً من عرض معلومات التقدم.
+.SH خيارات
+.TP 
+\fB\-d\fP, \fB\-\-decompress\fP, \fB\-\-uncompress\fP
+يُتجاهل للتوافق مع \fBxz\fP(1). تدعم \fBxzdec\fP فك الضغط فقط.
+.TP 
+\fB\-k\fP, \fB\-\-keep\fP
+يُتجاهل للتوافق مع \fBxz\fP(1). لا تنشئ \fBxzdec\fP أو تزيل أي ملفات أبداً.
+.TP 
+\fB\-c\fP, \fB\-\-stdout\fP, \fB\-\-to\-stdout\fP
+يُتجاهل للتوافق مع \fBxz\fP(1). تكتب \fBxzdec\fP دائماً البيانات المفكوكة إلى
+المخرج القياسي.
+.TP 
+\fB\-q\fP, \fB\-\-quiet\fP
+تحديد هذا مرة واحدة لا يفعل شيئاً لأن \fBxzdec\fP لا تعرض أي تحذيرات أو
+إشعارات. حدده مرتين لكتم الأخطاء.
+.TP 
+\fB\-Q\fP, \fB\-\-no\-warn\fP
+يُتجاهل للتوافق مع \fBxz\fP(1). لا تستخدم \fBxzdec\fP حالة الخروج 2 أبداً.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+عرض رسالة مساعدة والخروج بنجاح.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+عرض رقم إصدار \fBxzdec\fP و liblzma.
+.SH "حالة الخروج"
+.TP 
+\fB0\fP
+كل شيء كان جيداً.
+.TP 
+\fB1\fP
+حدث خطأ.
+.PP
+لا تملك \fBxzdec\fP أي رسائل تحذير مثل \fBxz\fP(1)، ولذا لا تستخدم \fBxzdec\fP حالة
+الخروج 2.
+.SH ملاحظات
+استخدم \fBxz\fP(1) بدلاً من \fBxzdec\fP أو \fBlzmadec\fP للاستخدام اليومي
+العادي. \fBxzdec\fP أو \fBlzmadec\fP مخصصان فقط للحالات التي يكون فيها من المهم
+توفير مفكك ضغط أصغر حجماً من \fBxz\fP(1) كامل الميزات.
+.PP
+\fBxzdec\fP و \fBlzmadec\fP ليسا صغيرين حقاً. يمكن تقليل الحجم أكثر عن طريق إسقاط
+ميزات من liblzma وقت التجميع، لكن لا ينبغي فعل ذلك عادةً للملفات التنفيذية
+الموزعة في توزيعات أنظمة التشغيل غير المدمجة التقليدية. إذا كنت بحاجة لمفكك
+ضغط \fB.xz\fP صغير حقاً، فكر في استخدام XZ Embedded.
+.SH "انظر أيضاً"
+\fBxz\fP(1)
+.PP
+XZ Embedded: <https://tukaani.org/xz/embedded.html>

@@ -1,0 +1,47 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Authors: Andrew Dudman
+.\"          Lasse Collin
+.\"
+.\" Arabic translation for xz-man.
+.\" Zayed Al-Saidi <zayed.alsaidi@gmail.com>, 2026.
+.\"
+.\" (Note that this file is based on xzless.1 instead of gzip's zmore.1.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZMORE 1 2025\-03\-06 توكاني "أدوات XZ"
+.SH الاسم
+xzmore, lzmore \- عرض ملفات (نصية) مضغوطة بصيغة xz أو lzma
+.
+.SH موجز
+\fBxzmore\fP [\fIملف\fP...]
+.br
+\fBlzmore\fP [\fIملف\fP...] (مهجور)
+.
+.SH الوصف
+تعرض \fBxzmore\fP النصوص من الملفات المضغوطة على الطرفية باستخدام
+\fBmore\fP(1). تُفك الملفات التي يدعمها \fBxz\fP(1)؛ ويُفترض أن الملفات الأخرى في
+صيغتها غير المضغوطة بالفعل. إذا لم تُعطَ \fIملفات\fP، تقرأ \fBxzmore\fP من
+المدخلات القياسية. انظر دليل \fBmore\fP(1) لمعرفة أوامر لوحة المفاتيح.
+.PP
+لاحظ أن التمرير للخلف قد لا يكون ممكناً اعتماداً على تنفيذ \fBmore\fP(1). وذلك
+لأن \fBxzmore\fP تستخدم أنبوباً لتمرير البيانات المفكوكة إلى \fBmore\fP(1). بينما
+تستخدم \fBxzless\fP(1) الأداة \fBless\fP(1) التي توفر ميزات أكثر تقدماً.
+.PP
+يتوفر الأمر \fBlzmore\fP للتوافق مع أدوات LZMA القديمة. وهو مهجور وسيُحذف في
+إصدار مستقبلي.
+.
+.SH البيئة
+.TP 
+.\" TRANSLATORS: Don't translate the uppercase PAGER.
+.\" It is a name of an environment variable.
+\fBPAGER\fP
+إذا ضُبط المتغير \fBPAGER\fP، فستُستخدم قيمته كمستعرض (pager) بدلاً من
+\fBmore\fP(1).
+.
+.SH "انظر أيضاً"
+\fBmore\fP(1), \fBxz\fP(1), \fBxzless\fP(1), \fBzmore\fP(1)

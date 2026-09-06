@@ -1,0 +1,92 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Authors: Lasse Collin
+.\"          Jia Tan
+.\"
+.\" Serbian translation of xz-man.
+.\" Мирослав Николић <miroslavnikolic@rocketmail.com>, 2025.
+.\"
+.\" (Note that this file is not based on gzip's zgrep.1.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZGREP 1 06.03.2025. Tukaani "XZ Utils"
+.SH НАЗИВ
+xzgrep – претражује могуће запаковане датотеке за шаблонима
+.
+.SH САЖЕТАК
+\fBxzgrep\fP [\fIопција...\fP] [\fIсписак_шаблона\fP] [\fIдатотека...\fP]
+.br
+\fBxzegrep\fP \&...
+.br
+\fBxzfgrep\fP \&...
+.br
+\fBlzgrep\fP \&...  (ЗАСТАРЕЛО)
+.br
+\fBlzegrep\fP \&...  (ЗАСТАРЕЛО)
+.br
+\fBlzfgrep\fP \&...  (ЗАСТАРЕЛО)
+.
+.SH ОПИС
+\fBxzgrep\fP призива \fBgrep\fP(1) на незапакованим садржајима датотека.  Формати
+\fIдатотека\fP се одређују из суфикса назива датотека.  Било која \fIдатотека\fP
+са суфиксом подржаним од стране \fBxz\fP(1), \fBgzip\fP(1), \fBbzip2\fP(1),
+\fBlzop\fP(1), \fBzstd\fP(1) или \fBlz4\fP(1) биће распакована; све остале датотеке
+се подразумевају да нису запаковане.
+.PP
+Ако \fIдатотеке\fP нису наведене или \fIдатотека\fP је \fB\-\fP тада се чита
+стандардни улаз.  Приликом читања са стандардног улаза, само датотеке
+подржане са \fBxz\fP(1) се распакују.  Друге датотеке се подразумева да су већ
+у незапакованом облику.
+.PP
+Већина \fIопција\fP \fBgrep\fP(1) је подржана. Међутим, следеће опције нису
+подржане:
+.IP "" 4
+\fB\-r\fP, \fB\-\-recursive\fP
+.IP "" 4
+\fB\-R\fP, \fB\-\-dereference\-recursive\fP
+.IP "" 4
+\fB\-d\fP, \fB\-\-directories=\fP\fIрадња\fP
+.IP "" 4
+\fB\-Z\fP, \fB\-\-null\fP
+.IP "" 4
+\fB\-z\fP, \fB\-\-null\-data\fP
+.IP "" 4
+\fB\-\-include=\fP\fIglob\fP
+.IP "" 4
+\fB\-\-exclude=\fP\fIglob\fP
+.IP "" 4
+\fB\-\-exclude\-from=\fP\fIдатотека\fP
+.IP "" 4
+\fB\-\-exclude\-dir=\fP\fIglob\fP
+.PP
+\fBxzegrep\fP је алијас за \fBxzgrep \-E\fP.  \fBxzfgrep\fP је алијас за \fBxzgrep \-F\fP.
+.PP
+Наредбе \fBlzgrep\fP, \fBlzegrep\fP и \fBlzfgrep\fP се достављају зарад назадне
+сагласности са LZMA Utils. Застареле су и биће уклоњене у будућем издању.
+.
+.SH "СТАЊЕ ИЗЛАЗА"
+.TP 
+0
+Најмање једно поклапање је пронађено из барем једне од улазних датотека.
+Није било грешака.
+.TP 
+1
+Никаква поклапања нису пронађена ни из једне од улазних датотека. Није дошло
+до грешака.
+.TP 
+>1
+Дошло је до једне или више грешака.  Није познато да ли су поклапања нађена.
+.
+.SH ОКРУЖЕЊЕ
+.TP 
+\fBGREP\fP
+Ако је \fBGREP\fP постављено на не\-празну вредност, користи се уместо \fBgrep\fP,
+\fBgrep \-E\fP или \fBgrep \-F\fP.
+.
+.SH "ВИДИТЕ ТАКОЂЕ"
+\fBgrep\fP(1), \fBxz\fP(1), \fBgzip\fP(1), \fBbzip2\fP(1), \fBlzop\fP(1), \fBzstd\fP(1),
+\fBlz4\fP(1), \fBzgrep\fP(1)

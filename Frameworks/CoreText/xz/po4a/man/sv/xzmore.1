@@ -1,0 +1,48 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Authors: Andrew Dudman
+.\"          Lasse Collin
+.\"
+.\" Swedish translation of xz-man
+.\" Göran Uddeborg <goeran@uddeborg.se>, 2025.
+.\"
+.\" (Note that this file is based on xzless.1 instead of gzip's zmore.1.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZMORE 1 2025\-03\-06 Tukaani "XZ Utils"
+.SH NAMN
+xzmore, lzmore — visa xz\- eller lzma\-komprimerade (text)filer
+.
+.SH SYNOPSIS
+\fBxzmore\fP [\fIfil\fP…]
+.br
+\fBlzmore\fP [\fIfil\fP…] (FÖRÅLDRAT)
+.
+.SH BESKRIVNING
+\fBxzmore\fP visar text från komprimerade filer i en terminal med användning av
+\fBmore\fP(1). Filer som stödjs av \fBxz\fP(1) dekomprimeras; andra filer antas
+redan vara i okomprimerad form. Om inga \fIfiler\fP ges läser \fBxzmore\fP från
+standard in. Se manualen för \fBmore\fP(1) för tangentbordskommandona.
+.PP
+Observera att det kanske inte är möjligt att rulla baklänges, beroende på
+implementationen av \fBmore\fP(1). Detta är för att \fBxzmore\fP använder ett rör
+för att skicka dekomprimerad data till \fBmore\fP(1). \fBxzless\fP(1) använder
+\fBless\fP(1) vilken ger mer avancerade funktioner.
+.PP
+Kommandot \fBlzmore\fP finns för bakåtkompatibilitet med LZMA Utils. Det
+rekommenderas inte och kommer tas bort i en framtida version.
+.
+.SH MILJÖ
+.TP 
+.\" TRANSLATORS: Don't translate the uppercase PAGER.
+.\" It is a name of an environment variable.
+\fBPAGER\fP
+Om \fBPAGER\fP är satt används dess värde som bläddrare istället för
+\fBmore\fP(1).
+.
+.SH "SE ÄVEN"
+\fBmore\fP(1), \fBxz\fP(1), \fBxzless\fP(1), \fBzmore\fP(1)

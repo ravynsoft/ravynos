@@ -1,0 +1,45 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Authors: Andrew Dudman
+.\"          Lasse Collin
+.\"
+.\" Arabic translation for xz-man.
+.\" Zayed Al-Saidi <zayed.alsaidi@gmail.com>, 2026.
+.\"
+.\" (Note that this file is not based on gzip's zless.1.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZLESS 1 2025\-03\-06 توكاني "أدوات XZ"
+.SH الاسم
+xzless, lzless \- عرض ملفات (نصية) مضغوطة بصيغة xz أو lzma
+.SH موجز
+\fBxzless\fP [\fIملف\fP...]
+.br
+\fBlzless\fP [\fIملف\fP...] (مهجور)
+.SH الوصف
+\fBxzless\fP هو مرشح يعرض النصوص من الملفات المضغوطة على الطرفية. تُفك الملفات
+التي يدعمها \fBxz\fP(1)؛ ويُفترض أن الملفات الأخرى في صيغتها غير المضغوطة
+بالفعل. إذا لم تُعطَ \fIملفات\fP، تقرأ \fBxzless\fP من المدخلات القياسية.
+.PP
+تستخدم \fBxzless\fP الأداة \fBless\fP(1) لعرض مخرجها. وبخلاف \fBxzmore\fP، لا يمكن
+تغيير خيار المستعرض (pager) الخاص بها عن طريق ضبط متغير بيئة. تعتمد الأوامر
+على كل من \fBmore\fP(1) و \fBvi\fP(1) وتسمح بالتحرك للأمام والخلف والبحث. انظر
+دليل \fBless\fP(1) لمزيد من المعلومات.
+.PP
+يتوفر الأمر \fBlzless\fP للتوافق مع أدوات LZMA القديمة. وهو مهجور وسيُحذف في
+إصدار مستقبلي.
+.SH البيئة
+.TP 
+\fBLESSMETACHARS\fP
+قائمة من الحروف الخاصة بالصدفة (shell). تضبطها \fBxzless\fP ما لم تكن مضبوطة
+بالفعل في البيئة.
+.TP 
+\fBLESSOPEN\fP
+يُضبط على سطر أوامر لاستدعاء مفكك ضغط \fBxz\fP(1) للمعالجة المسبقة لملفات
+المدخلات قبل تمريرها لـ \fBless\fP(1).
+.SH "انظر أيضاً"
+\fBless\fP(1), \fBxz\fP(1), \fBxzmore\fP(1), \fBzless\fP(1)

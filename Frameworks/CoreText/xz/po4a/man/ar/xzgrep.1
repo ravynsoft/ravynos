@@ -1,0 +1,89 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Authors: Lasse Collin
+.\"          Jia Tan
+.\"
+.\" Arabic translation for xz-man.
+.\" Zayed Al-Saidi <zayed.alsaidi@gmail.com>, 2026.
+.\"
+.\" (Note that this file is not based on gzip's zgrep.1.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZGREP 1 2025\-03\-06 توكاني "أدوات XZ"
+.SH الاسم
+xzgrep \- البحث عن أنماط داخل الملفات التي قد تكون مضغوطة
+.
+.SH موجز
+\fBxzgrep\fP [\fIخيار...\fP] [\fIقائمة_أنماط\fP] [\fIملف...\fP]
+.br
+\fBxzegrep\fP \&...
+.br
+\fBxzfgrep\fP \&...
+.br
+\fBlzgrep\fP \&... (مهجور)
+.br
+\fBlzegrep\fP \&... (مهجور)
+.br
+\fBlzfgrep\fP \&... (مهجور)
+.
+.SH الوصف
+يستدعي \fBxzgrep\fP الأداة \fBgrep\fP(1) على المحتويات غير المضغوطة للملفات. تُحدد
+صيغ \fIالملفات\fP من لاحقات أسمائها. أي \fIملف\fP بلاحقة يدعمها \fBxz\fP(1) أو
+\fBgzip\fP(1) أو \fBbzip2\fP(1) أو \fBlzop\fP(1) أو \fBzstd\fP(1) أو \fBlz4\fP(1) سيجري فك
+ضغطه؛ ويُفترض أن جميع الملفات الأخرى غير مضغوطة.
+.PP
+إذا لم تُحدد \fIملفات\fP أو كان \fIالملف\fP هو \fB\-\fP، تُقرأ المدخلات القياسية. عند
+القراءة من المدخلات القياسية، تُفك فقط الملفات التي يدعمها \fBxz\fP(1). يُفترض
+أن الملفات الأخرى في صيغتها غير المضغوطة بالفعل.
+.PP
+معظم \fIخيارات\fP \fBgrep\fP(1) مدعومة. ومع ذلك، الخيارات التالية غير مدعومة:
+.IP "" 4
+\fB\-r\fP, \fB\-\-recursive\fP
+.IP "" 4
+\fB\-R\fP, \fB\-\-dereference\-recursive\fP
+.IP "" 4
+\fB\-d\fP, \fB\-\-directories=\fP\fIإجراء\fP
+.IP "" 4
+\fB\-Z\fP, \fB\-\-null\fP
+.IP "" 4
+\fB\-z\fP, \fB\-\-null\-data\fP
+.IP "" 4
+\fB\-\-include=\fP\fIنمط\fP
+.IP "" 4
+\fB\-\-exclude=\fP\fIنمط\fP
+.IP "" 4
+\fB\-\-exclude\-from=\fP\fIملف\fP
+.IP "" 4
+\fB\-\-exclude\-dir=\fP\fIنمط\fP
+.PP
+\fBxzegrep\fP هو اسم مستعار لـ \fBxzgrep \-E\fP. و \fBxzfgrep\fP هو اسم مستعار لـ
+\fBxzgrep \-F\fP.
+.PP
+أوامر \fBlzgrep\fP و \fBlzegrep\fP و \fBlzfgrep\fP متوفرة للتوافق مع أدوات LZMA
+القديمة. وهي مهجورة وستُحذف في إصدار مستقبلي.
+.
+.SH "حالة الخروج"
+.TP 
+0
+وُجدت مطابقة واحدة على الأقل في ملف واحد على الأقل من ملفات المدخلات. ولم
+تحدث أخطاء.
+.TP 
+1
+لم توجد أي مطابقات في أي من ملفات المدخلات. ولم تحدث أخطاء.
+.TP 
+>1
+حدث خطأ واحد أو أكثر. من غير المعروف ما إذا عُثر على مطابقات.
+.
+.SH البيئة
+.TP 
+\fBGREP\fP
+إذا ضُبط المتغير \fBGREP\fP على قيمة غير فارغة، فسيُستخدم بدلاً من \fBgrep\fP أو
+\fBgrep \-E\fP أو \fBgrep \-F\fP.
+.
+.SH "انظر أيضاً"
+\fBgrep\fP(1), \fBxz\fP(1), \fBgzip\fP(1), \fBbzip2\fP(1), \fBlzop\fP(1), \fBzstd\fP(1),
+\fBlz4\fP(1), \fBzgrep\fP(1)

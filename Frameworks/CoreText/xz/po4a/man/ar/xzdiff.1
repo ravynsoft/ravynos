@@ -1,0 +1,52 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Authors: Lasse Collin
+.\"          Jia Tan
+.\"
+.\" Arabic translation for xz-man.
+.\" Zayed Al-Saidi <zayed.alsaidi@gmail.com>, 2026.
+.\"
+.\" (Note that this file is not based on gzip's zdiff.1.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZDIFF 1 2025\-03\-06 توكاني "أدوات XZ"
+.SH الاسم
+xzcmp, xzdiff, lzcmp, lzdiff \- مقارنة الملفات المضغوطة
+.
+.SH موجز
+\fBxzcmp\fP [\fIخيار...\fP] \fIملف1\fP [\fIملف2\fP]
+.br
+\fBxzdiff\fP \&...
+.br
+\fBlzcmp\fP \&... (مهجور)
+.br
+\fBlzdiff\fP \&... (مهجور)
+.
+.SH الوصف
+يقارن \fBxzcmp\fP و \fBxzdiff\fP المحتويات غير المضغوطة لملفين. تُمرر البيانات غير
+المضغوطة والخيارات إلى \fBcmp\fP(1) أو \fBdiff\fP(1) ما لم يُحدد \fB\-\-help\fP أو
+\fB\-\-version\fP.
+.PP
+إذا حُدد كل من \fIملف1\fP و \fIملف2\fP، يمكن أن يكونا ملفات غير مضغوطة أو ملفات
+بصيغ يمكن لكل من \fBxz\fP(1) أو \fBgzip\fP(1) أو \fBbzip2\fP(1) أو \fBlzop\fP(1) أو
+\fBzstd\fP(1) أو \fBlz4\fP(1) فك ضغطها. تُحدد أوامر فك الضغط المطلوبة من لاحقات
+أسماء الملفات. يُفترض أن الملف ذو اللاحقة غير المعروفة إما غير مضغوط أو
+بصيغة يمكن لـ \fBxz\fP(1) فك ضغطها.
+.PP
+إذا وُفر اسم ملف واحد فقط، يجب أن يملك \fIملف1\fP لاحقة صيغة ضغط مدعومة،
+ويُفترض أن اسم \fIملف2\fP هو \fIملف1\fP مع حذف لاحقة صيغة الضغط.
+.PP
+تتوفر أوامر \fBlzcmp\fP و \fBlzdiff\fP للتوافق مع أدوات LZMA القديمة. هذه الأوامر
+مهجورة وستُحذف في إصدار مستقبلي.
+.
+.SH "حالة الخروج"
+في حال حدوث خطأ في فك الضغط، تكون حالة الخروج \fB2\fP. بخلاف ذلك، تُستخدم حالة
+خروج \fBcmp\fP(1) أو \fBdiff\fP(1).
+.
+.SH "انظر أيضاً"
+\fBcmp\fP(1), \fBdiff\fP(1), \fBxz\fP(1), \fBgzip\fP(1), \fBbzip2\fP(1), \fBlzop\fP(1),
+\fBzstd\fP(1), \fBlz4\fP(1)

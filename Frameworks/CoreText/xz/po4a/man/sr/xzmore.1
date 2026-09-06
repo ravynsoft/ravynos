@@ -1,0 +1,49 @@
+.\" SPDX-License-Identifier: 0BSD
+.\"
+.\" Authors: Andrew Dudman
+.\"          Lasse Collin
+.\"
+.\" Serbian translation of xz-man.
+.\" Мирослав Николић <miroslavnikolic@rocketmail.com>, 2025.
+.\"
+.\" (Note that this file is based on xzless.1 instead of gzip's zmore.1.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XZMORE 1 06.03.2025. Tukaani "XZ Utils"
+.SH НАЗИВ
+xzmore, lzmore – приказује „xz“ или „lzma“ запаковане (текстуалне) датотеке
+.
+.SH САЖЕТАК
+\fBxzmore\fP [\fIдатотека\fP...]
+.br
+\fBlzmore\fP [\fIдатотека\fP...] (ЗАСТАРЕЛО)
+.
+.SH ОПИС
+\fBxzmore\fP приказује текст из запакованих датотека у терминалу користећи
+\fBmore\fP(1).  Датотеке које подржава \fBxz\fP(1) се распакују; остале датотеке
+се подразумева да су већ у незапакованом облику.  Ако није дата ни једна
+\fIдатотека\fP, \fBxzmore\fP чита са стандардног улаза.  Видите упутство
+\fBmore\fP(1) за више информација.
+.PP
+Знајте да клизање уназад можда неће бити могуће у зависности од примене
+\fBmore\fP(1).  Ово је зато што \fBxzmore\fP користи спојку за прослеђивање
+распакованих података ка \fBmore\fP(1).  \fBxzless\fP(1) користи \fBless\fP(1) које
+обезбеђује напреднијим функцијама.
+.PP
+Наредба \fBlzmore\fP се доставља зарад назадне сагласности са LZMA
+Utils. Застарела је и биће уклоњена у будућем издању.
+.
+.SH ОКРУЖЕЊЕ
+.TP 
+.\" TRANSLATORS: Don't translate the uppercase PAGER.
+.\" It is a name of an environment variable.
+\fBPAGER\fP
+Ако је \fBPAGER\fP постављено, његова вредност се користи као страничар уместо
+\fBmore\fP(1).
+.
+.SH "ВИДИТЕ ТАКОЂЕ"
+\fBmore\fP(1), \fBxz\fP(1), \fBxzless\fP(1), \fBzmore\fP(1)
