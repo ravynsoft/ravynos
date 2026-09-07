@@ -9,8 +9,10 @@ clean:
 DMIHelper: ${.CURDIR}/DMIHelper.c
 	mkdir -p ${BUILDROOT}/System/Library/CoreServices
 	$(CC) -o ${BUILDROOT}/System/Library/CoreServices/DMIHelper ${.CURDIR}/DMIHelper.c
+.if !defined(NO_ROOT) || !${NO_ROOT}
 	${SUDO} chown 0:0 ${BUILDROOT}/System/Library/CoreServices/DMIHelper
 	${SUDO} chmod 4755 ${BUILDROOT}/System/Library/CoreServices/DMIHelper
+.endif
 
 build: buildWindowServer DMIHelper buildDock buildFiler
 	mkdir -p ${BUILDROOT}/System/Library/CoreServices/
