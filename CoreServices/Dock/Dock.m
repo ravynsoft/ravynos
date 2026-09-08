@@ -300,8 +300,15 @@ extern Dock *dock; // our singleton object in main.m
 -(void)placeItemsInWindow:(int)maxItems {
     if(maxItems < [_items count])
         NSLog(@"Warning: truncating some items to fit the screen");
-    NSPoint itemPos = NSMakePoint(8, 0);
+    NSPoint itemPos;
     NSSize size = NSMakeSize(_tileSize, _tileSize);
+
+    if(_location == LOCATION_BOTTOM) {
+        itemPos = NSMakePoint(8, 0);
+    } else {
+        // Start near the top so items grow downward
+        itemPos = NSMakePoint(8, _currentSize.height - _tileSize - 8);
+    }
 
     for(int i = 0; i < maxItems - 1; ++i) {
         DockItem *item = [_items objectAtIndex:i];
@@ -314,7 +321,7 @@ extern Dock *dock; // our singleton object in main.m
                 itemPos.x += CELL_SPACER + 2;
             } else {
                 rect = NSMakeRect(8, itemPos.y, _tileSize, CELL_SPACER);
-                itemPos.y += CELL_SPACER + 2;
+                itemPos.y -= CELL_SPACER + 2;
             }
 
             Divider *divider = [[Divider alloc] initWithFrame:rect];
@@ -328,7 +335,7 @@ extern Dock *dock; // our singleton object in main.m
         if(_location == LOCATION_BOTTOM)
             itemPos.x += _tileSize + CELL_SPACER / 2;
         else
-            itemPos.y += _tileSize + CELL_SPACER / 2;
+            itemPos.y -= _tileSize + CELL_SPACER / 2;
     }
 
     // make sure Trash comes last
