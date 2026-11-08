@@ -22,6 +22,9 @@
  */
 #include <math.h>
 #include <errno.h>
+#include <fenv.h>
+#include <float.h>
+#include <stdbool.h>
 
 bool signbit(double __x) { return __builtin_signbit(__x); }
 int fpclassify(double __x) {
@@ -94,21 +97,41 @@ long double floorl(long double __x) { return __builtin_floorl(__x); }
 float fmodf(float __x, float __y) { return (float)fmodl(__x, __y); }
 double fmod(double __x, double __y) { return (double)fmodl(__x, __y); }
 long double fmodl(long double __x, long double __y) {
-    if (isnan(__x) || isnan(__y))
-        return FP_NAN;
-    if (isinf(__x)) {
+    if (__builtin_isnan(__x) || __builtin_isnan(__y))
+        return __x + __y;
+    if (__builtin_isinf_sign(__x) || __y == 0.0L) {
         errno = EDOM;
-        return FP_NAN; // FIXME: should raise exception
+        feraiseexcept(FE_INVALID);
+        return __builtin_nanl("");
     }
-    if (__y == 0) {
-        errno = EDOM;
-        return FP_NAN; // FIXME: should raise exception
+    if (__builtin_isinf_sign(__y) || __x == 0.0L)
+        return __x;
+
+    bool negative = __builtin_signbit(__x);
+    long double remainder = __builtin_fabsl(__x);
+    long double divisor = __builtin_fabsl(__y);
+    if (remainder < divisor)
+        return __x;
+
+    /* Shift the divisor up to the largest exact power-of-two multiple
+     * that fits in the dividend, then subtract those multiples downwards.
+     * This avoids narrowing either operand to an integer. */
+    long double scaled_divisor = divisor;
+    while (scaled_divisor <= LDBL_MAX / 2.0L) {
+        long double twice = scaled_divisor + scaled_divisor;
+        if (twice > remainder)
+            break;
+        scaled_divisor = twice;
     }
-    long long n = (long long)__x / (long long)__y;
-    long double z = __x - (long double)n * __y;
-    if (z < 0)
-        z *= -1.0;
-    return z;
+    while (scaled_divisor > divisor) {
+        if (remainder >= scaled_divisor)
+            remainder -= scaled_divisor;
+        scaled_divisor *= 0.5L;
+    }
+    if (remainder >= divisor)
+        remainder -= divisor;
+
+    return negative ? -remainder : remainder;
 }
 
 int _fmodtest(void) {
