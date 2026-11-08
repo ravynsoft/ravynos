@@ -1,6 +1,7 @@
 CLANG ?= clang
 CFLAGS ?= -O2 -g
-CFLAGS += -std=c11 -Wall -Wextra -fno-builtin -frounding-math -ftrapping-math
+CFLAGS += -std=c11 -Wall -Wextra -Werror -Wno-unused-parameter \
+	-fno-builtin -frounding-math -ftrapping-math
 LDLIBS += -lm
 
 ROOT = ..

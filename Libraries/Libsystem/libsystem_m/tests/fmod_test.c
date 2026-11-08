@@ -12,7 +12,7 @@ static int failures;
     } \
 } while (0)
 
-#define DEFINE_FMOD_TESTS(suffix, type, call, infinity, quiet_nan, negative_zero, huge, remainder) \
+#define DEFINE_FMOD_TESTS(suffix, type, call, infinity, quiet_nan, signaling_nan, negative_zero, huge, remainder) \
 static void test_fmod_##suffix(void) \
 { \
     volatile type x = (type)5.25; \
@@ -20,6 +20,7 @@ static void test_fmod_##suffix(void) \
     volatile type inf = (type)(infinity); \
     volatile type zero = (type)0.0; \
     volatile type qnan = (type)(quiet_nan); \
+    volatile type snan = (type)(signaling_nan); \
     volatile type huge_input = (type)(huge); \
     volatile type negative_zero_value = (type)(negative_zero); \
     type result; \
@@ -101,13 +102,20 @@ static void test_fmod_##suffix(void) \
     CHECK(__builtin_isnan(result)); \
     CHECK((fetestexcept(FE_ALL_EXCEPT) & FE_INVALID) == 0); \
     CHECK(errno == EINTR); \
+    \
+    feclearexcept(FE_ALL_EXCEPT); \
+    errno = EINTR; \
+    result = call(snan, (type)2.0); \
+    CHECK(__builtin_isnan(result)); \
+    CHECK((fetestexcept(FE_ALL_EXCEPT) & FE_INVALID) != 0); \
+    CHECK(errno == EINTR); \
 }
 
-DEFINE_FMOD_TESTS(f, float, fmodf, __builtin_inff(), __builtin_nanf(""), \
+DEFINE_FMOD_TESTS(f, float, fmodf, __builtin_inff(), __builtin_nanf(""), __builtin_nansf(""), \
     __builtin_copysignf(0.0f, -1.0f), 0x1p40f, 1.0f)
-DEFINE_FMOD_TESTS(d, double, fmod, __builtin_inf(), __builtin_nan(""), \
+DEFINE_FMOD_TESTS(d, double, fmod, __builtin_inf(), __builtin_nan(""), __builtin_nans(""), \
     __builtin_copysign(0.0, -1.0), 0x1p100, 1.0)
-DEFINE_FMOD_TESTS(l, long double, fmodl, __builtin_infl(), __builtin_nanl(""), \
+DEFINE_FMOD_TESTS(l, long double, fmodl, __builtin_infl(), __builtin_nanl(""), __builtin_nansl(""), \
     __builtin_copysignl(0.0L, -1.0L), 0x1p1000L, 1.0L)
 
 int main(void)
